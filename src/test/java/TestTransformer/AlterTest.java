@@ -1,44 +1,40 @@
 package TestTransformer;
 
-import org.junit.runner.*;
 import org.junit.*;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-import org.powermock.api.mockito.PowerMockito;
-import static org.powermock.api.mockito.PowerMockito.mockStatic;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.powermock.core.classloader.annotations.*;
+import mockit.*;
 import subject.*;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({
-    NonStaticSubject.class,
-    StaticSubject.class
-})
 public class AlterTest {
 
-    @Mocked NonStaticSubject ss;
-
     @Test
-    public void test_mock_alternative_way() {
-        //mockStatic(NonStaticSubject.class);
-        //when(NonStaticSubject.create()).thenReturn(ss);
+    public void test_mock_alternative_way(@Mocked NonStaticSubject nss) {
         new MockUp<NonStaticSubject>() {
             @Mock
             public NonStaticSubject create() {
-                return ss;
+                return nss;
             }
         };
-        when(ss.val()).thenReturn(16);
-
-        doNothing().when(ss).noReturn();
-
-        mockStatic(StaticSubject.class);
-        when(StaticSubject.getRefun()).thenReturn(8);
-        PowerMockito.doNothing().when(StaticSubject.class);
-        StaticSubject.noRefun();
+        new MockUp<StaticSubject>() {
+            @Mock
+            public int getRefun(Invocation inv) {
+                assertEquals(inv.getInvocationCount(), 1);
+                return 9;
+            }
+            @Mock
+            public void noRefun(Invocation inv) {
+                assertEquals(inv.getInvocationCount(), 1);
+                // doNothing
+            }
+        };
+        new Expectations() {{ nss.val(); result = 1928; }};
         
         App t = new App();
-        assertEquals(t.getVal(), 8+16);
+        assertEquals(t.getVal(), 9+1928);
+
+        new Verifications() {{
+            nss.val(); times = 1;
+            nss.noReturn(); times = 1;
+        }};
     }
 }

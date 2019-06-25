@@ -6,6 +6,7 @@ import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.core.classloader.annotations.*;
 import subject.*;
@@ -31,5 +32,12 @@ public class MockTest {
         
         App t = new App();
         assertEquals(t.getVal(), 8+16);
+
+        verify(ss, times(1)).val();
+        verify(ss, times(1)).noReturn();
+        verifyStatic(times(1));
+        StaticSubject.getRefun();
+        verifyStatic(times(1));
+        StaticSubject.noRefun();
     }
 }
