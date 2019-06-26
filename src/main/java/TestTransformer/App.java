@@ -4,8 +4,15 @@
 package TestTransformer;
 
 import subject.*;
+import java.io.*;
+import java.util.*;
+import java.util.stream.*;
+import com.github.javaparser.*;
+import com.github.javaparser.ast.*;
 
 public class App {
+
+    private OutputStream os;
 
     public int getVal() {
         Storage.reset();
@@ -15,7 +22,68 @@ public class App {
         return StaticSubject.getRefun() + nss.val() + Storage.feed + Storage.foo;
     }
 
-    public static void main(String[] args) {
-        System.out.println(new App().getVal());
+    public static void main(String[] args) throws Exception {
+        new App().transform();
+    }
+
+    public void transform() throws Exception {
+        CompilationUnit cUnit = StaticJavaParser.parse(new File("/zk/p/javawb/TestTransformer/src/test/java/TestTransformer/MockTest.java"));
+        //System.out.println(cUnit);
+        /*
+        List<Node> uselessImport =
+            cUnit.findAll(ImportDeclaration.class).stream()
+            .filter(e -> {
+                return e.getName().asString().startsWith("org.powermock")
+                        || e.getName().asString().startsWith("org.junit.runner")
+                        || e.getName().asString().startsWith("org.mockito");
+            })
+            .collect(Collectors.toList());
+        if (uselessImport.isEmpty()) {
+            return;
+        }
+        Node importParent = uselessImport.get(0).getParentNode().get();
+        for (Node n: uselessImport) {
+            importParent.remove(n);
+        }
+        importParent.getChildNodes().add(new ImportDeclaration("mockit", false, true));
+        */
+        NodeList<ImportDeclaration> imports = cUnit.getImports();
+        imports.stream()
+                .filter(e -> {
+                    return e.getName().asString().startsWith("org.powermock")
+                            || e.getName().asString().startsWith("org.junit.runner")
+                            || e.getName().asString().startsWith("org.mockito");
+                })
+                .forEach(imports::remove);
+        
+
+        System.out.println(cUnit);
+        //print(cUnit);
+    }
+
+    public void print(Node node) throws Exception {
+        this.os = new FileOutputStream(new File("/tmp/out"));
+        print(node, 1);
+        this.os.close();
+    }
+
+    public void print(Node node, int deep) throws Exception {
+        print(buildPrefix(deep) + " " + node.toString() + " :: " + node.getClass().toString() + "<<<<\n");
+        int cdeep = deep + 1;
+        for (Node child: node.getChildNodes()) {
+            print(child, cdeep);
+        }
+    }
+
+    public void print(String content) throws Exception {
+        this.os.write(content.getBytes());
+    }
+
+    public String buildPrefix(int len) {
+        StringBuilder sb = new StringBuilder(len * 4);
+        for (int i = 0; i < len; i++) {
+            sb.append("   >");
+        }
+        return sb.toString();
     }
 }
