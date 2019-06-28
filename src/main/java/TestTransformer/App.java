@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.stream.*;
 import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.expr.*;
 
 public class App {
 
@@ -27,47 +29,73 @@ public class App {
     }
 
     public void transform() throws Exception {
-        CompilationUnit cUnit = StaticJavaParser.parse(new File("/zk/p/javawb/TestTransformer/src/test/java/TestTransformer/MockTest.java"));
-        //System.out.println(cUnit);
-        /*
-        List<Node> uselessImport =
-            cUnit.findAll(ImportDeclaration.class).stream()
-            .filter(e -> {
-                return e.getName().asString().startsWith("org.powermock")
-                        || e.getName().asString().startsWith("org.junit.runner")
-                        || e.getName().asString().startsWith("org.mockito");
-            })
-            .collect(Collectors.toList());
-        if (uselessImport.isEmpty()) {
-            return;
+        CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
+
+        removeImportStartsWith(cUnit, "org.powermock");
+        removeImportStartsWith(cUnit, "org.mockito");
+
+        if (removePowerMockRunner(cUnit)) {
+            removeImportStartsWith(cUnit, "org.junit.runner");
         }
-        Node importParent = uselessImport.get(0).getParentNode().get();
-        for (Node n: uselessImport) {
-            importParent.remove(n);
-        }
-        importParent.getChildNodes().add(new ImportDeclaration("mockit", false, true));
-        */
-        NodeList<ImportDeclaration> imports = cUnit.getImports();
-        imports.stream()
-                .filter(e -> {
-                    return e.getName().asString().startsWith("org.powermock")
-                            || e.getName().asString().startsWith("org.junit.runner")
-                            || e.getName().asString().startsWith("org.mockito");
-                })
-                .forEach(imports::remove);
-        
+
+        cUnit.addImport(new ImportDeclaration("mockit", false, true));
+
+        // ClassOrInterfaceDeclaration
+        // SingleMemberAnnotationExpr
 
         System.out.println(cUnit);
         //print(cUnit);
     }
 
-    public void print(Node node) throws Exception {
+    private void removeImportStartsWith(CompilationUnit cUnit, String importPrefix) {
+        NodeList<ImportDeclaration> imports = cUnit.getImports();
+        ArrayList<ImportDeclaration> useless = new ArrayList<>(imports.size());
+        for (ImportDeclaration imp: imports) {
+            String name = imp.getName().asString();
+            if (name.startsWith(importPrefix)) {
+                useless.add(imp);
+            }
+        }
+
+        for (ImportDeclaration imp: useless) {
+            imports.remove(imp);
+        }
+    }
+
+    private boolean removePowerMockRunner(CompilationUnit cUnit) {
+        boolean output = false;
+        for (ClassOrInterfaceDeclaration classNode: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
+            ArrayList<Node> useless = new ArrayList<>();
+            for (Node cn: classNode.getChildNodes()) {
+                if (cn instanceof SingleMemberAnnotationExpr) {
+                    SingleMemberAnnotationExpr acn = (SingleMemberAnnotationExpr) cn;
+                    String identifier = acn.getName().getIdentifier();
+                    if ("RunWith".equals(identifier)) {
+                        String mv = acn.getMemberValue().toString();
+                        if ("PowerMockRunner.class".equals(mv)) {
+                            output = true;
+                            useless.add(cn);
+                        }
+                    } else if ("PrepareForTest".equals(identifier)){
+                        output = true;
+                        useless.add(cn);
+                    }
+                }
+            }
+            for (Node un: useless) {
+                classNode.remove(un);
+            }
+        }
+        return output;
+    }
+
+    private void print(Node node) throws Exception {
         this.os = new FileOutputStream(new File("/tmp/out"));
         print(node, 1);
         this.os.close();
     }
 
-    public void print(Node node, int deep) throws Exception {
+    private void print(Node node, int deep) throws Exception {
         print(buildPrefix(deep) + " " + node.toString() + " :: " + node.getClass().toString() + "<<<<\n");
         int cdeep = deep + 1;
         for (Node child: node.getChildNodes()) {
@@ -75,11 +103,11 @@ public class App {
         }
     }
 
-    public void print(String content) throws Exception {
+    private void print(String content) throws Exception {
         this.os.write(content.getBytes());
     }
 
-    public String buildPrefix(int len) {
+    private String buildPrefix(int len) {
         StringBuilder sb = new StringBuilder(len * 4);
         for (int i = 0; i < len; i++) {
             sb.append("   >");
