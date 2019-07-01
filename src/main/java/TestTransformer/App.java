@@ -11,6 +11,7 @@ import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.expr.*;
+import com.github.javaparser.ast.stmt.*;
 
 public class App {
 
@@ -40,8 +41,11 @@ public class App {
 
         cUnit.addImport(new ImportDeclaration("mockit", false, true));
 
-        // ClassOrInterfaceDeclaration
-        // SingleMemberAnnotationExpr
+        for (ClassOrInterfaceDeclaration classUnit: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
+            for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
+                rebuildMethod(methodUnit);
+            }
+        }
 
         System.out.println(cUnit);
         //print(cUnit);
@@ -89,10 +93,41 @@ public class App {
         return output;
     }
 
-    private void print(Node node) throws Exception {
-        this.os = new FileOutputStream(new File("/tmp/out"));
-        print(node, 1);
-        this.os.close();
+    private void rebuildMethod(MethodDeclaration method) {
+        ArrayList<String> staticMocked = new ArrayList<>();
+        LinkedList<Node> useless = new LinkedList<>();
+        BlockStmt methodBody = method.getBody().get();
+        for (Statement stmt: methodBody.getStatements()) {
+            for (MethodCallExpr call: stmt.findAll(MethodCallExpr.class)) {
+                if ("mockStatic".equals(call.getName().asString())) {
+                    for (Expression ex: call.getArguments()) {
+                        String className = ex.toString();
+                        staticMocked.add(className.substring(0, className.lastIndexOf('.')));
+                    }
+                    useless.push(stmt);
+                }
+            }
+        }
+        staticMocked.forEach(e -> System.out.println("-->>> " + e));
+        while ( ! useless.isEmpty()) {
+            methodBody.remove(useless.pop());
+        }
+
+        for (Statement stm: methodBody.getStatements()) {
+            if (stm.toString().contains("when")) {
+                print(stm);
+            }
+        }
+    }
+
+    private void print(Node node) {
+        try {
+            this.os = new FileOutputStream(new File("/tmp/out"));
+            print(node, 1);
+            this.os.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void print(Node node, int deep) throws Exception {
@@ -104,7 +139,8 @@ public class App {
     }
 
     private void print(String content) throws Exception {
-        this.os.write(content.getBytes());
+        //this.os.write(content.getBytes());
+        System.out.print(content);
     }
 
     private String buildPrefix(int len) {
