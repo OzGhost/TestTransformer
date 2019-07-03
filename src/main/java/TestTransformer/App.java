@@ -16,6 +16,8 @@ import com.github.javaparser.ast.stmt.*;
 
 public class App {
 
+    private static final int CASE_DELTA = (int)'a' - (int)'A';
+
     private OutputStream os;
 
     public int getVal() {
@@ -32,6 +34,8 @@ public class App {
 
     public void transform() throws Exception {
         CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
+        //CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
+        //print(cUnit);
 
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
@@ -102,12 +106,29 @@ public class App {
         LinkedList<Node> useless = new LinkedList<>();
         BlockStmt methodBody = method.getBody().get();
 
+        ArrayList<MethodCallExpr> ori = new ArrayList<>();
+        ArrayList<NameExpr> repl = new ArrayList<>();
+        HashMap<String, String> varNameTypeMap = new HashMap<>();
+
         for (MethodCallExpr call: methodBody.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
-                print(call);
-                String name = call.getArguments().get(0).findFirst(ClassOrInterfaceType.class).get().getName().asString();;
-                System.out.println("<><> " + name);
+                String mockedType = call.getArguments().get(0)
+                    .findFirst(ClassOrInterfaceType.class).get()
+                    .getName().asString();;
+                String replacementVarName = buildVariableName(mockedType, varNameTypeMap.keySet());
+                varNameTypeMap.put(replacementVarName, mockedType);
+                ori.add(call);
+                repl.add(new NameExpr(replacementVarName));
             }
+        }
+
+        for (int i = 0; i < ori.size(); ++i) {
+            ori.get(i).getParentNode().get().replace(ori.get(i), repl.get(i));
+        }
+
+        for (Map.Entry entry: varNameTypeMap.entrySet()) {
+            Parameter param = buildParameterForMockedVar(entry);
+            method.getParameters().add(param);
         }
 
         for (Statement stmt: methodBody.getStatements()) {
@@ -121,7 +142,7 @@ public class App {
                 }
             }
         }
-        staticMocked.forEach(e -> System.out.println("-->>> " + e));
+        //staticMocked.forEach(e -> System.out.println("-->>> " + e));
         while ( ! useless.isEmpty()) {
             methodBody.remove(useless.pop());
         }
@@ -135,6 +156,34 @@ public class App {
         */
     }
 
+    private String buildVariableName(String varType, Set<String> usedVarName) {
+        char firstCharLowerCase = (char)( (int) varType.charAt(0) + CASE_DELTA );
+        String base = new StringBuilder(varType.length())
+                            .append(firstCharLowerCase)
+                            .append(varType.substring(1, varType.length()))
+                            .toString();
+        String output = base;
+        int version = 1;
+        while (usedVarName.contains(output)) {
+            version++;
+            output = base + "_v" + version;
+        }
+        return output;
+    }
+
+    private Parameter buildParameterForMockedVar(Map.Entry<String, String> nameType) {
+        NodeList<AnnotationExpr> annotations = new NodeList<>();
+        annotations.add(new MarkerAnnotationExpr("Mocked"));
+        return new Parameter(
+                new NodeList<>(),
+                annotations,
+                new ClassOrInterfaceType(nameType.getValue()),
+                false,
+                new NodeList<>(),
+                new SimpleName(nameType.getKey())
+        );
+    }
+
     private void print(Node node) {
         try {
             this.os = new FileOutputStream(new File("/tmp/out"));
@@ -146,7 +195,9 @@ public class App {
     }
 
     private void print(Node node, int deep) throws Exception {
-        print(buildPrefix(deep) + " " + node.toString() + " :: " + node.getClass().toString() + "<<<<\n");
+        print(buildPrefix(deep) + " "
+                + node.toString() + " :: "
+                + node.getClass().toString() + "<<<<\n");
         int cdeep = deep + 1;
         for (Node child: node.getChildNodes()) {
             print(child, cdeep);
