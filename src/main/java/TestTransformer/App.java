@@ -10,6 +10,7 @@ import java.util.stream.*;
 import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 
@@ -32,8 +33,11 @@ public class App {
     public void transform() throws Exception {
         CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
 
-        removeImportStartsWith(cUnit, "org.powermock");
-        removeImportStartsWith(cUnit, "org.mockito");
+        boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
+        mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
+        if ( ! mocked) {
+            return;
+        }
 
         if (removePowerMockRunner(cUnit)) {
             removeImportStartsWith(cUnit, "org.junit.runner");
@@ -51,7 +55,7 @@ public class App {
         //print(cUnit);
     }
 
-    private void removeImportStartsWith(CompilationUnit cUnit, String importPrefix) {
+    private boolean removeImportStartsWith(CompilationUnit cUnit, String importPrefix) {
         NodeList<ImportDeclaration> imports = cUnit.getImports();
         ArrayList<ImportDeclaration> useless = new ArrayList<>(imports.size());
         for (ImportDeclaration imp: imports) {
@@ -60,10 +64,10 @@ public class App {
                 useless.add(imp);
             }
         }
-
         for (ImportDeclaration imp: useless) {
             imports.remove(imp);
         }
+        return !useless.isEmpty();
     }
 
     private boolean removePowerMockRunner(CompilationUnit cUnit) {
@@ -97,6 +101,15 @@ public class App {
         ArrayList<String> staticMocked = new ArrayList<>();
         LinkedList<Node> useless = new LinkedList<>();
         BlockStmt methodBody = method.getBody().get();
+
+        for (MethodCallExpr call: methodBody.findAll(MethodCallExpr.class)) {
+            if ("mock".equals(call.getName().asString())) {
+                print(call);
+                String name = call.getArguments().get(0).findFirst(ClassOrInterfaceType.class).get().getName().asString();;
+                System.out.println("<><> " + name);
+            }
+        }
+
         for (Statement stmt: methodBody.getStatements()) {
             for (MethodCallExpr call: stmt.findAll(MethodCallExpr.class)) {
                 if ("mockStatic".equals(call.getName().asString())) {
@@ -113,11 +126,13 @@ public class App {
             methodBody.remove(useless.pop());
         }
 
+        /*
         for (Statement stm: methodBody.getStatements()) {
             if (stm.toString().contains("when")) {
                 print(stm);
             }
         }
+        */
     }
 
     private void print(Node node) {
