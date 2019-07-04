@@ -143,9 +143,11 @@ public class App {
             varNameTypeMap.put(varName, varType);
         }
 
+        /*
         for (Map.Entry entry: varNameTypeMap.entrySet()) {
             System.out.println("found -->> var: " + entry.getKey() + " with type: " + entry.getValue());
         }
+        */
 
         for (Statement stmt: methodBody.getStatements()) {
             for (MethodCallExpr call: stmt.findAll(MethodCallExpr.class)) {
@@ -163,6 +165,12 @@ public class App {
             methodBody.remove(useless.pop());
         }
 
+        for (Statement stm: methodBody.getStatements()) {
+            String stmas = stm.toString();
+            if (stmas.contains("when")) {
+                System.out.println(stmas);
+            }
+        }
     }
 
     private String buildVariableName(String varType, Set<String> usedVarName) {
