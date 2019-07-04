@@ -106,8 +106,8 @@ public class App {
         LinkedList<Node> useless = new LinkedList<>();
         BlockStmt methodBody = method.getBody().get();
 
-        ArrayList<MethodCallExpr> ori = new ArrayList<>();
-        ArrayList<NameExpr> repl = new ArrayList<>();
+        ArrayList<Node> ori = new ArrayList<>();
+        ArrayList<Node> repl = new ArrayList<>();
         HashMap<String, String> varNameTypeMap = new HashMap<>();
 
         for (MethodCallExpr call: methodBody.findAll(MethodCallExpr.class)) {
@@ -129,6 +129,22 @@ public class App {
         for (Map.Entry entry: varNameTypeMap.entrySet()) {
             Parameter param = buildParameterForMockedVar(entry);
             method.getParameters().add(param);
+        }
+
+        for (VariableDeclarator varTor: methodBody.findAll(VariableDeclarator.class)) {
+            String varName = varTor.getName().asString();
+            String varType = "";
+            Optional<ClassOrInterfaceType> oType =  varTor.findFirst(ClassOrInterfaceType.class);
+            if (oType.isPresent()) {
+                varType = oType.get().getName().asString();
+            } else {
+                varType = varTor.findFirst(PrimitiveType.class).get().asString();
+            }
+            varNameTypeMap.put(varName, varType);
+        }
+
+        for (Map.Entry entry: varNameTypeMap.entrySet()) {
+            System.out.println("found -->> var: " + entry.getKey() + " with type: " + entry.getValue());
         }
 
         for (Statement stmt: methodBody.getStatements()) {
