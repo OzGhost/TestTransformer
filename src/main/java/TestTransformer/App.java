@@ -55,7 +55,7 @@ public class App {
             }
         }
 
-        System.out.println(cUnit);
+        //System.out.println(cUnit);
         //print(cUnit);
     }
 
@@ -163,13 +163,6 @@ public class App {
             methodBody.remove(useless.pop());
         }
 
-        /*
-        for (Statement stm: methodBody.getStatements()) {
-            if (stm.toString().contains("when")) {
-                print(stm);
-            }
-        }
-        */
     }
 
     private String buildVariableName(String varType, Set<String> usedVarName) {
