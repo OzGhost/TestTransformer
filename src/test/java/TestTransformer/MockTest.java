@@ -1,5 +1,6 @@
 package TestTransformer;
 
+import java.util.Date;
 import org.junit.runner.*;
 import org.junit.*;
 import static org.junit.Assert.*;
@@ -18,7 +19,6 @@ import subject.*;
 })
 public class MockTest {
 
-    @Test
     public void test_of_the_test(int iv1, Date iv2) {
         int cv1 = iv1;
         Date cv2 = iv2;

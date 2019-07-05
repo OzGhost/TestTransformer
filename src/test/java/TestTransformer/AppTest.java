@@ -13,9 +13,4 @@ public class AppTest {
         App t = new App();
         assertEquals(t.getVal(), 189+29+100+105);
     }
-
-    @Test
-    public void test_transformer() throws Exception {
-        new App().transform();
-    }
 }

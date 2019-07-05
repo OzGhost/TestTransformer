@@ -39,6 +39,7 @@ public class CompilationUnitWorker {
 
         //System.out.println(cUnit);
         //Printer.print(cUnit);
+        return cUnit;
     }
 
     private boolean removeImportStartsWith(CompilationUnit cUnit, String importPrefix) {
