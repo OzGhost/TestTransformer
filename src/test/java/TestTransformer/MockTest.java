@@ -19,10 +19,12 @@ import subject.*;
 })
 public class MockTest {
 
+    /*
     public void test_of_the_test(int iv1, Date iv2) {
         int cv1 = iv1;
         Date cv2 = iv2;
     }
+    */
 
     @Test
     public void test_mock_all() {

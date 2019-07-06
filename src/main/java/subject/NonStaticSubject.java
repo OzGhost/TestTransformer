@@ -13,4 +13,11 @@ public class NonStaticSubject {
     public int val() {
         return 29;
     }
+
+    public int lift(int state) {
+        if (state < 100) {
+            return 99;
+        }
+        return 150;
+    }
 }
