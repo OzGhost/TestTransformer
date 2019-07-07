@@ -42,6 +42,7 @@ public class MethodWorker {
             checkType(n, belowNode);
         }
         WoodLog.printCuts();
+        System.out.println(mockMeta);
     }
 
     private void replaceMockedObject(MethodDeclaration methodUnit) {
@@ -105,8 +106,8 @@ public class MethodWorker {
             String param = returnMp.group(3);
             String out = returnMp.group(4);
 
-            List<CoreMockMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
-            CoreMockMeta meta = new CoreMockMeta(param, out, false, false);
+            List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+            CallMeta meta = new CallMeta(param, out, false, false);
             cmm.add(meta);
         } else {
             Matcher voidMp = VOID_MP.matcher(nodeAsString);
@@ -115,17 +116,24 @@ public class MethodWorker {
                 String call = voidMp.group(2);
                 String param = voidMp.group(3);
 
-                List<CoreMockMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
-                CoreMockMeta meta = new CoreMockMeta(param, "", false, true);
+                List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+                CallMeta meta = new CallMeta(param, "", false, true);
                 cmm.add(meta);
             } else {
                 Matcher staticVoidMp = STATIC_VOID_MP.matcher(nodeAsString);
                 if (staticVoidMp.find()) {
                     String subject = staticVoidMp.group(1);
                     if (belowNode == null) {
-                        WoodLog.attach(ERROR, subject, "<?>", CoreMockMeta.NIL, "Found no co-mock void method");
+                        WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Found no co-mock void method");
                     } else {
-                        WoodLog.attach(ERROR, subject, "<?>", CoreMockMeta.NIL, "Co-mock void didn't support yet");
+                        WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Co-mock void didn't support yet");
+                        WoodLog.attach(ERROR, subject, "<?>", new CallMeta("12", "38", false, false), "Just4Test");
+                        WoodLog.attach(ERROR, subject, "<?>", new CallMeta("12", "", false, true), "Just4Test");
+                        WoodLog.attach(ERROR, subject, "<?>", new CallMeta("12", "NullPointerException", true, true), "Just4Test");
+
+                        List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName("<?>");
+                        CallMeta meta = new CallMeta("<?>", "<?>", false, false);
+                        cmm.add(meta);
                     }
                 }
             }

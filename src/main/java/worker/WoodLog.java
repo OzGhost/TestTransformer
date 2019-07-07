@@ -22,7 +22,7 @@ public class WoodLog {
         currentSubject = subjectName;
     }
 
-    public static void attach(int level, String call, CoreMockMeta callMeta, String message) {
+    public static void attach(int level, String call, CallMeta callMeta, String message) {
         Cut cut = new Cut();
         cut.level = level;
         cut.classLevel = currentClass;
@@ -34,7 +34,7 @@ public class WoodLog {
         cuts.offer(cut);
     }
 
-    public static void attach(int level, String subject, String call, CoreMockMeta callMeta, String message) {
+    public static void attach(int level, String subject, String call, CallMeta callMeta, String message) {
         Cut cut = new Cut();
         cut.level = level;
         cut.classLevel = currentClass;
@@ -67,7 +67,7 @@ public class WoodLog {
         private String methodLevel;
         private String subjectLevel;
         private String call;
-        private CoreMockMeta callMeta;
+        private CallMeta callMeta;
         private String message;
         private int level;
 
@@ -87,7 +87,7 @@ public class WoodLog {
             return call;
         }
 
-        public CoreMockMeta getCallMeta() {
+        public CallMeta getCallMeta() {
             return callMeta;
         }
 
