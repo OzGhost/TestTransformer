@@ -1,5 +1,7 @@
 package worker;
 
+import static meta.Name.*;
+import meta.*;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -12,27 +14,34 @@ import com.github.javaparser.ast.stmt.*;
 
 public class MethodWorker {
 
-    private static final Pattern RETURNABLE_MP = Pattern.compile("when\\((.+)\\.(.+)\\)\\.thenReturn\\((.+)\\)");
-    private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.(.+)");
+    private static final Pattern RETURNABLE_MP = Pattern.compile("when\\((.+)\\.([^\\(]+)\\((.*)\\)\\)\\.thenReturn\\((.+)\\)");
+    private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.([^\\(]+)\\((.*)\\)");
     private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\.class\\)");
 
     private ClassWorker upperLevel;
     private Map<String, String> varTypeMap = new HashMap<>();
-    private List<String> staticMockedClasses = new ArrayList<>();
+    private Set<String> staticMockedClasses = new HashSet<>();
+    private MockMeta mockMeta = new MockMeta();
 
     public MethodWorker(ClassWorker ul) {
         upperLevel = ul;
     }
 
     public void transform(MethodDeclaration methodUnit) {
+        WoodLog.reachMethod(methodUnit.getName().asString());
         replaceMockedObject(methodUnit);
         removeMockStaticDeclaration(methodUnit);
         Node[] baseStms = getStms(methodUnit);
         boolean[] stmType = new boolean[baseStms.length];
         for (int i = 0; i < baseStms.length; i++) {
             Node n = baseStms[i];
-            checkType(n);
+            Node belowNode = null;
+            if (i+1 < baseStms.length) {
+                belowNode = baseStms[i+1];
+            }
+            checkType(n, belowNode);
         }
+        WoodLog.printCuts();
     }
 
     private void replaceMockedObject(MethodDeclaration methodUnit) {
@@ -87,26 +96,41 @@ public class MethodWorker {
         return stms.toArray(new Node[stms.size()]);
     }
 
-    private int checkType(Node node) {
+    private int checkType(Node node, Node belowNode) {
         String nodeAsString = node.toString();
         Matcher returnMp = RETURNABLE_MP.matcher(nodeAsString);
         if (returnMp.find()) {
-            System.out.println(returnMp.group(1)
-                    + " | " + returnMp.group(2)
-                    + " | " + returnMp.group(3));
+            String subject = returnMp.group(1);
+            String call = returnMp.group(2);
+            String param = returnMp.group(3);
+            String out = returnMp.group(4);
+
+            List<CoreMockMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+            CoreMockMeta meta = new CoreMockMeta(param, out, false, false);
+            cmm.add(meta);
         } else {
             Matcher voidMp = VOID_MP.matcher(nodeAsString);
             if (voidMp.find()) {
-                System.out.println(voidMp.group(1)
-                        + " | " + voidMp.group(2));
+                String subject = voidMp.group(1);
+                String call = voidMp.group(2);
+                String param = voidMp.group(3);
+
+                List<CoreMockMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+                CoreMockMeta meta = new CoreMockMeta(param, "", false, true);
+                cmm.add(meta);
             } else {
                 Matcher staticVoidMp = STATIC_VOID_MP.matcher(nodeAsString);
                 if (staticVoidMp.find()) {
-                    System.out.println(staticVoidMp.group(1));
+                    String subject = staticVoidMp.group(1);
+                    if (belowNode == null) {
+                        WoodLog.attach(ERROR, subject, "<?>", CoreMockMeta.NIL, "Found no co-mock void method");
+                    } else {
+                        WoodLog.attach(ERROR, subject, "<?>", CoreMockMeta.NIL, "Co-mock void didn't support yet");
+                    }
                 }
             }
         }
-        return 0;
+        return NORMAL_STM;
     }
 
     private void rebuildMethod(MethodDeclaration method) {

@@ -30,7 +30,7 @@ public class MockTest {
     public void test_mock_all() {
         mockStatic(NonStaticSubject.class);
         NonStaticSubject ss = mock(NonStaticSubject.class);
-        when(NonStaticSubject.create()).thenReturn(ss);
+        when(NonStaticSubject.create(anyInt())).thenReturn(ss);
         when(ss.val()).thenReturn(16);
         doNothing().when(ss).noReturn();
 

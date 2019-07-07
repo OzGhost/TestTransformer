@@ -13,6 +13,8 @@ public class ClassWorker {
     private Map<String, String> fields = new HashMap<>();
 
     public void transform(ClassOrInterfaceDeclaration classUnit) {
+        WoodLog.clear();
+        WoodLog.reachClass(classUnit.getName().asString());
         for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
             new MethodWorker(this).transform(methodUnit);
         }
