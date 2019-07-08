@@ -18,6 +18,8 @@ public class MethodWorker {
     private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.([^\\(]+)\\((.*)\\)");
     private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\.class\\)");
 
+    private static final String STATIC_VOID_RECALL_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
+
     private ClassWorker upperLevel;
     private Map<String, String> varTypeMap = new HashMap<>();
     private Set<String> staticMockedClasses = new HashSet<>();
@@ -126,14 +128,19 @@ public class MethodWorker {
                     if (belowNode == null) {
                         WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Found no co-mock void method");
                     } else {
-                        WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Co-mock void didn't support yet");
-                        WoodLog.attach(ERROR, subject, "<?>", new CallMeta("12", "38", false, false), "Just4Test");
-                        WoodLog.attach(ERROR, subject, "<?>", new CallMeta("12", "", false, true), "Just4Test");
-                        WoodLog.attach(ERROR, subject, "<?>", new CallMeta("12", "NullPointerException", true, true), "Just4Test");
+                        String pat = subject + STATIC_VOID_RECALL_SUFFIX;
+                        Matcher staticVoidFollowMp = Pattern.compile(pat).matcher(belowNode.toString());
+                        if (staticVoidFollowMp.find()) {
+                            String call = staticVoidFollowMp.group(1);
+                            String param = staticVoidFollowMp.group(2);
 
-                        List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName("<?>");
-                        CallMeta meta = new CallMeta("<?>", "<?>", false, false);
-                        cmm.add(meta);
+                            List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+                            CallMeta meta = new CallMeta(param, "", false, true);
+                            cmm.add(meta);
+                        } else {
+                            WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
+                                    "Cannot detect static-void-mock in followed statement: " + belowNode.toString());
+                        }
                     }
                 }
             }
