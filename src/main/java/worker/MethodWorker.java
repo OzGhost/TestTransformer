@@ -111,39 +111,40 @@ public class MethodWorker {
             List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
             CallMeta meta = new CallMeta(param, out, false, false);
             cmm.add(meta);
-        } else {
-            Matcher voidMp = VOID_MP.matcher(nodeAsString);
-            if (voidMp.find()) {
-                String subject = voidMp.group(1);
-                String call = voidMp.group(2);
-                String param = voidMp.group(3);
+            return MOCK_STM;
+        }
+        Matcher voidMp = VOID_MP.matcher(nodeAsString);
+        if (voidMp.find()) {
+            String subject = voidMp.group(1);
+            String call = voidMp.group(2);
+            String param = voidMp.group(3);
+
+            List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+            CallMeta meta = new CallMeta(param, "", false, true);
+            cmm.add(meta);
+            return MOCK_STM;
+        }
+        Matcher staticVoidMp = STATIC_VOID_MP.matcher(nodeAsString);
+        if (staticVoidMp.find()) {
+            String subject = staticVoidMp.group(1);
+            if (belowNode == null) {
+                WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Found no co-mock void method");
+                return MOCK_STM;
+            }
+            String pat = subject + STATIC_VOID_RECALL_SUFFIX;
+            Matcher staticVoidFollowMp = Pattern.compile(pat).matcher(belowNode.toString());
+            if (staticVoidFollowMp.find()) {
+                String call = staticVoidFollowMp.group(1);
+                String param = staticVoidFollowMp.group(2);
 
                 List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
                 CallMeta meta = new CallMeta(param, "", false, true);
                 cmm.add(meta);
-            } else {
-                Matcher staticVoidMp = STATIC_VOID_MP.matcher(nodeAsString);
-                if (staticVoidMp.find()) {
-                    String subject = staticVoidMp.group(1);
-                    if (belowNode == null) {
-                        WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Found no co-mock void method");
-                    } else {
-                        String pat = subject + STATIC_VOID_RECALL_SUFFIX;
-                        Matcher staticVoidFollowMp = Pattern.compile(pat).matcher(belowNode.toString());
-                        if (staticVoidFollowMp.find()) {
-                            String call = staticVoidFollowMp.group(1);
-                            String param = staticVoidFollowMp.group(2);
-
-                            List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
-                            CallMeta meta = new CallMeta(param, "", false, true);
-                            cmm.add(meta);
-                        } else {
-                            WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
-                                    "Cannot detect static-void-mock in followed statement: " + belowNode.toString());
-                        }
-                    }
-                }
+                return FOLLOWED_MOCK_STM;;
             }
+            WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
+                    "Cannot detect static-void-mocked in followed statement: " + belowNode.toString());
+            return MOCK_STM;
         }
         return NORMAL_STM;
     }
