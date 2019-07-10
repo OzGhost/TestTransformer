@@ -57,6 +57,10 @@ public class WoodLog {
     }
 
     public static void printCuts() {
+        if (cuts.isEmpty()) {
+            System.out.println("((() There are no cut");
+            return;
+        }
         for (Cut c: cuts) {
             System.out.println(c);
         }

@@ -45,6 +45,7 @@ public class MethodWorker {
         }
         WoodLog.printCuts();
         System.out.println(mockMeta);
+        List<Statement> replacementStms = mockRebuild();
     }
 
     private void replaceMockedObject(MethodDeclaration methodUnit) {
@@ -140,13 +141,30 @@ public class MethodWorker {
                 List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
                 CallMeta meta = new CallMeta(param, "", false, true);
                 cmm.add(meta);
-                return FOLLOWED_MOCK_STM;;
+                return FOLLOWED_MOCK_STM;
             }
             WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
                     "Cannot detect static-void-mocked in followed statement: " + belowNode.toString());
             return MOCK_STM;
         }
         return NORMAL_STM;
+    }
+
+    private List<Statement> mockRebuild() {
+        List<Statement> output = new ArrayList<>();
+        InstanceMockWorker imw = new InstanceMockWorker();
+        for (Map.Entry<String, SubjectMockMeta> smm: mockMeta.getSubjectMockMetas().entrySet()) {
+            String subjectName = smm.getKey();
+            if (staticMockedClasses.contains(subjectName)) {
+                output.add( StaticMockWorker.transform(smm) );
+            } else {
+                imw.addMockMeta(smm);
+            }
+        }
+        if ( ! imw.isEmpty()) {
+            output.add( imw.transform() );
+        }
+        return output;
     }
 
     private void rebuildMethod(MethodDeclaration method) {
