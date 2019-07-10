@@ -16,6 +16,7 @@ public class CompilationUnitWorker {
         CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
         //CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
         //Printer.print(cUnit);
+        //if (true) return cUnit;
 
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;

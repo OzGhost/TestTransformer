@@ -109,8 +109,13 @@ public class MethodWorker {
             String param = returnMp.group(3);
             String out = returnMp.group(4);
 
+            Expression outExpr = node.findFirst(MethodCallExpr.class)
+                                        .get()
+                                        .getArguments()
+                                        .get(0);
+
             List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
-            CallMeta meta = new CallMeta(param, out, false, false);
+            CallMeta meta = new CallMeta(param, out, outExpr, false, false);
             cmm.add(meta);
             return MOCK_STM;
         }

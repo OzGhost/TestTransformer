@@ -1,5 +1,7 @@
 package meta;
 
+import com.github.javaparser.ast.expr.Expression;
+
 public class CallMeta {
 
     public static final CallMeta NIL = new CallMeta(){
@@ -14,6 +16,7 @@ public class CallMeta {
     private String input;
     private String output;
     private String cause;
+    private Expression outputExpr;
 
     public CallMeta(String param, String out, boolean isRaise, boolean isVoid) {
         input = param;
@@ -26,7 +29,16 @@ public class CallMeta {
         }
     }
 
+    public CallMeta(String param, String out, Expression outExpr, boolean isRaise, boolean isVoid) {
+        this(param, out, isRaise, isVoid);
+        outputExpr = outExpr;
+    }
+
     private CallMeta() {}
+
+    public Expression getOutputExpression() {
+        return outputExpr;
+    }
 
     public boolean isVoid() {
         return _void;

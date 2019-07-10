@@ -36,7 +36,7 @@ public class InstanceMockWorker {
                     } else {
                         expr = new MethodCallExpr(new NameExpr(subjectName), methodName);
                         expectations.add(new ExpressionStmt(expr));
-                        expr = new AssignExpr(new NameExpr("result"), new IntegerLiteralExpr(cm.getOutput()), AssignExpr.Operator.ASSIGN);
+                        expr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
                         expectations.add(new ExpressionStmt(expr));
                     }
                 }
