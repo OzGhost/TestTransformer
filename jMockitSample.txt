@@ -1,0 +1,448 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+   > package TestTransformer;
+
+import org.junit.*;
+import static org.junit.Assert.*;
+import mockit.*;
+import subject.*;
+
+public class AlterTest {
+
+    @Test
+    public void test_mock_alternative_way(@Mocked NonStaticSubject nss) {
+        new MockUp<NonStaticSubject>() {
+
+            @Mock
+            public NonStaticSubject create() {
+                return nss;
+            }
+        };
+        new MockUp<StaticSubject>() {
+
+            @Mock
+            public int getRefun(Invocation inv) {
+                assertEquals(inv.getInvocationCount(), 1);
+                return 9;
+            }
+
+            @Mock
+            public void noRefun(Invocation inv) {
+                assertEquals(inv.getInvocationCount(), 1);
+            // doNothing
+            }
+        };
+        new Expectations() {
+
+            {
+                nss.val();
+                result = 1928;
+            }
+        };
+        App t = new App();
+        assertEquals(t.getVal(), 9 + 1928);
+        new Verifications() {
+
+            {
+                nss.val();
+                times = 1;
+                nss.noReturn();
+                times = 1;
+            }
+        };
+    }
+}
+ :: class com.github.javaparser.ast.CompilationUnit<<<<
+   >   > package TestTransformer;
+
+ :: class com.github.javaparser.ast.PackageDeclaration<<<<
+   >   >   > TestTransformer :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import org.junit.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.junit :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import static org.junit.Assert.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.junit.Assert :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.junit :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import mockit.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > mockit :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import subject.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > subject :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > public class AlterTest {
+
+    @Test
+    public void test_mock_alternative_way(@Mocked NonStaticSubject nss) {
+        new MockUp<NonStaticSubject>() {
+
+            @Mock
+            public NonStaticSubject create() {
+                return nss;
+            }
+        };
+        new MockUp<StaticSubject>() {
+
+            @Mock
+            public int getRefun(Invocation inv) {
+                assertEquals(inv.getInvocationCount(), 1);
+                return 9;
+            }
+
+            @Mock
+            public void noRefun(Invocation inv) {
+                assertEquals(inv.getInvocationCount(), 1);
+            // doNothing
+            }
+        };
+        new Expectations() {
+
+            {
+                nss.val();
+                result = 1928;
+            }
+        };
+        App t = new App();
+        assertEquals(t.getVal(), 9 + 1928);
+        new Verifications() {
+
+            {
+                nss.val();
+                times = 1;
+                nss.noReturn();
+                times = 1;
+            }
+        };
+    }
+} :: class com.github.javaparser.ast.body.ClassOrInterfaceDeclaration<<<<
+   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   > AlterTest :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   > @Test
+public void test_mock_alternative_way(@Mocked NonStaticSubject nss) {
+    new MockUp<NonStaticSubject>() {
+
+        @Mock
+        public NonStaticSubject create() {
+            return nss;
+        }
+    };
+    new MockUp<StaticSubject>() {
+
+        @Mock
+        public int getRefun(Invocation inv) {
+            assertEquals(inv.getInvocationCount(), 1);
+            return 9;
+        }
+
+        @Mock
+        public void noRefun(Invocation inv) {
+            assertEquals(inv.getInvocationCount(), 1);
+        // doNothing
+        }
+    };
+    new Expectations() {
+
+        {
+            nss.val();
+            result = 1928;
+        }
+    };
+    App t = new App();
+    assertEquals(t.getVal(), 9 + 1928);
+    new Verifications() {
+
+        {
+            nss.val();
+            times = 1;
+            nss.noReturn();
+            times = 1;
+        }
+    };
+} :: class com.github.javaparser.ast.body.MethodDeclaration<<<<
+   >   >   >   > @Test :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   > Test :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   >   > test_mock_alternative_way :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   > @Mocked NonStaticSubject nss :: class com.github.javaparser.ast.body.Parameter<<<<
+   >   >   >   >   > @Mocked :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   >   > Mocked :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   > void :: class com.github.javaparser.ast.type.VoidType<<<<
+   >   >   >   > {
+    new MockUp<NonStaticSubject>() {
+
+        @Mock
+        public NonStaticSubject create() {
+            return nss;
+        }
+    };
+    new MockUp<StaticSubject>() {
+
+        @Mock
+        public int getRefun(Invocation inv) {
+            assertEquals(inv.getInvocationCount(), 1);
+            return 9;
+        }
+
+        @Mock
+        public void noRefun(Invocation inv) {
+            assertEquals(inv.getInvocationCount(), 1);
+        // doNothing
+        }
+    };
+    new Expectations() {
+
+        {
+            nss.val();
+            result = 1928;
+        }
+    };
+    App t = new App();
+    assertEquals(t.getVal(), 9 + 1928);
+    new Verifications() {
+
+        {
+            nss.val();
+            times = 1;
+            nss.noReturn();
+            times = 1;
+        }
+    };
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   > new MockUp<NonStaticSubject>() {
+
+    @Mock
+    public NonStaticSubject create() {
+        return nss;
+    }
+}; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > new MockUp<NonStaticSubject>() {
+
+    @Mock
+    public NonStaticSubject create() {
+        return nss;
+    }
+} :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
+   >   >   >   >   >   >   > MockUp<NonStaticSubject> :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   > MockUp :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > @Mock
+public NonStaticSubject create() {
+    return nss;
+} :: class com.github.javaparser.ast.body.MethodDeclaration<<<<
+   >   >   >   >   >   >   >   > @Mock :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   >   >   >   >   > Mock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   >   >   >   >   >   > create :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > {
+    return nss;
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   >   >   >   >   > return nss; :: class com.github.javaparser.ast.stmt.ReturnStmt<<<<
+   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > new MockUp<StaticSubject>() {
+
+    @Mock
+    public int getRefun(Invocation inv) {
+        assertEquals(inv.getInvocationCount(), 1);
+        return 9;
+    }
+
+    @Mock
+    public void noRefun(Invocation inv) {
+        assertEquals(inv.getInvocationCount(), 1);
+    // doNothing
+    }
+}; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > new MockUp<StaticSubject>() {
+
+    @Mock
+    public int getRefun(Invocation inv) {
+        assertEquals(inv.getInvocationCount(), 1);
+        return 9;
+    }
+
+    @Mock
+    public void noRefun(Invocation inv) {
+        assertEquals(inv.getInvocationCount(), 1);
+    // doNothing
+    }
+} :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
+   >   >   >   >   >   >   > MockUp<StaticSubject> :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   > MockUp :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > @Mock
+public int getRefun(Invocation inv) {
+    assertEquals(inv.getInvocationCount(), 1);
+    return 9;
+} :: class com.github.javaparser.ast.body.MethodDeclaration<<<<
+   >   >   >   >   >   >   >   > @Mock :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   >   >   >   >   > Mock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   >   >   >   >   >   > getRefun :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > Invocation inv :: class com.github.javaparser.ast.body.Parameter<<<<
+   >   >   >   >   >   >   >   >   > Invocation :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   >   > Invocation :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > inv :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > int :: class com.github.javaparser.ast.type.PrimitiveType<<<<
+   >   >   >   >   >   >   >   > {
+    assertEquals(inv.getInvocationCount(), 1);
+    return 9;
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   >   >   >   >   > assertEquals(inv.getInvocationCount(), 1); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > assertEquals(inv.getInvocationCount(), 1) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > assertEquals :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > inv.getInvocationCount() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > inv :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   >   > inv :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > getInvocationCount :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   >   > return 9; :: class com.github.javaparser.ast.stmt.ReturnStmt<<<<
+   >   >   >   >   >   >   >   >   >   > 9 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   > @Mock
+public void noRefun(Invocation inv) {
+    assertEquals(inv.getInvocationCount(), 1);
+// doNothing
+} :: class com.github.javaparser.ast.body.MethodDeclaration<<<<
+   >   >   >   >   >   >   >   > @Mock :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   >   >   >   >   > Mock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   >   >   >   >   >   > noRefun :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > Invocation inv :: class com.github.javaparser.ast.body.Parameter<<<<
+   >   >   >   >   >   >   >   >   > Invocation :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   >   > Invocation :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > inv :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > void :: class com.github.javaparser.ast.type.VoidType<<<<
+   >   >   >   >   >   >   >   > {
+    assertEquals(inv.getInvocationCount(), 1);
+// doNothing
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   >   >   >   >   > assertEquals(inv.getInvocationCount(), 1); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > assertEquals(inv.getInvocationCount(), 1) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > assertEquals :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > inv.getInvocationCount() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > inv :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   >   > inv :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > getInvocationCount :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   >   > // doNothing
+ :: class com.github.javaparser.ast.comments.LineComment<<<<
+   >   >   >   >   > new Expectations() {
+
+    {
+        nss.val();
+        result = 1928;
+    }
+}; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > new Expectations() {
+
+    {
+        nss.val();
+        result = 1928;
+    }
+} :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
+   >   >   >   >   >   >   > Expectations :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   > Expectations :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > {
+    nss.val();
+    result = 1928;
+} :: class com.github.javaparser.ast.body.InitializerDeclaration<<<<
+   >   >   >   >   >   >   >   > {
+    nss.val();
+    result = 1928;
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   >   >   >   >   > nss.val(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > nss.val() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > val :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > result = 1928; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > result = 1928 :: class com.github.javaparser.ast.expr.AssignExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > result :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > result :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > 1928 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > App t = new App(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > App t = new App() :: class com.github.javaparser.ast.expr.VariableDeclarationExpr<<<<
+   >   >   >   >   >   >   > t = new App() :: class com.github.javaparser.ast.body.VariableDeclarator<<<<
+   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > new App() :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
+   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > assertEquals(t.getVal(), 9 + 1928); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > assertEquals(t.getVal(), 9 + 1928) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > assertEquals :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > t.getVal() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > getVal :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > 9 + 1928 :: class com.github.javaparser.ast.expr.BinaryExpr<<<<
+   >   >   >   >   >   >   >   > 9 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   > 1928 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > new Verifications() {
+
+    {
+        nss.val();
+        times = 1;
+        nss.noReturn();
+        times = 1;
+    }
+}; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > new Verifications() {
+
+    {
+        nss.val();
+        times = 1;
+        nss.noReturn();
+        times = 1;
+    }
+} :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
+   >   >   >   >   >   >   > Verifications :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   > Verifications :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > {
+    nss.val();
+    times = 1;
+    nss.noReturn();
+    times = 1;
+} :: class com.github.javaparser.ast.body.InitializerDeclaration<<<<
+   >   >   >   >   >   >   >   > {
+    nss.val();
+    times = 1;
+    nss.noReturn();
+    times = 1;
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   >   >   >   >   > nss.val(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > nss.val() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > val :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > times = 1; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > times = 1 :: class com.github.javaparser.ast.expr.AssignExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   >   > nss.noReturn(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > nss.noReturn() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > noReturn :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > times = 1; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > times = 1 :: class com.github.javaparser.ast.expr.AssignExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+
+BUILD SUCCESSFUL in 1s
+2 actionable tasks: 1 executed, 1 up-to-date

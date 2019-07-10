@@ -164,6 +164,10 @@ public class MethodWorker {
         if ( ! imw.isEmpty()) {
             output.add( imw.transform() );
         }
+        System.out.println("============ mock replacement ==============");
+        for (Statement stm: output) {
+            System.out.println(stm);
+        }
         return output;
     }
 

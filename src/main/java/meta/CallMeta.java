@@ -32,6 +32,10 @@ public class CallMeta {
         return _void;
     }
 
+    public boolean isRaise() {
+        return _raise;
+    }
+
     public String getInput() {
         return input;
     }
