@@ -161,7 +161,7 @@ public class MethodWorker {
         for (Map.Entry<String, SubjectMockMeta> smm: mockMeta.getSubjectMockMetas().entrySet()) {
             String subjectName = smm.getKey();
             if (staticMockedClasses.contains(subjectName)) {
-                output.add( StaticMockWorker.transform(smm) );
+                output.add( StaticMockWorker.transform(smm, varTypeMap) );
             } else {
                 imw.addMockMeta(smm);
             }

@@ -22,16 +22,12 @@ public class WoodLog {
         currentSubject = subjectName;
     }
 
+    public static void attach(int level, CallMeta callMeta, String message) {
+        attach(level, currentMethod, callMeta, message);
+    }
+
     public static void attach(int level, String call, CallMeta callMeta, String message) {
-        Cut cut = new Cut();
-        cut.level = level;
-        cut.classLevel = currentClass;
-        cut.methodLevel = currentMethod;
-        cut.subjectLevel = currentSubject;
-        cut.call = call;
-        cut.callMeta = callMeta;
-        cut.message = message;
-        cuts.offer(cut);
+        attach(level, currentSubject, call, callMeta, message);
     }
 
     public static void attach(int level, String subject, String call, CallMeta callMeta, String message) {

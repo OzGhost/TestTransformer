@@ -34,7 +34,7 @@ public class CompilationUnitWorker {
             new ClassWorker().transform(classUnit);
         }
 
-        //System.out.println(cUnit);
+        System.out.println(cUnit);
         //Printer.print(cUnit);
         return cUnit;
     }

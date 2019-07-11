@@ -17,12 +17,12 @@ public class AlterTest {
         };
         new MockUp<StaticSubject>() {
             @Mock
-            public int getRefun(Invocation inv) {
+            int getRefun(Invocation inv) {
                 assertEquals(inv.getInvocationCount(), 1);
                 return 9;
             }
             @Mock
-            public void noRefun(Invocation inv) {
+            void noRefun(Invocation inv) {
                 assertEquals(inv.getInvocationCount(), 1);
                 // doNothing
             }

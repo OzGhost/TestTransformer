@@ -16,6 +16,7 @@ plugins {
 
 test {
     jvmArgs '-javaagent:/home/oz/.gradle/caches/modules-2/files-2.1/org.jmockit/jmockit/1.46/e0624d104f784ad0ac04f259abdb5a89b95d8c08/jmockit-1.46.jar'
+  //jvmArgs '-javaagent:/home/nhduc/.gradle/caches/modules-2/files-2.1/org.jmockit/jmockit/1.46/e0624d104f784ad0ac04f259abdb5a89b95d8c08/jmockit-1.46.jar'
 }
 
 repositories {
