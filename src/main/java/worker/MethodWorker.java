@@ -43,9 +43,9 @@ public class MethodWorker {
             }
             checkType(n, belowNode);
         }
-        WoodLog.printCuts();
         System.out.println(mockMeta);
         List<Statement> replacementStms = mockRebuild();
+        WoodLog.printCuts();
     }
 
     private void replaceMockedObject(MethodDeclaration methodUnit) {
