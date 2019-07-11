@@ -21,7 +21,7 @@ public class MethodWorker {
     private static final String STATIC_VOID_RECALL_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
 
     private ClassWorker upperLevel;
-    private Map<String, String> varTypeMap = new HashMap<>();
+    private Map<String, Type> varTypeMap = new HashMap<>();
     private Set<String> staticMockedClasses = new HashSet<>();
     private MockMeta mockMeta = new MockMeta();
 
@@ -31,22 +31,54 @@ public class MethodWorker {
 
     public void transform(MethodDeclaration methodUnit) {
         WoodLog.reachMethod(methodUnit.getName().asString());
+
         replaceMockedObject(methodUnit);
         removeMockStaticDeclaration(methodUnit);
         collectVariableType(methodUnit);
-        Node[] baseStms = getStms(methodUnit);
-        boolean[] stmType = new boolean[baseStms.length];
+
+        Statement[] baseStms = getStms(methodUnit);
+        int[] stmTypes = new int[baseStms.length];
         for (int i = 0; i < baseStms.length; i++) {
             Node n = baseStms[i];
             Node belowNode = null;
             if (i+1 < baseStms.length) {
                 belowNode = baseStms[i+1];
             }
-            checkType(n, belowNode);
+            int nType = checkType(n, belowNode);
+            if (nType == FOLLOWED_MOCK_STM) {
+                stmTypes[i] = MOCK_STM;
+                i++;
+                stmTypes[i] = MOCK_STM;
+            } else {
+                stmTypes[i] = nType;
+            }
         }
-        System.out.println(mockMeta);
+        int mockBreakPoint = baseStms.length - 1;
+        while (mockBreakPoint >= 0 && stmTypes[mockBreakPoint] == NORMAL_STM) {
+            mockBreakPoint--;
+        }
+        mockBreakPoint++;
+        NodeList<Statement> newBodyStmts = new NodeList<>();
+
+        for (int i = 0; i < mockBreakPoint; i++) {
+            if (stmTypes[i] == NORMAL_STM) {
+                newBodyStmts.add( baseStms[i] );
+            }
+        }
+
         List<Statement> replacementStms = mockRebuild();
-        WoodLog.printCuts();
+        for (Statement stm: replacementStms) {
+            newBodyStmts.add(stm);
+        }
+
+        for (int i = mockBreakPoint; i < baseStms.length; i++) {
+            newBodyStmts.add( baseStms[i] );
+        }
+
+        methodUnit.getBody().get().setStatements(newBodyStmts);
+        
+        //System.out.println(mockMeta);
+        //WoodLog.printCuts();
     }
 
     private void replaceMockedObject(MethodDeclaration methodUnit) {
@@ -54,10 +86,9 @@ public class MethodWorker {
         ArrayList<Node> repl = new ArrayList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
-                String mockedType = call.getArguments().get(0)
-                                        .findFirst(ClassOrInterfaceType.class).get()
-                                        .getName().asString();;
-                String replacementVarName = NameUtil.createTypeBasedName(mockedType, varTypeMap.keySet());
+                Type mockedType = ((ClassExpr)call.getArguments().get(0)).getType();
+                String mockedTypeAsString = ((ClassOrInterfaceType)mockedType).getName().asString();
+                String replacementVarName = NameUtil.createTypeBasedName(mockedTypeAsString, varTypeMap.keySet());
                 varTypeMap.put(replacementVarName, mockedType);
                 ori.add(call);
                 repl.add(new NameExpr(replacementVarName));
@@ -68,7 +99,7 @@ public class MethodWorker {
             ori.get(i).getParentNode().get().replace(ori.get(i), repl.get(i));
         }
 
-        for (Map.Entry entry: varTypeMap.entrySet()) {
+        for (Map.Entry<String, Type> entry: varTypeMap.entrySet()) {
             Parameter param = buildParameterForMockedVar(entry);
             methodUnit.getParameters().add(param);
         }
@@ -93,12 +124,12 @@ public class MethodWorker {
         }
     }
 
-    private static Node[] getStms(MethodDeclaration methodUnit) {
-        ArrayList<Node> stms = new ArrayList<>();
-        for(Node n: methodUnit.getBody().get().getStatements()) {
+    private static Statement[] getStms(MethodDeclaration methodUnit) {
+        ArrayList<Statement> stms = new ArrayList<>();
+        for(Statement n: methodUnit.getBody().get().getStatements()) {
             stms.add(n);
         }
-        return stms.toArray(new Node[stms.size()]);
+        return stms.toArray(new Statement[stms.size()]);
     }
 
     private int checkType(Node node, Node belowNode) {
@@ -170,34 +201,24 @@ public class MethodWorker {
         if ( ! imw.isEmpty()) {
             output.add( imw.transform() );
         }
-        System.out.println("============ mock replacement ==============");
-        for (Statement stm: output) {
-            System.out.println(stm);
-        }
         return output;
     }
 
     private void collectVariableType(MethodDeclaration method) {
         for (VariableDeclarator varTor: method.findAll(VariableDeclarator.class)) {
             String varName = varTor.getName().asString();
-            String varType = "";
-            Optional<ClassOrInterfaceType> oType =  varTor.findFirst(ClassOrInterfaceType.class);
-            if (oType.isPresent()) {
-                varType = oType.get().getName().asString();
-            } else {
-                varType = varTor.findFirst(PrimitiveType.class).get().asString();
-            }
+            Type varType = varTor.getType();
             varTypeMap.put(varName, varType);
         }
     }
 
-    private Parameter buildParameterForMockedVar(Map.Entry<String, String> nameType) {
+    private Parameter buildParameterForMockedVar(Map.Entry<String, Type> nameType) {
         NodeList<AnnotationExpr> annotations = new NodeList<>();
         annotations.add(new MarkerAnnotationExpr("Mocked"));
         return new Parameter(
                 new NodeList<>(),
                 annotations,
-                new ClassOrInterfaceType(nameType.getValue()),
+                nameType.getValue(),
                 false,
                 new NodeList<>(),
                 new SimpleName(nameType.getKey())

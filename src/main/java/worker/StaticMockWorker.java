@@ -8,10 +8,20 @@ import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.body.*;
+import com.google.common.collect.ImmutableMap;
 
 public class StaticMockWorker {
 
-    public static Statement transform(Map.Entry<String, SubjectMockMeta> smm, Map<String, String> varTypeMap) {
+    private static final ImmutableMap<Class<? extends Expression>, Type> EXPR_TO_TYPE =
+        new ImmutableMap.Builder<Class<? extends Expression>, Type>()
+            .put(IntegerLiteralExpr.class, new PrimitiveType(PrimitiveType.Primitive.INT))
+            .put(CharLiteralExpr.class, new PrimitiveType(PrimitiveType.Primitive.CHAR))
+            .put(DoubleLiteralExpr.class, new PrimitiveType(PrimitiveType.Primitive.DOUBLE))
+            .put(LongLiteralExpr.class, new PrimitiveType(PrimitiveType.Primitive.LONG))
+            .put(StringLiteralExpr.class, new ClassOrInterfaceType("String"))
+            .build();
+
+    public static Statement transform(Map.Entry<String, SubjectMockMeta> smm, Map<String, Type> varTypeMap) {
         NodeList<BodyDeclaration<?>> mockMethods = new NodeList<>();
         String subjectName = smm.getKey();
         WoodLog.reachSubject(subjectName);
@@ -67,21 +77,20 @@ public class StaticMockWorker {
         return new BlockStmt(bodyStmts);
     }
 
-    private static Type findReturnType(CallMeta cm, Map<String, String> varTypeMap) {
+    private static Type findReturnType(CallMeta cm, Map<String, Type> varTypeMap) {
         if (cm.isVoid()) {
             return new VoidType();
         }
-        Printer.print(cm.getOutputExpression());
-        Optional<Type> oType = cm.getOutputExpression().findFirst(Type.class);
-        if (oType.isPresent()) {
-            return oType.get();
+        Type type = EXPR_TO_TYPE.get(cm.getOutputExpression().getClass());
+        if (type != null) {
+            return type;
         }
-        String returnType = varTypeMap.get(cm.getOutput());
+        Type returnType = varTypeMap.get(cm.getOutput());
         if (returnType == null) {
             WoodLog.attach(ERROR, cm, "Cannot detect return type");
             return new PrimitiveType(PrimitiveType.Primitive.INT);
         }
-        return new ClassOrInterfaceType(returnType);
+        return returnType;
     }
 }
 
