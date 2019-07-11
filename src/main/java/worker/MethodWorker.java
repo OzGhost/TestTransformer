@@ -32,9 +32,9 @@ public class MethodWorker {
     public void transform(MethodDeclaration methodUnit) {
         WoodLog.reachMethod(methodUnit.getName().asString());
 
+        collectVariableType(methodUnit);
         replaceMockedObject(methodUnit);
         removeMockStaticDeclaration(methodUnit);
-        collectVariableType(methodUnit);
 
         Statement[] baseStms = getStms(methodUnit);
         int[] stmTypes = new int[baseStms.length];
@@ -79,6 +79,14 @@ public class MethodWorker {
         
         //System.out.println(mockMeta);
         //WoodLog.printCuts();
+    }
+
+    private void collectVariableType(MethodDeclaration method) {
+        for (VariableDeclarator varTor: method.findAll(VariableDeclarator.class)) {
+            String varName = varTor.getName().asString();
+            Type varType = varTor.getType();
+            varTypeMap.put(varName, varType);
+        }
     }
 
     private void replaceMockedObject(MethodDeclaration methodUnit) {
@@ -202,14 +210,6 @@ public class MethodWorker {
             output.add( imw.transform() );
         }
         return output;
-    }
-
-    private void collectVariableType(MethodDeclaration method) {
-        for (VariableDeclarator varTor: method.findAll(VariableDeclarator.class)) {
-            String varName = varTor.getName().asString();
-            Type varType = varTor.getType();
-            varTypeMap.put(varName, varType);
-        }
     }
 
     private Parameter buildParameterForMockedVar(Map.Entry<String, Type> nameType) {
