@@ -33,6 +33,7 @@ public class MethodWorker {
         WoodLog.reachMethod(methodUnit.getName().asString());
         replaceMockedObject(methodUnit);
         removeMockStaticDeclaration(methodUnit);
+        collectVariableType(methodUnit);
         Node[] baseStms = getStms(methodUnit);
         boolean[] stmType = new boolean[baseStms.length];
         for (int i = 0; i < baseStms.length; i++) {
@@ -176,14 +177,8 @@ public class MethodWorker {
         return output;
     }
 
-    private void rebuildMethod(MethodDeclaration method) {
-        ArrayList<String> staticMocked = new ArrayList<>();
-        LinkedList<Node> useless = new LinkedList<>();
-        BlockStmt methodBody = method.getBody().get();
-
-        HashMap<String, String> varNameTypeMap = new HashMap<>();
-
-        for (VariableDeclarator varTor: methodBody.findAll(VariableDeclarator.class)) {
+    private void collectVariableType(MethodDeclaration method) {
+        for (VariableDeclarator varTor: method.findAll(VariableDeclarator.class)) {
             String varName = varTor.getName().asString();
             String varType = "";
             Optional<ClassOrInterfaceType> oType =  varTor.findFirst(ClassOrInterfaceType.class);
@@ -192,9 +187,8 @@ public class MethodWorker {
             } else {
                 varType = varTor.findFirst(PrimitiveType.class).get().asString();
             }
-            varNameTypeMap.put(varName, varType);
+            varTypeMap.put(varName, varType);
         }
-
     }
 
     private Parameter buildParameterForMockedVar(Map.Entry<String, String> nameType) {

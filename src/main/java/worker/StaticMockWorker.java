@@ -71,12 +71,10 @@ public class StaticMockWorker {
         if (cm.isVoid()) {
             return new VoidType();
         }
+        Printer.print(cm.getOutputExpression());
         Optional<Type> oType = cm.getOutputExpression().findFirst(Type.class);
         if (oType.isPresent()) {
             return oType.get();
-        }
-        for(Map.Entry<String, String> v: varTypeMap.entrySet()) {
-            System.out.println("key: " + v.getKey() + ", value: " + v.getValue());
         }
         String returnType = varTypeMap.get(cm.getOutput());
         if (returnType == null) {

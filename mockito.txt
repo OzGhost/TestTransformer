@@ -1,0 +1,367 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources NO-SOURCE
+> Task :classes UP-TO-DATE
+
+> Task :run
+   > package TestTransformer;
+
+import java.util.Date;
+import org.junit.runner.*;
+import org.junit.*;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+import org.powermock.api.mockito.PowerMockito;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
+import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.core.classloader.annotations.*;
+import subject.*;
+
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({ NonStaticSubject.class, StaticSubject.class })
+public class MockTest {
+
+    /*
+    public void test_of_the_test(int iv1, Date iv2) {
+        int cv1 = iv1;
+        Date cv2 = iv2;
+    }
+    */
+    @Test
+    public void test_mock_all() {
+        mockStatic(NonStaticSubject.class);
+        NonStaticSubject ss = mock(NonStaticSubject.class);
+        when(NonStaticSubject.create(anyInt())).thenReturn(ss);
+        when(ss.val()).thenReturn(16);
+        doNothing().when(ss).noReturn();
+        mockStatic(StaticSubject.class);
+        when(StaticSubject.getRefun()).thenReturn(8);
+        PowerMockito.doNothing().when(StaticSubject.class);
+        StaticSubject.noRefun();
+        App t = new App();
+        assertEquals(t.getVal(), 8 + 16);
+        verify(ss, times(1)).val();
+        verify(ss, times(1)).noReturn();
+        verifyStatic(times(1));
+        StaticSubject.getRefun();
+        verifyStatic(times(1));
+        StaticSubject.noRefun();
+    }
+}
+ :: class com.github.javaparser.ast.CompilationUnit<<<<
+   >   > package TestTransformer;
+
+ :: class com.github.javaparser.ast.PackageDeclaration<<<<
+   >   >   > TestTransformer :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import java.util.Date;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > java.util.Date :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > java.util :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > java :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import org.junit.runner.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.junit.runner :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.junit :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import org.junit.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.junit :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import static org.junit.Assert.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.junit.Assert :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.junit :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import static org.mockito.Mockito.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.mockito.Mockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.mockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import org.powermock.api.mockito.PowerMockito;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.powermock.api.mockito.PowerMockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.powermock.api.mockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org.powermock.api :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   > org.powermock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import static org.powermock.api.mockito.PowerMockito.mockStatic;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.powermock.api.mockito.PowerMockito.mockStatic :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.powermock.api.mockito.PowerMockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org.powermock.api.mockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   > org.powermock.api :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   > org.powermock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.powermock.api.mockito.PowerMockito.verifyStatic :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.powermock.api.mockito.PowerMockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org.powermock.api.mockito :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   > org.powermock.api :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   > org.powermock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import org.powermock.modules.junit4.PowerMockRunner;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.powermock.modules.junit4.PowerMockRunner :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.powermock.modules.junit4 :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org.powermock.modules :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   > org.powermock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import org.powermock.core.classloader.annotations.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > org.powermock.core.classloader.annotations :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > org.powermock.core.classloader :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   > org.powermock.core :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   > org.powermock :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   >   >   >   > org :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > import subject.*;
+ :: class com.github.javaparser.ast.ImportDeclaration<<<<
+   >   >   > subject :: class com.github.javaparser.ast.expr.Name<<<<
+   >   > @RunWith(PowerMockRunner.class)
+@PrepareForTest({ NonStaticSubject.class, StaticSubject.class })
+public class MockTest {
+
+    /*
+    public void test_of_the_test(int iv1, Date iv2) {
+        int cv1 = iv1;
+        Date cv2 = iv2;
+    }
+    */
+    @Test
+    public void test_mock_all() {
+        mockStatic(NonStaticSubject.class);
+        NonStaticSubject ss = mock(NonStaticSubject.class);
+        when(NonStaticSubject.create(anyInt())).thenReturn(ss);
+        when(ss.val()).thenReturn(16);
+        doNothing().when(ss).noReturn();
+        mockStatic(StaticSubject.class);
+        when(StaticSubject.getRefun()).thenReturn(8);
+        PowerMockito.doNothing().when(StaticSubject.class);
+        StaticSubject.noRefun();
+        App t = new App();
+        assertEquals(t.getVal(), 8 + 16);
+        verify(ss, times(1)).val();
+        verify(ss, times(1)).noReturn();
+        verifyStatic(times(1));
+        StaticSubject.getRefun();
+        verifyStatic(times(1));
+        StaticSubject.noRefun();
+    }
+} :: class com.github.javaparser.ast.body.ClassOrInterfaceDeclaration<<<<
+   >   >   > @RunWith(PowerMockRunner.class) :: class com.github.javaparser.ast.expr.SingleMemberAnnotationExpr<<<<
+   >   >   >   > RunWith :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > PowerMockRunner.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   > PowerMockRunner :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   > PowerMockRunner :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   > @PrepareForTest({ NonStaticSubject.class, StaticSubject.class }) :: class com.github.javaparser.ast.expr.SingleMemberAnnotationExpr<<<<
+   >   >   >   > PrepareForTest :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > { NonStaticSubject.class, StaticSubject.class } :: class com.github.javaparser.ast.expr.ArrayInitializerExpr<<<<
+   >   >   >   >   > NonStaticSubject.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > StaticSubject.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   > MockTest :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   > /*
+    public void test_of_the_test(int iv1, Date iv2) {
+        int cv1 = iv1;
+        Date cv2 = iv2;
+    }
+    */
+@Test
+public void test_mock_all() {
+    mockStatic(NonStaticSubject.class);
+    NonStaticSubject ss = mock(NonStaticSubject.class);
+    when(NonStaticSubject.create(anyInt())).thenReturn(ss);
+    when(ss.val()).thenReturn(16);
+    doNothing().when(ss).noReturn();
+    mockStatic(StaticSubject.class);
+    when(StaticSubject.getRefun()).thenReturn(8);
+    PowerMockito.doNothing().when(StaticSubject.class);
+    StaticSubject.noRefun();
+    App t = new App();
+    assertEquals(t.getVal(), 8 + 16);
+    verify(ss, times(1)).val();
+    verify(ss, times(1)).noReturn();
+    verifyStatic(times(1));
+    StaticSubject.getRefun();
+    verifyStatic(times(1));
+    StaticSubject.noRefun();
+} :: class com.github.javaparser.ast.body.MethodDeclaration<<<<
+   >   >   >   > @Test :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   > Test :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
+   >   >   >   > test_mock_all :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   > void :: class com.github.javaparser.ast.type.VoidType<<<<
+   >   >   >   > {
+    mockStatic(NonStaticSubject.class);
+    NonStaticSubject ss = mock(NonStaticSubject.class);
+    when(NonStaticSubject.create(anyInt())).thenReturn(ss);
+    when(ss.val()).thenReturn(16);
+    doNothing().when(ss).noReturn();
+    mockStatic(StaticSubject.class);
+    when(StaticSubject.getRefun()).thenReturn(8);
+    PowerMockito.doNothing().when(StaticSubject.class);
+    StaticSubject.noRefun();
+    App t = new App();
+    assertEquals(t.getVal(), 8 + 16);
+    verify(ss, times(1)).val();
+    verify(ss, times(1)).noReturn();
+    verifyStatic(times(1));
+    StaticSubject.getRefun();
+    verifyStatic(times(1));
+    StaticSubject.noRefun();
+} :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
+   >   >   >   >   > mockStatic(NonStaticSubject.class); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > mockStatic(NonStaticSubject.class) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > mockStatic :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > NonStaticSubject.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > NonStaticSubject ss = mock(NonStaticSubject.class); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > NonStaticSubject ss = mock(NonStaticSubject.class) :: class com.github.javaparser.ast.expr.VariableDeclarationExpr<<<<
+   >   >   >   >   >   >   > ss = mock(NonStaticSubject.class) :: class com.github.javaparser.ast.body.VariableDeclarator<<<<
+   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > mock(NonStaticSubject.class) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > mock :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > NonStaticSubject.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > when(NonStaticSubject.create(anyInt())).thenReturn(ss); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > when(NonStaticSubject.create(anyInt())).thenReturn(ss) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > when(NonStaticSubject.create(anyInt())) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > when :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > NonStaticSubject.create(anyInt()) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > create :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > anyInt() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   > anyInt :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > thenReturn :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > when(ss.val()).thenReturn(16); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > when(ss.val()).thenReturn(16) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > when(ss.val()) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > when :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > ss.val() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > val :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > thenReturn :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > 16 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > doNothing().when(ss).noReturn(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > doNothing().when(ss).noReturn() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > doNothing().when(ss) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > doNothing() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > doNothing :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > when :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > noReturn :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > mockStatic(StaticSubject.class); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > mockStatic(StaticSubject.class) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > mockStatic :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > StaticSubject.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > when(StaticSubject.getRefun()).thenReturn(8); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > when(StaticSubject.getRefun()).thenReturn(8) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > when(StaticSubject.getRefun()) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > when :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > StaticSubject.getRefun() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > getRefun :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > thenReturn :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > 8 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > PowerMockito.doNothing().when(StaticSubject.class); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > PowerMockito.doNothing().when(StaticSubject.class) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > PowerMockito.doNothing() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > PowerMockito :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   > PowerMockito :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > doNothing :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > when :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > StaticSubject.class :: class com.github.javaparser.ast.expr.ClassExpr<<<<
+   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > StaticSubject.noRefun(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > StaticSubject.noRefun() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > noRefun :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > App t = new App(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > App t = new App() :: class com.github.javaparser.ast.expr.VariableDeclarationExpr<<<<
+   >   >   >   >   >   >   > t = new App() :: class com.github.javaparser.ast.body.VariableDeclarator<<<<
+   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > new App() :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
+   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > assertEquals(t.getVal(), 8 + 16); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > assertEquals(t.getVal(), 8 + 16) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > assertEquals :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > t.getVal() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > getVal :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > 8 + 16 :: class com.github.javaparser.ast.expr.BinaryExpr<<<<
+   >   >   >   >   >   >   >   > 8 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   > 16 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > verify(ss, times(1)).val(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > verify(ss, times(1)).val() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > verify(ss, times(1)) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > verify :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > times(1) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   > val :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > verify(ss, times(1)).noReturn(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > verify(ss, times(1)).noReturn() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > verify(ss, times(1)) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > verify :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   > ss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > times(1) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   > noReturn :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > verifyStatic(times(1)); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > verifyStatic(times(1)) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > verifyStatic :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > times(1) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > StaticSubject.getRefun(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > StaticSubject.getRefun() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > getRefun :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > verifyStatic(times(1)); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > verifyStatic(times(1)) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > verifyStatic :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > times(1) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   > times :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   > 1 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   > StaticSubject.noRefun(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > StaticSubject.noRefun() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   > noRefun :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   > /*
+    public void test_of_the_test(int iv1, Date iv2) {
+        int cv1 = iv1;
+        Date cv2 = iv2;
+    }
+    */
+ :: class com.github.javaparser.ast.comments.BlockComment<<<<
+
+BUILD SUCCESSFUL in 0s
+2 actionable tasks: 1 executed, 1 up-to-date
