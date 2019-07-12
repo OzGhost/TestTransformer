@@ -37,9 +37,9 @@ public class MockTest {
 
         verify(ss, times(1)).val();
         verify(ss, times(1)).noReturn();
-        verifyStatic(times(1));
+        verifyStatic(StaticSubject.class, times(1));
         StaticSubject.getRefun();
-        verifyStatic(times(1));
+        verifyStatic(StaticSubject.class, times(1));
         StaticSubject.noRefun();
     }
 }

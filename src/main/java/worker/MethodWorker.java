@@ -22,6 +22,7 @@ public class MethodWorker {
 
     private ClassWorker upperLevel;
     private Map<String, Type> varTypeMap = new HashMap<>();
+    private Map<String, Type> varMockOnly = new HashMap<>();
     private Set<String> staticMockedClasses = new HashSet<>();
     private MockMeta mockMeta = new MockMeta();
 
@@ -98,6 +99,7 @@ public class MethodWorker {
                 String mockedTypeAsString = ((ClassOrInterfaceType)mockedType).getName().asString();
                 String replacementVarName = NameUtil.createTypeBasedName(mockedTypeAsString, varTypeMap.keySet());
                 varTypeMap.put(replacementVarName, mockedType);
+                varMockOnly.put(replacementVarName, mockedType);
                 ori.add(call);
                 repl.add(new NameExpr(replacementVarName));
             }
@@ -107,7 +109,7 @@ public class MethodWorker {
             ori.get(i).getParentNode().get().replace(ori.get(i), repl.get(i));
         }
 
-        for (Map.Entry<String, Type> entry: varTypeMap.entrySet()) {
+        for (Map.Entry<String, Type> entry: varMockOnly.entrySet()) {
             Parameter param = buildParameterForMockedVar(entry);
             methodUnit.getParameters().add(param);
         }
@@ -191,6 +193,15 @@ public class MethodWorker {
             WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
                     "Cannot detect static-void-mocked in followed statement: " + belowNode.toString());
             return MOCK_STM;
+        }
+        Pattern pt = Pattern.compile("verify\\(([^\\.]*)\\)(?:\\.(.*))?");
+        Matcher mc = pt.matcher(nodeAsString);
+        if (mc.find()) {
+            System.out.println("hit verify");
+            for (int i = 0; i <= mc.groupCount(); i++) {
+                System.out.println(mc.group(i));
+            }
+            return VERIFY_STM;
         }
         return NORMAL_STM;
     }

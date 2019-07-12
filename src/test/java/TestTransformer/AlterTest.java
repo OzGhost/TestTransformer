@@ -9,6 +9,8 @@ public class AlterTest {
 
     @Test
     public void test_mock_alternative_way(@Mocked NonStaticSubject nss) {
+        int[] noRefunCounter = new int[1];
+        int[] getRefunCounter = new int[1];
         new MockUp<NonStaticSubject>() {
             @Mock
             public NonStaticSubject create() {
@@ -18,19 +20,20 @@ public class AlterTest {
         new MockUp<StaticSubject>() {
             @Mock
             int getRefun(Invocation inv) {
-                assertEquals(inv.getInvocationCount(), 1);
+                getRefunCounter[0]++;
                 return 9;
             }
             @Mock
-            void noRefun(Invocation inv) {
-                assertEquals(inv.getInvocationCount(), 1);
-                // doNothing
+            void noRefun() {
+                noRefunCounter[0]++;
             }
         };
         new Expectations() {{ nss.val(); result = 1928; }};
         
         App t = new App();
         assertEquals(t.getVal(), 9+1928);
+        assertEquals(1, getRefunCounter[0]);
+        assertEquals(1, noRefunCounter[0]);
 
         new Verifications() {{
             nss.val(); times = 1;
