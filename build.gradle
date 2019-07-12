@@ -29,11 +29,8 @@ dependencies {
     implementation 'com.github.javaparser:javaparser-core:3.14.5',
                     'com.google.guava:guava:11.0.2'
 
-
-    // Use JUnit test framework
-    testCompile 'org.jmockit:jmockit:1.46'
-    //testImplementation 'junit:junit:4.12'
-    testCompile 'junit:junit:4.12',
+    testCompile 'org.jmockit:jmockit:1.46',
+            'junit:junit:4.12',
             'org.powermock:powermock-core:2.0.0-beta.5',
             'org.powermock:powermock-module-junit4:2.0.0-beta.5',
             'org.powermock:powermock-api-mockito2:2.0.0-beta.5'
