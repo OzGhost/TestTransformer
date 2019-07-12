@@ -194,10 +194,10 @@ public class MethodWorker {
                     "Cannot detect static-void-mocked in followed statement: " + belowNode.toString());
             return MOCK_STM;
         }
-        Pattern pt = Pattern.compile("verify\\(([^\\.]*)\\)(?:\\.(.*))?");
+        Pattern pt = Pattern.compile("verify\\(([^,]+)(?:,(.*))?\\)(?:\\.(.*))?");
         Matcher mc = pt.matcher(nodeAsString);
         if (mc.find()) {
-            System.out.println("hit verify");
+            System.out.println("@@ hit verify: " + nodeAsString);
             for (int i = 0; i <= mc.groupCount(); i++) {
                 System.out.println(mc.group(i));
             }

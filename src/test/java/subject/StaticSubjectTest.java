@@ -13,26 +13,16 @@ public class StaticSubjectTest {
     }
 
     @Test
-    public void test_real_parameter_matching() {
+    public void test_real_parameter_matching(@Mocked StaticSubject ss) {
         final int[] counter = new int[1];
-        new MockUp<StaticSubject>() {
-            @Mock
-            public int rebase(Invocation ctx) {
-                counter[0]++;
-                int arg = (int)ctx.getInvokedArguments()[0];
-                if (arg == 5) {
-                    return 100;
-                }
-                if (arg == 7) {
-                    return 2000;
-                }
-                return 0;
-            }
-        };
+        new Expectations(){{
+            StaticSubject.rebase(5); result = 100;
+            StaticSubject.rebase(7); result = 2000;
+        }};
 
         assertEquals(100, StaticSubject.rebase(5));
         assertEquals(2000, StaticSubject.rebase(7));
-        assertEquals(2, counter[0]);
+        //assertEquals(2, counter[0]);
     }
 
     private void print(Object o) {
