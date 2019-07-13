@@ -55,7 +55,7 @@ public class MethodWorker {
             }
         }
         int mockBreakPoint = baseStms.length - 1;
-        while (mockBreakPoint >= 0 && stmTypes[mockBreakPoint] == NORMAL_STM) {
+        while (mockBreakPoint >= 0 && stmTypes[mockBreakPoint] != MOCK_STM) {
             mockBreakPoint--;
         }
         mockBreakPoint++;
@@ -67,10 +67,8 @@ public class MethodWorker {
             }
         }
 
-        List<Statement> replacementStms = mockRebuild();
-        for (Statement stm: replacementStms) {
-            newBodyStmts.add(stm);
-        }
+        Statement expectations = MockWorker.transform(mockMeta);
+        newBodyStmts.add(expectations);
 
         for (int i = mockBreakPoint; i < baseStms.length; i++) {
             newBodyStmts.add( baseStms[i] );
@@ -204,23 +202,6 @@ public class MethodWorker {
             return VERIFY_STM;
         }
         return NORMAL_STM;
-    }
-
-    private List<Statement> mockRebuild() {
-        List<Statement> output = new ArrayList<>();
-        InstanceMockWorker imw = new InstanceMockWorker();
-        for (Map.Entry<String, SubjectMockMeta> smm: mockMeta.getSubjectMockMetas().entrySet()) {
-            String subjectName = smm.getKey();
-            if (staticMockedClasses.contains(subjectName)) {
-                output.add( StaticMockWorker.transform(smm, varTypeMap) );
-            } else {
-                imw.addMockMeta(smm);
-            }
-        }
-        if ( ! imw.isEmpty()) {
-            output.add( imw.transform() );
-        }
-        return output;
     }
 
     private Parameter buildParameterForMockedVar(Map.Entry<String, Type> nameType) {

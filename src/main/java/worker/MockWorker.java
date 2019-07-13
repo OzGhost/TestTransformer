@@ -8,21 +8,12 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.body.*;
 
-public class InstanceMockWorker {
-    private List<Map.Entry<String, SubjectMockMeta>> metas = new ArrayList<>();
+public class MockWorker {
 
-    public void addMockMeta(Map.Entry<String, SubjectMockMeta> mockMeta) {
-        metas.add(mockMeta);
-    }
-
-    public boolean isEmpty() {
-        return metas.isEmpty();
-    }
-
-    public Statement transform() {
+    public static Statement transform(MockMeta mockMeta) {
         NodeList<Statement> expectations = new NodeList<>();
         Expression expr = null;
-        for (Map.Entry<String, SubjectMockMeta> meta: metas) {
+        for (Map.Entry<String, SubjectMockMeta> meta: mockMeta.getSubjectMockMetas().entrySet()) {
             String subjectName = meta.getKey();
             SubjectMockMeta subjectMeta = meta.getValue();
             for (Map.Entry<String, List<CallMeta>> mm: subjectMeta.getMethodMockMetas().entrySet()) {
