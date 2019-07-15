@@ -13,7 +13,7 @@ public class App {
         StaticSubject.noRefun();
         NonStaticSubject nss = NonStaticSubject.create(1298);
         nss.noReturn();
-        return StaticSubject.getRefun() + nss.val() + Storage.feed + Storage.foo;
+        return StaticSubject.getRefun() + nss.val() + Storage.feed + Storage.foo + nss.lift(80);
     }
 
     public static void main(String[] args) throws Exception {

@@ -11,6 +11,6 @@ public class AppTest {
     @Test
     public void testAppHasAGreeting() {
         App t = new App();
-        assertEquals(t.getVal(), 189+29+100+105);
+        assertEquals(t.getVal(), 189+29+100+105+99);
     }
 }

@@ -8,10 +8,10 @@ import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 import com.github.javaparser.ast.body.*;
 
-public class MockWorker {
+public class VerifyWorker {
 
     public static Statement transform(MockingMeta mockMeta) {
-        NodeList<Statement> expectations = new NodeList<>();
+        NodeList<Statement> verifications = new NodeList<>();
         Expression expr = null;
         for (Map.Entry<String, SubjectMeta> meta: mockMeta.getSubjectMetas().entrySet()) {
             String subjectName = meta.getKey();
@@ -20,20 +20,14 @@ public class MockWorker {
                 String methodName = mm.getKey();
                 List<CallMeta> callMetas = mm.getValue();
                 for (CallMeta cm: callMetas) {
-                    if (cm.isRaise()) {
-                        System.out.println("Hit throw: " + cm.toString());
-                    } else if (cm.isVoid()) {
-                        //TODO: special handle for void function if needed
-                    } else {
-                        expr = new MethodCallExpr(new NameExpr(subjectName), methodName);
-                        expectations.add(new ExpressionStmt(expr));
-                        expr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-                        expectations.add(new ExpressionStmt(expr));
-                    }
+                    expr = new MethodCallExpr(new NameExpr(subjectName), methodName);
+                    verifications.add(new ExpressionStmt(expr));
+                    expr = new AssignExpr(new NameExpr("times"), new IntegerLiteralExpr(1), AssignExpr.Operator.ASSIGN);
+                    verifications.add(new ExpressionStmt(expr));
                 }
             }
         }
-        return wrapMockStatement(expectations);
+        return wrapMockStatement(verifications);
     }
 
     private static Statement wrapMockStatement(NodeList<Statement> mockStmts) {
@@ -43,12 +37,11 @@ public class MockWorker {
         initBlockAsList.add(initBlock);
         ObjectCreationExpr expectBlock = new ObjectCreationExpr(
                 null,
-                new ClassOrInterfaceType("Expectations"),
+                new ClassOrInterfaceType("Verifications"),
                 new NodeList<>(),
                 new NodeList<>(),
                 initBlockAsList
-        );
+                );
         return new ExpressionStmt(expectBlock);
     }
 }
-

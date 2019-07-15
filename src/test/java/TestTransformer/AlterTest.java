@@ -13,11 +13,12 @@ public class AlterTest {
         int[] getRefunCounter = new int[1];
         new Expectations() {{
             nss.val(); result = 1928;
+            nss.lift(); result = 30;
             StaticSubject.getRefun(); result = 9;
         }};
         
         App t = new App();
-        assertEquals(t.getVal(), 9+1928);
+        assertEquals(t.getVal(), 9+1928+30);
         //assertEquals(1, getRefunCounter[0]);
         //assertEquals(1, noRefunCounter[0]);
 

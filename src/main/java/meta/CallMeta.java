@@ -17,6 +17,7 @@ public class CallMeta {
     private String output;
     private String cause;
     private Expression outputExpr;
+    private String fact;
 
     public CallMeta(String param, String out, boolean isRaise, boolean isVoid) {
         input = param;
@@ -32,6 +33,11 @@ public class CallMeta {
     public CallMeta(String param, String out, Expression outExpr, boolean isRaise, boolean isVoid) {
         this(param, out, isRaise, isVoid);
         outputExpr = outExpr;
+    }
+
+    public CallMeta(String param, String truely) {
+        input = param;
+        fact = truely;
     }
 
     private CallMeta() {}
@@ -60,13 +66,25 @@ public class CallMeta {
         return cause;
     }
 
+    public String getFact() {
+        return fact;
+    }
+
     @Override
     public String toString() {
         return new StringBuilder()
             .append('[')
             .append(input)
             .append("] -> [")
-            .append(_raise ? "<throw> "+cause : _void ? "<void>" : output)
+            .append(
+                    (fact == null)
+                    ? _raise
+                        ? "<throw> " + cause
+                        : _void
+                            ? "<void>"
+                            : output
+                    : "<fact> " + fact
+            )
             .append(']')
             .toString();
     }

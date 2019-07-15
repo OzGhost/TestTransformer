@@ -2,18 +2,18 @@ package meta;
 
 import java.util.*;
 
-public class SubjectMockMeta {
-    private Map<String, List<CallMeta>> methodMockMetas = new HashMap<>();
+public class SubjectMeta {
+    private Map<String, List<CallMeta>> methodMetas = new HashMap<>();
 
-    public Map<String, List<CallMeta>> getMethodMockMetas() {
-        return methodMockMetas;
+    public Map<String, List<CallMeta>> getMethodMetas() {
+        return methodMetas;
     }
 
     public List<CallMeta> getByMethodName(String methodName) {
-        List<CallMeta> out = methodMockMetas.get(methodName);
+        List<CallMeta> out = methodMetas.get(methodName);
         if (out == null) {
             out = new ArrayList<>();
-            methodMockMetas.put(methodName, out);
+            methodMetas.put(methodName, out);
         }
         return out;
     }
@@ -22,7 +22,7 @@ public class SubjectMockMeta {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append('{');
-        Iterator<Map.Entry<String, List<CallMeta>>> ite = methodMockMetas.entrySet().iterator();
+        Iterator<Map.Entry<String, List<CallMeta>>> ite = methodMetas.entrySet().iterator();
         Map.Entry<String, List<CallMeta>> mmm;
         if (ite.hasNext()) {
             concatenate(ite.next(), sb);

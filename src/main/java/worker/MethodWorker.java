@@ -18,13 +18,13 @@ public class MethodWorker {
     private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.([^\\(]+)\\((.*)\\)");
     private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\.class\\)");
 
-    private static final String STATIC_VOID_RECALL_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
+    private static final String STATIC_RECALL_PATTERN_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
 
     private ClassWorker upperLevel;
     private Map<String, Type> varTypeMap = new HashMap<>();
-    private Map<String, Type> varMockOnly = new HashMap<>();
-    private Set<String> staticMockedClasses = new HashSet<>();
-    private MockMeta mockMeta = new MockMeta();
+    private Set<String> mockedTypes = new HashSet<>();
+    private MockingMeta records = new MockingMeta();
+    private MockingMeta rechecks = new MockingMeta();
 
     public MethodWorker(ClassWorker ul) {
         upperLevel = ul;
@@ -34,8 +34,8 @@ public class MethodWorker {
         WoodLog.reachMethod(methodUnit.getName().asString());
 
         collectVariableType(methodUnit);
-        replaceMockedObject(methodUnit);
-        removeMockStaticDeclaration(methodUnit);
+        replaceInstanceMockDeclaration(methodUnit);
+        replaceStaticMockDeclaration(methodUnit);
 
         Statement[] baseStms = getStms(methodUnit);
         int[] stmTypes = new int[baseStms.length];
@@ -50,6 +50,10 @@ public class MethodWorker {
                 stmTypes[i] = MOCK_STM;
                 i++;
                 stmTypes[i] = MOCK_STM;
+            } else if(nType == FOLLOWED_VERIFY_STM) {
+                stmTypes[i] = VERIFY_STM;
+                i++;
+                stmTypes[i] = VERIFY_STM;
             } else {
                 stmTypes[i] = nType;
             }
@@ -67,17 +71,23 @@ public class MethodWorker {
             }
         }
 
-        Statement expectations = MockWorker.transform(mockMeta);
+        Statement expectations = MockWorker.transform(records);
         newBodyStmts.add(expectations);
 
         for (int i = mockBreakPoint; i < baseStms.length; i++) {
-            newBodyStmts.add( baseStms[i] );
+            if (stmTypes[i] == NORMAL_STM) {
+                newBodyStmts.add( baseStms[i] );
+            }
         }
+
+        Statement verifications = VerifyWorker.transform(rechecks);
+        newBodyStmts.add(verifications);
 
         methodUnit.getBody().get().setStatements(newBodyStmts);
         
-        //System.out.println(mockMeta);
-        //WoodLog.printCuts();
+        //System.out.println(records);
+        //System.out.println(rechecks);
+        WoodLog.printCuts();
     }
 
     private void collectVariableType(MethodDeclaration method) {
@@ -88,40 +98,65 @@ public class MethodWorker {
         }
     }
 
-    private void replaceMockedObject(MethodDeclaration methodUnit) {
-        ArrayList<Node> ori = new ArrayList<>();
-        ArrayList<Node> repl = new ArrayList<>();
+    private void replaceInstanceMockDeclaration(MethodDeclaration methodUnit) {
+        List<Node> ori = new ArrayList<>();
+        List<Node> repl = new ArrayList<>();
+        List<Type> instanceMockTypes = new ArrayList<>();
+        List<String> instanceMockNames = new ArrayList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
-                Type mockedType = ((ClassExpr)call.getArguments().get(0)).getType();
-                String mockedTypeAsString = ((ClassOrInterfaceType)mockedType).getName().asString();
-                String replacementVarName = NameUtil.createTypeBasedName(mockedTypeAsString, varTypeMap.keySet());
-                varTypeMap.put(replacementVarName, mockedType);
-                varMockOnly.put(replacementVarName, mockedType);
+                Type mockingType = ((ClassExpr)call.getArguments().get(0)).getType();
+                String replacementName = NameUtil.createTypeBasedName(mockingType.toString(), varTypeMap.keySet());
+
+                instanceMockTypes.add(mockingType);
+                instanceMockNames.add(replacementName);
+
                 ori.add(call);
-                repl.add(new NameExpr(replacementVarName));
+                repl.add(new NameExpr(replacementName));
             }
         }
-
         for (int i = 0; i < ori.size(); ++i) {
             ori.get(i).getParentNode().get().replace(ori.get(i), repl.get(i));
         }
+        declareTypesAsMocked(instanceMockTypes, instanceMockNames, methodUnit.getParameters());
+    }
 
-        for (Map.Entry<String, Type> entry: varMockOnly.entrySet()) {
-            Parameter param = buildParameterForMockedVar(entry);
-            methodUnit.getParameters().add(param);
+    private void declareTypesAsMocked(List<Type> argTypes, List<String> argNames, NodeList<Parameter> currentParameters) {
+        for (int i = 0; i < argTypes.size(); ++i) {
+            declareTypeAsMocked(argTypes.get(i), argNames.get(i), currentParameters, false);
         }
     }
 
-    private void removeMockStaticDeclaration(MethodDeclaration methodUnit) {
+    private void declareTypeAsMocked(Type argType, String argName, NodeList<Parameter> currentParameters, boolean requiredUnique) {
+        String typeAsString = argType.toString();
+        if ( requiredUnique && mockedTypes.contains(typeAsString) ) {
+            return;
+        }
+        Parameter param =  new Parameter(
+                new NodeList<>(),
+                new NodeList<>(new MarkerAnnotationExpr("Mocked")),
+                argType,
+                false,
+                new NodeList<>(),
+                new SimpleName(argName)
+        );
+        currentParameters.add(param);
+        // track down mocked types
+        mockedTypes.add(typeAsString);
+        // track down variable and it type
+        varTypeMap.put(argName, argType);
+    }
+
+    private void replaceStaticMockDeclaration(MethodDeclaration methodUnit) {
+        List<Type> staticMocks = new ArrayList<>();
         LinkedList<Node> useless = new LinkedList<>();
         BlockStmt methodBody = methodUnit.getBody().get();
         for (Statement stmt: methodBody.getStatements()) {
             for (MethodCallExpr call: stmt.findAll(MethodCallExpr.class)) {
                 if ("mockStatic".equals(call.getName().asString())) {
                     for (Expression ex: call.getArguments()) {
-                        String className = ex.toString();
-                        staticMockedClasses.add(className.substring(0, className.lastIndexOf('.')));
+                        Type argType = ((ClassExpr)ex).getType();
+                        staticMocks.add(argType);
                     }
                     useless.push(stmt);
                 }
@@ -129,6 +164,15 @@ public class MethodWorker {
         }
         while ( ! useless.isEmpty()) {
             methodBody.remove(useless.pop());
+        }
+        NodeList<Parameter> currentParameters = methodUnit.getParameters();
+        declareTypesAsMocked(staticMocks, currentParameters);
+    }
+
+    private void declareTypesAsMocked(List<Type> mockingTypes, NodeList<Parameter> currentParameters) {
+        for (Type mockingType: mockingTypes) {
+            String argName = NameUtil.createTypeBasedName(mockingType.toString(), varTypeMap.keySet());
+            declareTypeAsMocked(mockingType, argName, currentParameters, true);
         }
     }
 
@@ -154,7 +198,7 @@ public class MethodWorker {
                                         .getArguments()
                                         .get(0);
 
-            List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+            List<CallMeta> cmm = records.getBySubjectName(subject).getByMethodName(call);
             CallMeta meta = new CallMeta(param, out, outExpr, false, false);
             cmm.add(meta);
             return MOCK_STM;
@@ -165,7 +209,7 @@ public class MethodWorker {
             String call = voidMp.group(2);
             String param = voidMp.group(3);
 
-            List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+            List<CallMeta> cmm = records.getBySubjectName(subject).getByMethodName(call);
             CallMeta meta = new CallMeta(param, "", false, true);
             cmm.add(meta);
             return MOCK_STM;
@@ -177,13 +221,13 @@ public class MethodWorker {
                 WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Found no co-mock void method");
                 return MOCK_STM;
             }
-            String pat = subject + STATIC_VOID_RECALL_SUFFIX;
+            String pat = subject + STATIC_RECALL_PATTERN_SUFFIX;
             Matcher staticVoidFollowMp = Pattern.compile(pat).matcher(belowNode.toString());
             if (staticVoidFollowMp.find()) {
                 String call = staticVoidFollowMp.group(1);
                 String param = staticVoidFollowMp.group(2);
 
-                List<CallMeta> cmm = mockMeta.getBySubjectName(subject).getByMethodName(call);
+                List<CallMeta> cmm = records.getBySubjectName(subject).getByMethodName(call);
                 CallMeta meta = new CallMeta(param, "", false, true);
                 cmm.add(meta);
                 return FOLLOWED_MOCK_STM;
@@ -192,28 +236,40 @@ public class MethodWorker {
                     "Cannot detect static-void-mocked in followed statement: " + belowNode.toString());
             return MOCK_STM;
         }
-        Pattern pt = Pattern.compile("verify\\(([^,]+)(?:,(.*))?\\)(?:\\.(.*))?");
-        Matcher mc = pt.matcher(nodeAsString);
-        if (mc.find()) {
-            System.out.println("@@ hit verify: " + nodeAsString);
-            for (int i = 0; i <= mc.groupCount(); i++) {
-                System.out.println(mc.group(i));
+        Pattern pt = Pattern.compile("verify\\(([^,]*),(.*)\\)\\.([^(]+)\\((.*)\\)");
+        Matcher verifyMp = pt.matcher(nodeAsString);
+        if (verifyMp.find()) {
+            String subject = verifyMp.group(1);
+            String fact = verifyMp.group(2);
+            String methodName = verifyMp.group(3);
+            String param = verifyMp.group(4);
+
+            List<CallMeta> cmm = rechecks.getBySubjectName(subject).getByMethodName(methodName);
+            CallMeta meta = new CallMeta(param, fact);
+            cmm.add(meta);
+            return VERIFY_STM;
+        }
+        pt = Pattern.compile("verifyStatic\\(([^,]*)\\.class,(.*)\\)");
+        Matcher verifyStaticMp = pt.matcher(nodeAsString);
+        if (verifyStaticMp.find()) {
+            String subject = verifyStaticMp.group(1);
+            String fact = verifyStaticMp.group(2);
+            String staticRecallPattern = subject + STATIC_RECALL_PATTERN_SUFFIX;
+            Matcher recallMatcher = Pattern.compile(staticRecallPattern).matcher(belowNode.toString());
+            if (recallMatcher.find()) {
+                String methodName = recallMatcher.group(1);
+                String param = recallMatcher.group(2);
+
+                List<CallMeta> cmm = rechecks.getBySubjectName(subject).getByMethodName(methodName);
+                CallMeta meta = new CallMeta(param, fact);
+                cmm.add(meta);
+                return FOLLOWED_VERIFY_STM;
             }
+            WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
+                    "Cannot detect static-verify call in follow statement: " + belowNode.toString());
             return VERIFY_STM;
         }
         return NORMAL_STM;
     }
 
-    private Parameter buildParameterForMockedVar(Map.Entry<String, Type> nameType) {
-        NodeList<AnnotationExpr> annotations = new NodeList<>();
-        annotations.add(new MarkerAnnotationExpr("Mocked"));
-        return new Parameter(
-                new NodeList<>(),
-                annotations,
-                nameType.getValue(),
-                false,
-                new NodeList<>(),
-                new SimpleName(nameType.getKey())
-        );
-    }
 }

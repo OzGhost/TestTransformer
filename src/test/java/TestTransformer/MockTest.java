@@ -26,6 +26,7 @@ public class MockTest {
         when(NonStaticSubject.create(anyInt())).thenReturn(ss);
         when(ss.val()).thenReturn(16);
         doNothing().when(ss).noReturn();
+        when(ss.lift(80)).thenReturn(20);
 
         mockStatic(StaticSubject.class);
         when(StaticSubject.getRefun()).thenReturn(8);
@@ -33,10 +34,15 @@ public class MockTest {
         StaticSubject.noRefun();
         
         App t = new App();
-        assertEquals(t.getVal(), 8+16);
+        assertEquals(t.getVal(), 8+16+20);
+
+        verifyStatic(NonStaticSubject.class, times(1));
+        NonStaticSubject.create(anyInt());
 
         verify(ss, times(1)).val();
         verify(ss, times(1)).noReturn();
+        verify(ss, times(1)).lift(anyInt());
+
         verifyStatic(StaticSubject.class, times(1));
         StaticSubject.getRefun();
         verifyStatic(StaticSubject.class, times(1));
