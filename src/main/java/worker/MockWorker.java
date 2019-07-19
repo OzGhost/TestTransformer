@@ -2,6 +2,7 @@ package worker;
 
 import meta.*;
 import java.util.*;
+import java.util.function.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.expr.*;
@@ -10,45 +11,30 @@ import com.github.javaparser.ast.body.*;
 
 public class MockWorker {
 
-    public static Statement transform(MockingMeta mockMeta) {
-        NodeList<Statement> expectations = new NodeList<>();
-        Expression expr = null;
-        for (Map.Entry<String, SubjectMeta> meta: mockMeta.getSubjectMetas().entrySet()) {
-            String subjectName = meta.getKey();
-            SubjectMeta subjectMeta = meta.getValue();
-            for (Map.Entry<String, List<CallMeta>> mm: subjectMeta.getMethodMetas().entrySet()) {
-                String methodName = mm.getKey();
-                List<CallMeta> callMetas = mm.getValue();
-                for (CallMeta cm: callMetas) {
-                    if (cm.isRaise()) {
-                        System.out.println("Hit throw: " + cm.toString());
-                    } else if (cm.isVoid()) {
-                        //TODO: special handle for void function if needed
-                    } else {
-                        expr = new MethodCallExpr(new NameExpr(subjectName), methodName);
-                        expectations.add(new ExpressionStmt(expr));
-                        expr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-                        expectations.add(new ExpressionStmt(expr));
-                    }
-                }
+    private static final Function<Craft, Statement[]> MOCK_PROCESSOR = new Function<Craft, Statement[]>() {
+        @Override
+        public Statement[] apply(Craft craft) {
+            CallMeta cm = craft.getCallMeta();
+            ParameterMatchingWorker.leach(cm.getInput());
+            if (cm.isRaise()) {
+                System.out.println("Hit throw: " + cm.toString());
+                return null;
+            } else if (cm.isVoid()) {
+                return null;
+            } else {
+                Statement[] output = new Statement[2];
+                Expression expr = null;
+                expr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+                output[0] = new ExpressionStmt(expr);
+                expr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
+                output[1] = new ExpressionStmt(expr);
+                return output;
             }
         }
-        return wrapMockStatement(expectations);
-    }
+    };
 
-    private static Statement wrapMockStatement(NodeList<Statement> mockStmts) {
-        BlockStmt bodyBlock = new BlockStmt(mockStmts);
-        InitializerDeclaration initBlock = new InitializerDeclaration(false, bodyBlock);
-        NodeList<BodyDeclaration<?>> initBlockAsList = new NodeList<>();
-        initBlockAsList.add(initBlock);
-        ObjectCreationExpr expectBlock = new ObjectCreationExpr(
-                null,
-                new ClassOrInterfaceType("Expectations"),
-                new NodeList<>(),
-                new NodeList<>(),
-                initBlockAsList
-        );
-        return new ExpressionStmt(expectBlock);
+    public static Statement transform(MockingMeta mockingMeta) {
+        return MockingMetaWrappingWorker.wrap(mockingMeta, MOCK_PROCESSOR, "Expectations");
     }
 }
 

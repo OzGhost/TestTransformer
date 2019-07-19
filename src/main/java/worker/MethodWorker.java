@@ -2,6 +2,7 @@ package worker;
 
 import static meta.Name.*;
 import meta.*;
+import reader.*;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -25,6 +26,13 @@ public class MethodWorker {
     private Set<String> mockedTypes = new HashSet<>();
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
+
+    //private ImmutableList<MockingReader> mockingReaders = new ImmutableList.Builder
+    private List<MockingReader> readers = new ArrayList<>();
+
+    static {
+        readers.add(new ReturnMockReader());
+    }
 
     public MethodWorker(ClassWorker ul) {
         upperLevel = ul;
@@ -186,6 +194,19 @@ public class MethodWorker {
 
     private int checkType(Node node, Node belowNode) {
         String nodeAsString = node.toString();
+        for (int i = 0; i < readers.size(); ++i) {
+            MockingReader reader = readers.get(i);
+            int stmType = reader.read(nodeAsString, node, belowNode);
+            if (stmType != UNKNOW_STM) {
+                Craft craft = reader.getCraft();
+                records.getBySubjectName( craft.getSubjectName() )
+                    .getByMethodName( craft.getMethodName() )
+                    .add( craft.getCallMeta() );
+                return stmType;
+            }
+        }
+        return NORMAL_STM;
+        /*
         Matcher returnMp = RETURNABLE_MP.matcher(nodeAsString);
         if (returnMp.find()) {
             String subject = returnMp.group(1);
@@ -270,6 +291,7 @@ public class MethodWorker {
             return VERIFY_STM;
         }
         return NORMAL_STM;
+        */
     }
 
 }
