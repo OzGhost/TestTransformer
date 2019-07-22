@@ -22,6 +22,10 @@ public class WoodLog {
         currentSubject = subjectName;
     }
 
+    public static void attach(int level, String subject, String message) {
+        attach(level, subject, "<?>", CallMeta.NIL, message);
+    }
+
     public static void attach(int level, CallMeta callMeta, String message) {
         attach(level, currentMethod, callMeta, message);
     }

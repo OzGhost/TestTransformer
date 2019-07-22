@@ -12,14 +12,19 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
+import com.google.common.collect.ImmutableList;
 
 public class MethodWorker {
 
-    private static final Pattern RETURNABLE_MP = Pattern.compile("when\\((.+)\\.([^\\(]+)\\((.*)\\)\\)\\.thenReturn\\((.+)\\)");
-    private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.([^\\(]+)\\((.*)\\)");
-    private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\.class\\)");
-
-    private static final String STATIC_RECALL_PATTERN_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
+    private static final ImmutableList<MockingReader> MOCK_READER = ImmutableList.of(
+            new ReturnMockReader(),
+            new VoidMockReader(),
+            new StaticVoidMockReader()
+        );
+    private static final ImmutableList<MockingReader> VERIFY_READER = ImmutableList.of(
+            new InvocationVerifyReader(),
+            new StaticInvocationVerifyReader()
+        );
 
     private ClassWorker upperLevel;
     private Map<String, Type> varTypeMap = new HashMap<>();
@@ -27,12 +32,6 @@ public class MethodWorker {
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
 
-    //private ImmutableList<MockingReader> mockingReaders = new ImmutableList.Builder
-    private List<MockingReader> readers = new ArrayList<>();
-
-    static {
-        readers.add(new ReturnMockReader());
-    }
 
     public MethodWorker(ClassWorker ul) {
         upperLevel = ul;
@@ -41,7 +40,7 @@ public class MethodWorker {
     public void transform(MethodDeclaration methodUnit) {
         WoodLog.reachMethod(methodUnit.getName().asString());
 
-        collectVariableType(methodUnit);
+        //collectVariableType(methodUnit);
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);
 
@@ -194,8 +193,7 @@ public class MethodWorker {
 
     private int checkType(Node node, Node belowNode) {
         String nodeAsString = node.toString();
-        for (int i = 0; i < readers.size(); ++i) {
-            MockingReader reader = readers.get(i);
+        for (MockingReader reader: MOCK_READER) {
             int stmType = reader.read(nodeAsString, node, belowNode);
             if (stmType != UNKNOW_STM) {
                 Craft craft = reader.getCraft();
@@ -205,71 +203,18 @@ public class MethodWorker {
                 return stmType;
             }
         }
+        for (MockingReader reader: VERIFY_READER) {
+            int stmType = reader.read(nodeAsString, node, belowNode);
+            if (stmType != UNKNOW_STM) {
+                Craft craft = reader.getCraft();
+                rechecks.getBySubjectName( craft.getSubjectName() )
+                    .getByMethodName( craft.getMethodName() )
+                    .add( craft.getCallMeta() );
+                return stmType;
+            }
+        }
         return NORMAL_STM;
         /*
-        Matcher returnMp = RETURNABLE_MP.matcher(nodeAsString);
-        if (returnMp.find()) {
-            String subject = returnMp.group(1);
-            String call = returnMp.group(2);
-            String param = returnMp.group(3);
-            String out = returnMp.group(4);
-
-            Expression outExpr = node.findFirst(MethodCallExpr.class)
-                                        .get()
-                                        .getArguments()
-                                        .get(0);
-
-            List<CallMeta> cmm = records.getBySubjectName(subject).getByMethodName(call);
-            CallMeta meta = new CallMeta(param, out, outExpr, false, false);
-            cmm.add(meta);
-            return MOCK_STM;
-        }
-        Matcher voidMp = VOID_MP.matcher(nodeAsString);
-        if (voidMp.find()) {
-            String subject = voidMp.group(1);
-            String call = voidMp.group(2);
-            String param = voidMp.group(3);
-
-            List<CallMeta> cmm = records.getBySubjectName(subject).getByMethodName(call);
-            CallMeta meta = new CallMeta(param, "", false, true);
-            cmm.add(meta);
-            return MOCK_STM;
-        }
-        Matcher staticVoidMp = STATIC_VOID_MP.matcher(nodeAsString);
-        if (staticVoidMp.find()) {
-            String subject = staticVoidMp.group(1);
-            if (belowNode == null) {
-                WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL, "Found no co-mock void method");
-                return MOCK_STM;
-            }
-            String pat = subject + STATIC_RECALL_PATTERN_SUFFIX;
-            Matcher staticVoidFollowMp = Pattern.compile(pat).matcher(belowNode.toString());
-            if (staticVoidFollowMp.find()) {
-                String call = staticVoidFollowMp.group(1);
-                String param = staticVoidFollowMp.group(2);
-
-                List<CallMeta> cmm = records.getBySubjectName(subject).getByMethodName(call);
-                CallMeta meta = new CallMeta(param, "", false, true);
-                cmm.add(meta);
-                return FOLLOWED_MOCK_STM;
-            }
-            WoodLog.attach(ERROR, subject, "<?>", CallMeta.NIL,
-                    "Cannot detect static-void-mocked in followed statement: " + belowNode.toString());
-            return MOCK_STM;
-        }
-        Pattern pt = Pattern.compile("verify\\(([^,]*),(.*)\\)\\.([^(]+)\\((.*)\\)");
-        Matcher verifyMp = pt.matcher(nodeAsString);
-        if (verifyMp.find()) {
-            String subject = verifyMp.group(1);
-            String fact = verifyMp.group(2);
-            String methodName = verifyMp.group(3);
-            String param = verifyMp.group(4);
-
-            List<CallMeta> cmm = rechecks.getBySubjectName(subject).getByMethodName(methodName);
-            CallMeta meta = new CallMeta(param, fact);
-            cmm.add(meta);
-            return VERIFY_STM;
-        }
         pt = Pattern.compile("verifyStatic\\(([^,]*)\\.class,(.*)\\)");
         Matcher verifyStaticMp = pt.matcher(nodeAsString);
         if (verifyStaticMp.find()) {

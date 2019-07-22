@@ -2,6 +2,9 @@ package reader;
 
 import static meta.Name.*;
 import java.util.regex.*;
+import meta.*;
+import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.expr.*;
 
 public class ReturnMockReader extends MockingReader {
 
@@ -9,7 +12,7 @@ public class ReturnMockReader extends MockingReader {
 
     @Override
     public int read(String stm, Node node, Node belowNode) {
-        Matcher returnMp = RETURNABLE_MP.matcher(nodeAsString);
+        Matcher returnMp = RETURNABLE_MP.matcher(stm);
         if ( ! returnMp.find()) {
             return UNKNOW_STM;
         }
@@ -30,3 +33,4 @@ public class ReturnMockReader extends MockingReader {
         return MOCK_STM;
     }
 }
+

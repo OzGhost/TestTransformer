@@ -5,6 +5,8 @@ import com.github.javaparser.ast.*;
 
 public abstract class MockingReader {
 
+    protected static final String STATIC_RECALL_PATTERN_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
+
     protected Craft craft = new Craft();
 
     public Craft getCraft() {

@@ -7,6 +7,8 @@ import subject.*;
 
 public class AlterTest {
 
+    @Mocked NonStaticSubject rss;
+
     @Test
     public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked StaticSubject ss) {
         int[] noRefunCounter = new int[1];

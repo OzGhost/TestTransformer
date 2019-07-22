@@ -12,6 +12,9 @@ import subject.*;
 
 public class AlterTest {
 
+    @Mocked
+    NonStaticSubject rss;
+
     @Test
     public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked StaticSubject ss) {
         int[] noRefunCounter = new int[1];
@@ -21,12 +24,14 @@ public class AlterTest {
             {
                 nss.val();
                 result = 1928;
+                nss.lift();
+                result = 30;
                 StaticSubject.getRefun();
                 result = 9;
             }
         };
         App t = new App();
-        assertEquals(t.getVal(), 9 + 1928);
+        assertEquals(t.getVal(), 9 + 1928 + 30);
         // assertEquals(1, getRefunCounter[0]);
         // assertEquals(1, noRefunCounter[0]);
         new Verifications() {
@@ -68,6 +73,9 @@ public class AlterTest {
    >   >   > subject :: class com.github.javaparser.ast.expr.Name<<<<
    >   > public class AlterTest {
 
+    @Mocked
+    NonStaticSubject rss;
+
     @Test
     public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked StaticSubject ss) {
         int[] noRefunCounter = new int[1];
@@ -77,12 +85,14 @@ public class AlterTest {
             {
                 nss.val();
                 result = 1928;
+                nss.lift();
+                result = 30;
                 StaticSubject.getRefun();
                 result = 9;
             }
         };
         App t = new App();
-        assertEquals(t.getVal(), 9 + 1928);
+        assertEquals(t.getVal(), 9 + 1928 + 30);
         // assertEquals(1, getRefunCounter[0]);
         // assertEquals(1, noRefunCounter[0]);
         new Verifications() {
@@ -104,6 +114,14 @@ public class AlterTest {
 } :: class com.github.javaparser.ast.body.ClassOrInterfaceDeclaration<<<<
    >   >   > public  :: class com.github.javaparser.ast.Modifier<<<<
    >   >   > AlterTest :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   > @Mocked
+NonStaticSubject rss; :: class com.github.javaparser.ast.body.FieldDeclaration<<<<
+   >   >   >   > @Mocked :: class com.github.javaparser.ast.expr.MarkerAnnotationExpr<<<<
+   >   >   >   >   > Mocked :: class com.github.javaparser.ast.expr.Name<<<<
+   >   >   >   > rss :: class com.github.javaparser.ast.body.VariableDeclarator<<<<
+   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
+   >   >   >   >   >   > NonStaticSubject :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   > rss :: class com.github.javaparser.ast.expr.SimpleName<<<<
    >   >   > @Test
 public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked StaticSubject ss) {
     int[] noRefunCounter = new int[1];
@@ -113,12 +131,14 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
         {
             nss.val();
             result = 1928;
+            nss.lift();
+            result = 30;
             StaticSubject.getRefun();
             result = 9;
         }
     };
     App t = new App();
-    assertEquals(t.getVal(), 9 + 1928);
+    assertEquals(t.getVal(), 9 + 1928 + 30);
     // assertEquals(1, getRefunCounter[0]);
     // assertEquals(1, noRefunCounter[0]);
     new Verifications() {
@@ -162,12 +182,14 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
         {
             nss.val();
             result = 1928;
+            nss.lift();
+            result = 30;
             StaticSubject.getRefun();
             result = 9;
         }
     };
     App t = new App();
-    assertEquals(t.getVal(), 9 + 1928);
+    assertEquals(t.getVal(), 9 + 1928 + 30);
     // assertEquals(1, getRefunCounter[0]);
     // assertEquals(1, noRefunCounter[0]);
     new Verifications() {
@@ -211,6 +233,8 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
     {
         nss.val();
         result = 1928;
+        nss.lift();
+        result = 30;
         StaticSubject.getRefun();
         result = 9;
     }
@@ -220,6 +244,8 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
     {
         nss.val();
         result = 1928;
+        nss.lift();
+        result = 30;
         StaticSubject.getRefun();
         result = 9;
     }
@@ -229,12 +255,16 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
    >   >   >   >   >   >   > {
     nss.val();
     result = 1928;
+    nss.lift();
+    result = 30;
     StaticSubject.getRefun();
     result = 9;
 } :: class com.github.javaparser.ast.body.InitializerDeclaration<<<<
    >   >   >   >   >   >   >   > {
     nss.val();
     result = 1928;
+    nss.lift();
+    result = 30;
     StaticSubject.getRefun();
     result = 9;
 } :: class com.github.javaparser.ast.stmt.BlockStmt<<<<
@@ -248,6 +278,16 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
    >   >   >   >   >   >   >   >   >   >   > result :: class com.github.javaparser.ast.expr.NameExpr<<<<
    >   >   >   >   >   >   >   >   >   >   >   > result :: class com.github.javaparser.ast.expr.SimpleName<<<<
    >   >   >   >   >   >   >   >   >   >   > 1928 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   >   > nss.lift(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > nss.lift() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > nss :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > lift :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   > result = 30; :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   >   >   >   >   > result = 30 :: class com.github.javaparser.ast.expr.AssignExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   > result :: class com.github.javaparser.ast.expr.NameExpr<<<<
+   >   >   >   >   >   >   >   >   >   >   >   > result :: class com.github.javaparser.ast.expr.SimpleName<<<<
+   >   >   >   >   >   >   >   >   >   >   > 30 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
    >   >   >   >   >   >   >   >   > StaticSubject.getRefun(); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
    >   >   >   >   >   >   >   >   >   > StaticSubject.getRefun() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
    >   >   >   >   >   >   >   >   >   >   > StaticSubject :: class com.github.javaparser.ast.expr.NameExpr<<<<
@@ -267,16 +307,18 @@ public void test_mock_alternative_way(@Mocked NonStaticSubject nss, @Mocked Stat
    >   >   >   >   >   >   >   > new App() :: class com.github.javaparser.ast.expr.ObjectCreationExpr<<<<
    >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.type.ClassOrInterfaceType<<<<
    >   >   >   >   >   >   >   >   >   > App :: class com.github.javaparser.ast.expr.SimpleName<<<<
-   >   >   >   >   > assertEquals(t.getVal(), 9 + 1928); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
-   >   >   >   >   >   > assertEquals(t.getVal(), 9 + 1928) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
+   >   >   >   >   > assertEquals(t.getVal(), 9 + 1928 + 30); :: class com.github.javaparser.ast.stmt.ExpressionStmt<<<<
+   >   >   >   >   >   > assertEquals(t.getVal(), 9 + 1928 + 30) :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
    >   >   >   >   >   >   > assertEquals :: class com.github.javaparser.ast.expr.SimpleName<<<<
    >   >   >   >   >   >   > t.getVal() :: class com.github.javaparser.ast.expr.MethodCallExpr<<<<
    >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.NameExpr<<<<
    >   >   >   >   >   >   >   >   > t :: class com.github.javaparser.ast.expr.SimpleName<<<<
    >   >   >   >   >   >   >   > getVal :: class com.github.javaparser.ast.expr.SimpleName<<<<
-   >   >   >   >   >   >   > 9 + 1928 :: class com.github.javaparser.ast.expr.BinaryExpr<<<<
-   >   >   >   >   >   >   >   > 9 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
-   >   >   >   >   >   >   >   > 1928 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   > 9 + 1928 + 30 :: class com.github.javaparser.ast.expr.BinaryExpr<<<<
+   >   >   >   >   >   >   >   > 9 + 1928 :: class com.github.javaparser.ast.expr.BinaryExpr<<<<
+   >   >   >   >   >   >   >   >   > 9 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   >   > 1928 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
+   >   >   >   >   >   >   >   > 30 :: class com.github.javaparser.ast.expr.IntegerLiteralExpr<<<<
    >   >   >   >   > // assertEquals(1, getRefunCounter[0]);
 // assertEquals(1, noRefunCounter[0]);
 new Verifications() {
