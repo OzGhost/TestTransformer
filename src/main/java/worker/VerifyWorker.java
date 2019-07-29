@@ -14,13 +14,12 @@ public class VerifyWorker {
     private static final Function<Craft, Statement[]> VERIFY_PROCESSOR = new Function<Craft, Statement[]>() {
         @Override
         public Statement[] apply(Craft craft) {
-            ParameterMatchingWorker.leach(craft.getCallMeta().getInput());
             Statement[] output = new Statement[2];
-            Expression expr = null;
-            expr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-            output[0] = new ExpressionStmt(expr);
-            expr = new AssignExpr(new NameExpr("times"), new IntegerLiteralExpr(1), AssignExpr.Operator.ASSIGN);
-            output[1] = new ExpressionStmt(expr);
+            MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+            callExpr.setArguments( ParameterMatchingWorker.leach(craft.getCallMeta().getInput()) );
+            output[0] = new ExpressionStmt(callExpr);
+            AssignExpr countExpr = new AssignExpr(new NameExpr("times"), new IntegerLiteralExpr(1), AssignExpr.Operator.ASSIGN);
+            output[1] = new ExpressionStmt(countExpr);
             return output;
         }
     };

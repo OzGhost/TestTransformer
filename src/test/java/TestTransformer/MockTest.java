@@ -23,7 +23,7 @@ public class MockTest {
     public void test_mock_all() {
         mockStatic(NonStaticSubject.class);
         NonStaticSubject ss = mock(NonStaticSubject.class);
-        when(NonStaticSubject.create(anyInt())).thenReturn(ss);
+        when(NonStaticSubject.create(anyInt(), any())).thenReturn(ss);
         when(ss.val()).thenReturn(16);
         doNothing().when(ss).noReturn();
         when(ss.lift(80)).thenReturn(20);
@@ -37,7 +37,7 @@ public class MockTest {
         assertEquals(t.getVal(), 8+16+20);
 
         verifyStatic(NonStaticSubject.class, times(1));
-        NonStaticSubject.create(anyInt());
+        NonStaticSubject.create(anyInt(), any());
 
         verify(ss, times(1)).val();
         verify(ss, times(1)).noReturn();

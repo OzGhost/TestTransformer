@@ -11,7 +11,7 @@ public class App {
     public int getVal() {
         Storage.reset();
         StaticSubject.noRefun();
-        NonStaticSubject nss = NonStaticSubject.create(1298);
+        NonStaticSubject nss = NonStaticSubject.create(1298, 9l);
         nss.noReturn();
         return StaticSubject.getRefun() + nss.val() + Storage.feed + Storage.foo + nss.lift(80);
     }

@@ -19,8 +19,6 @@ public class ClassWorker {
         for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
             new MethodWorker(this).transform(methodUnit);
         }
-        nameLeadingFields.put("abc", "Number");
-        nameLeadingFields.put("sql", "Date");
         NodeList<BodyDeclaration<?>> oldMembers = classUnit.getMembers();
         NodeList<BodyDeclaration<?>> mockedFields = declareMocks();
         NodeList<BodyDeclaration<?>> newMembers = new NodeList<>();
@@ -52,12 +50,22 @@ public class ClassWorker {
         return nameLeadingFields.get(name);
     }
 
-    public String addField(String type) {
+    public String recordMock(String type) {
         String fieldName = NameUtil.createTypeBasedName(type, nameLeadingFields.keySet());
-        nameLeadingFields.put(fieldName, type);
-        if ( ! typeLeadingFields.containsKey(type)) {
-            typeLeadingFields.put(type, fieldName);
-        }
+        recordMock(fieldName, type);
         return fieldName;
+    }
+
+    public void recordMock(String name, String type) {
+        nameLeadingFields.put(name, type);
+        if ( ! typeLeadingFields.containsKey(type)) {
+            typeLeadingFields.put(type, name);
+        }
+    }
+
+    public void recordMockIfAbsent(String type) {
+        if ( ! typeLeadingFields.containsKey(type)) {
+            recordMock(type);
+        }
     }
 }

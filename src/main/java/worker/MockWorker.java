@@ -15,7 +15,6 @@ public class MockWorker {
         @Override
         public Statement[] apply(Craft craft) {
             CallMeta cm = craft.getCallMeta();
-            ParameterMatchingWorker.leach(cm.getInput());
             if (cm.isRaise()) {
                 System.out.println("Hit throw: " + cm.toString());
                 return null;
@@ -23,11 +22,11 @@ public class MockWorker {
                 return null;
             } else {
                 Statement[] output = new Statement[2];
-                Expression expr = null;
-                expr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-                output[0] = new ExpressionStmt(expr);
-                expr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-                output[1] = new ExpressionStmt(expr);
+                MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+                callExpr.setArguments( ParameterMatchingWorker.leach(cm.getInput()) );
+                output[0] = new ExpressionStmt(callExpr);
+                AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
+                output[1] = new ExpressionStmt(returnExpr);
                 return output;
             }
         }

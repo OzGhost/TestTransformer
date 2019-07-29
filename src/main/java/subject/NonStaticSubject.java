@@ -2,7 +2,7 @@ package subject;
 
 public class NonStaticSubject {
 
-    public static NonStaticSubject create(int input) {
+    public static NonStaticSubject create(int input, Long sp) {
         return new NonStaticSubject();
     }
 
