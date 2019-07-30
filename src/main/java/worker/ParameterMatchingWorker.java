@@ -25,29 +25,39 @@ public class ParameterMatchingWorker {
         "anyBoolean"
     };
 
+    private static ClassWorker classLevelWorker = new ClassWorker();
+
+    public static void registerClassLevelWorker(ClassWorker cw) {
+        classLevelWorker = cw;
+    }
+
     public static NodeList<Expression> leach(String input) {
         System.out.println("found: '" + input + "'");
-        if (input.isEmpty()) {
+        if (input.trim().isEmpty()) {
             return new NodeList<>();
         }
         String[] elements = input.split(",");
         NodeList<Expression> output = new NodeList<>();
-        for (String el: elements) {
-            output.add(elementLeach(el.trim()));
+        for (int i = 0; i < elements.length; ++i) {
+            Expression arg = elementLeach(elements[i].trim());
+            if (arg == null) {
+                // need special look up for correct type :D
+                output.add(new NameExpr("NoYou"));
+            } else {
+                output.add(arg);
+            }
         }
         return output;
     }
 
     private static Expression elementLeach(String el) {
+        if (el.contains("any()")) {
+            return null;
+        }
         Expression output = trySimpleTranslate(el);
         if (output != null) {
             return output;
         }
-
-        if (el.contains("any()")) {
-            return new NameExpr("unsupportedMatcher");
-        }
-        
         // any(WithClass.class)
         Matcher m = ANY_WITH_TYPE_MATCHER.matcher(el);
         if (m.find()) {

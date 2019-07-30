@@ -11,6 +11,7 @@ public class WoodLog {
     private static Queue<Cut> cuts = new LinkedList<>();
 
     public static void reachClass(String className) {
+        cleanCurrentStamps();
         currentClass = className;
     }
 
@@ -46,7 +47,7 @@ public class WoodLog {
         cuts.offer(cut);
     }
 
-    public static void clear() {
+    private static void cleanCurrentStamps() {
         currentClass = "";
         currentMethod = "";
         currentSubject = "";
