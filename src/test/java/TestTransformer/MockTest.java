@@ -23,10 +23,11 @@ public class MockTest {
     public void test_mock_all() {
         mockStatic(NonStaticSubject.class);
         NonStaticSubject ss = mock(NonStaticSubject.class);
-        when(NonStaticSubject.create(anyInt(), any())).thenReturn(ss);
+        when(NonStaticSubject.create(anyInt(), any(), anyList())).thenReturn(ss);
         when(ss.val()).thenReturn(16);
         doNothing().when(ss).noReturn();
         when(ss.lift(80)).thenReturn(20);
+        when(ss.lift(eq(6))).thenReturn(4);
 
         mockStatic(StaticSubject.class);
         when(StaticSubject.getRefun()).thenReturn(8);
@@ -34,14 +35,15 @@ public class MockTest {
         StaticSubject.noRefun();
         
         App t = new App();
-        assertEquals(t.getVal(), 8+16+20);
+        assertEquals(t.getVal(), 8+16+20+4);
 
         verifyStatic(NonStaticSubject.class, times(1));
-        NonStaticSubject.create(anyInt(), any());
+        NonStaticSubject.create(anyInt(), any(Long.class), anyList());
 
         verify(ss, times(1)).val();
         verify(ss, times(1)).noReturn();
-        verify(ss, times(1)).lift(anyInt());
+        verify(ss, times(1)).lift(80);
+        verify(ss, times(1)).lift(6);
 
         verifyStatic(StaticSubject.class, times(1));
         StaticSubject.getRefun();

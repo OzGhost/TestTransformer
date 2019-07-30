@@ -3,8 +3,12 @@ package worker;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.body.*;
+import java.util.regex.*;
 
 public class ParameterMatchingWorker {
+
+    private static final Pattern ANY_WITH_TYPE_MATCHER = Pattern.compile("any\\((.+)\\.class\\)");
+    private static final Pattern EQUAL_MATCHER = Pattern.compile("eq\\((.+)\\)");
 
     private static final String[] MOCKITO_SIMPLE_MATCHER_SUFFIX = new String[]{
         "anyInt()",
@@ -17,7 +21,7 @@ public class ParameterMatchingWorker {
         "anyInt",
         "anyLong",
         "anyString",
-        "(List) any",
+        "(List)any",
         "anyBoolean"
     };
 
@@ -39,7 +43,23 @@ public class ParameterMatchingWorker {
         if (output != null) {
             return output;
         }
-        return new NameExpr("anyNoop");
+
+        if (el.contains("any()")) {
+            return new NameExpr("unsupportedMatcher");
+        }
+        
+        // any(WithClass.class)
+        Matcher m = ANY_WITH_TYPE_MATCHER.matcher(el);
+        if (m.find()) {
+            return new NameExpr("("+m.group(1)+")any");
+        }
+        // eq("something")
+        m = EQUAL_MATCHER.matcher(el);
+        if (m.find()) {
+            return new NameExpr(m.group(1));
+        }
+        // and/not/or/aryEq/cmpEq more at https://site.mockito.org/javadoc/current/org/mockito/AdditionalMatchers.html
+        return new NameExpr(el);
     }
 
     private static Expression trySimpleTranslate(String el) {

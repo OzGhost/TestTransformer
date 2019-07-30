@@ -27,8 +27,6 @@ public class MethodWorker {
             );
 
     private ClassWorker upperLevel;
-    private Map<String, Type> varTypeMap = new HashMap<>();
-    //private Set<String> mockedTypes = new HashSet<>();
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
 
@@ -40,7 +38,6 @@ public class MethodWorker {
     public void transform(MethodDeclaration methodUnit) {
         WoodLog.reachMethod(methodUnit.getName().asString());
 
-        //collectVariableType(methodUnit);
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);
 
@@ -95,14 +92,6 @@ public class MethodWorker {
         //System.out.println(records);
         //System.out.println(rechecks);
         WoodLog.printCuts();
-    }
-
-    private void collectVariableType(MethodDeclaration method) {
-        for (VariableDeclarator varTor: method.findAll(VariableDeclarator.class)) {
-            String varName = varTor.getName().asString();
-            Type varType = varTor.getType();
-            varTypeMap.put(varName, varType);
-        }
     }
 
     private void replaceInstanceMockDeclaration(MethodDeclaration methodUnit) {
