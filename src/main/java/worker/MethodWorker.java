@@ -29,14 +29,33 @@ public class MethodWorker {
     private ClassWorker upperLevel;
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
+    private List<String[]> cooked = new ArrayList<>();
+    private Set<String> takenName = new HashSet<>();
+    //private List<VariableDeclarator> requiredFields = new ArrayList<>(0);
 
 
     public MethodWorker(ClassWorker ul) {
         upperLevel = ul;
     }
 
+    public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
+        //requiredFields = rfs;
+        for (VariableDeclarator vari: rfs) {
+            String varName = vari.getName().asString();
+            String varType = vari.getType().asString();
+            takenName.add(varName);
+            cooked.add(new String[]{varType, varName});
+        }
+        return this;
+    }
+
     public void transform(MethodDeclaration methodUnit) {
         WoodLog.reachMethod(methodUnit.getName().asString());
+
+        for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
+            String varName = vari.getName().asString();
+            takenName.add(varName);
+        }
 
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);

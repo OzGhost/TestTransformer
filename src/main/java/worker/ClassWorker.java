@@ -17,6 +17,31 @@ public class ClassWorker {
         WoodLog.reachClass(classUnit.getName().asString());
         ParameterMatchingWorker.registerClassLevelWorker(this);
 
+        List<FieldDeclaration> fields = new ArrayList<>();
+        List<MethodDeclaration> methods = new ArrayList<>();
+
+        for (BodyDeclaration<?> declaration: classUnit.getMembers()) {
+            if (declaration instanceof FieldDeclaration) {
+                fields.add( (FieldDeclaration) declaration);
+            } else if (declaration instanceof MethodDeclaration){
+                methods.add( (MethodDeclaration) declaration);
+            }
+        }
+
+        List<VariableDeclarator> mockedFields = new ArrayList<>();
+        for (FieldDeclaration fieldUnit: fields) {
+            if ( isMockField(fieldUnit) ) {
+                mockedFields.addAll(fieldUnit.getVariables());
+                fieldUnit.remove();
+            }
+        }
+
+        for (MethodDeclaration methodUnit: methods) {
+            List<VariableDeclarator> requiredFields = collectFieldsUsedByMethod(mockedFields, methodUnit);
+            new MethodWorker(this).setRequiredFields(requiredFields).transform(methodUnit);
+        }
+
+        /*
         for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
             new MethodWorker(this).transform(methodUnit);
         }
@@ -27,6 +52,31 @@ public class ClassWorker {
         newMembers.addAll(mockedFields);
         newMembers.addAll(oldMembers);
         classUnit.setMembers(newMembers);
+        */
+    }
+
+    private List<VariableDeclarator> collectFieldsUsedByMethod(List<VariableDeclarator> fields, MethodDeclaration methodUnit) {
+        Set<String> usedName = new HashSet<>();
+        for (NameExpr name: methodUnit.findAll(NameExpr.class)) {
+            usedName.add(name.getName().asString());
+        }
+        List<VariableDeclarator> used = new ArrayList<>(fields.size());
+        for (VariableDeclarator vari: fields) {
+            String variName = vari.getName().asString();
+            if (usedName.contains(variName)) {
+                used.add(vari);
+            }
+        }
+        return used;
+    }
+
+    private boolean isMockField(FieldDeclaration f) {
+        for (AnnotationExpr fa: f.getAnnotations()) {
+            if ( "Mock".equals(fa.getName().asString()) ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public NodeList<BodyDeclaration<?>> declareMocks() {

@@ -32,9 +32,20 @@ public class CompilationUnitWorker {
 
         for (ClassOrInterfaceDeclaration classUnit: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
             new ClassWorker().transform(classUnit);
+            /*
+            classUnit.getMembers().forEach(e -> {
+                if (e instanceof FieldDeclaration) {
+                    ((FieldDeclaration)e).getAnnotations().forEach(j -> {
+                        System.out.println(j.getName().asString());
+                    });
+                    System.out.println(e.getClass());
+                    Printer.print(e);
+                }
+            });
+            */
         }
 
-        System.out.println(cUnit);
+        //System.out.println(cUnit);
         //Printer.print(cUnit);
         return cUnit;
     }
