@@ -37,37 +37,8 @@ public class ClassWorker {
         }
 
         for (MethodDeclaration methodUnit: methods) {
-            List<VariableDeclarator> requiredFields = collectFieldsUsedByMethod(mockedFields, methodUnit);
-            new MethodWorker(this).setRequiredFields(requiredFields).transform(methodUnit);
+            new MethodWorker(methodUnit).setRequiredFields(mockedFields).transform();
         }
-
-        /*
-        for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
-            new MethodWorker(this).transform(methodUnit);
-        }
-        NodeList<BodyDeclaration<?>> oldMembers = classUnit.getMembers();
-        NodeList<BodyDeclaration<?>> mockedFields = declareMocks();
-        NodeList<BodyDeclaration<?>> newMembers = new NodeList<>();
-
-        newMembers.addAll(mockedFields);
-        newMembers.addAll(oldMembers);
-        classUnit.setMembers(newMembers);
-        */
-    }
-
-    private List<VariableDeclarator> collectFieldsUsedByMethod(List<VariableDeclarator> fields, MethodDeclaration methodUnit) {
-        Set<String> usedName = new HashSet<>();
-        for (NameExpr name: methodUnit.findAll(NameExpr.class)) {
-            usedName.add(name.getName().asString());
-        }
-        List<VariableDeclarator> used = new ArrayList<>(fields.size());
-        for (VariableDeclarator vari: fields) {
-            String variName = vari.getName().asString();
-            if (usedName.contains(variName)) {
-                used.add(vari);
-            }
-        }
-        return used;
     }
 
     private boolean isMockField(FieldDeclaration f) {

@@ -24,34 +24,15 @@ public class MockTest {
     NonStaticSubject they;
 
     @Test
+    public void duplicate_declare() {
+        NonStaticSubject fnss = mock(NonStaticSubject.class);
+        when(fnss.lift(eq(6))).thenReturn(2);
+    }
+
+    @Test
     public void test_mock_all_with_field_base() {
         mockStatic(NonStaticSubject.class);
-        when(NonStaticSubject.create(anyInt(), any(), anyList())).thenReturn(fnss);
-        when(fnss.val()).thenReturn(3);
-        doNothing().when(fnss).noReturn();
-        when(fnss.lift(80)).thenReturn(1);
         when(fnss.lift(eq(6))).thenReturn(2);
-
-        mockStatic(StaticSubject.class);
-        when(StaticSubject.getRefun()).thenReturn(4);
-        PowerMockito.doNothing().when(StaticSubject.class);
-        StaticSubject.noRefun();
-        
-        App t = new App();
-        assertEquals(t.getVal(), 4+3+1+2);
-
-        verifyStatic(NonStaticSubject.class, times(1));
-        NonStaticSubject.create(anyInt(), any(Long.class), anyList());
-
-        verify(fnss, times(1)).val();
-        verify(fnss, times(1)).noReturn();
-        verify(fnss, times(1)).lift(80);
-        verify(fnss, times(1)).lift(6);
-
-        verifyStatic(StaticSubject.class, times(1));
-        StaticSubject.getRefun();
-        verifyStatic(StaticSubject.class, times(1));
-        StaticSubject.noRefun();
     }
 
     @Test

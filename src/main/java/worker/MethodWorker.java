@@ -26,36 +26,38 @@ public class MethodWorker {
             new StaticInvocationVerifyReader()
             );
 
-    private ClassWorker upperLevel;
+    private MethodDeclaration methodUnit;
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
     private List<String[]> cooked = new ArrayList<>();
-    private Set<String> takenName = new HashSet<>();
-    //private List<VariableDeclarator> requiredFields = new ArrayList<>(0);
+    private Set<String> takenNames = new HashSet<>();
 
 
-    public MethodWorker(ClassWorker ul) {
-        upperLevel = ul;
+    public MethodWorker(MethodDeclaration mu) {
+        methodUnit = mu;
     }
 
     public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
-        //requiredFields = rfs;
+        for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
+            takenNames.add( vari.getName().asString() );
+        }
+        Set<String> calledName = new HashSet<>();
+        for (NameExpr ne: methodUnit.findAll(NameExpr.class)) {
+            calledName.add(ne.getName().asString());
+        }
         for (VariableDeclarator vari: rfs) {
-            String varName = vari.getName().asString();
-            String varType = vari.getType().asString();
-            takenName.add(varName);
-            cooked.add(new String[]{varType, varName});
+            String name = vari.getName().asString();
+            if ( calledName.contains(name) && ! takenNames.contains(name)) {
+                String type = vari.getType().asString();
+                cooked.add(new String[]{type, name});
+                takenNames.add(name);
+            }
         }
         return this;
     }
 
-    public void transform(MethodDeclaration methodUnit) {
+    public void transform() {
         WoodLog.reachMethod(methodUnit.getName().asString());
-
-        for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
-            String varName = vari.getName().asString();
-            takenName.add(varName);
-        }
 
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);
@@ -110,7 +112,8 @@ public class MethodWorker {
 
         //System.out.println(records);
         //System.out.println(rechecks);
-        WoodLog.printCuts();
+        //WoodLog.printCuts();
+        methodUnit.setParameters( createParameters() );
     }
 
     private void replaceInstanceMockDeclaration(MethodDeclaration methodUnit) {
@@ -119,14 +122,18 @@ public class MethodWorker {
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
                 Type mockingType = ((ClassExpr)call.getArguments().get(0)).getType();
-                String replacementName = upperLevel.recordMock(mockingType.toString());
+                String type = mockingType.asString();
+                String rname = NameUtil.createTypeBasedName(type, takenNames);
 
                 ori.add(call);
-                repl.add(new NameExpr(replacementName));
+                repl.add(new NameExpr(rname));
+
+                cooked.add(new String[]{type, rname});
+                takenNames.add(rname);
             }
         }
         for (int i = 0; i < ori.size(); ++i) {
-            ori.get(i).getParentNode().get().replace(ori.get(i), repl.get(i));
+            ori.get(i).replace(repl.get(i));
         }
     }
 
@@ -139,7 +146,12 @@ public class MethodWorker {
                 if ("mockStatic".equals(call.getName().asString())) {
                     for (Expression ex: call.getArguments()) {
                         Type argType = ((ClassExpr)ex).getType();
-                        upperLevel.recordMockIfAbsent(argType.toString());
+                        String type = argType.asString();
+                        if ( ! isCookedType(type)) {
+                            String name = NameUtil.createTypeBasedName(type, takenNames);
+                            cooked.add(new String[]{type, name});
+                            takenNames.add(name);
+                        }
                     }
                     useless.push(stmt);
                 }
@@ -181,5 +193,29 @@ public class MethodWorker {
             }
         }
         return NORMAL_STM;
+    }
+
+    private NodeList<Parameter> createParameters() {
+        NodeList<Parameter> output = new NodeList<>();
+        int len = cooked.size();
+        for (int i = 0; i < len; ++i) {
+            String[] ci = cooked.get(i);
+            String type = ci[0];
+            String name = ci[1];
+            Parameter param = new Parameter(new ClassOrInterfaceType(type), name);
+            param.setAnnotations(new NodeList<>(new MarkerAnnotationExpr("Mocked")));
+            output.add(param);
+        }
+        return output;
+    }
+
+    private boolean isCookedType(String type) {
+        int len = cooked.size();
+        for (int i = 0; i < len; ++i) {
+            if (type.equals(cooked.get(i)[0])) {
+                return true;
+            }
+        }
+        return false;
     }
 }
