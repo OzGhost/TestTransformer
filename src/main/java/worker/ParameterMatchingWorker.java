@@ -27,12 +27,22 @@ public class ParameterMatchingWorker {
 
     private static ClassWorker classLevelWorker = new ClassWorker();
 
+    private MethodWorker methodWorker;
+
+    private ParameterMatchingWorker(MethodWorker mlw) {
+        methodWorker = mlw;
+    }
+
+    public static ParameterMatchingWorker forWorker(MethodWorker mlw) {
+        return new ParameterMatchingWorker(mlw);
+    }
+
     public static void registerClassLevelWorker(ClassWorker cw) {
         classLevelWorker = cw;
     }
 
-    public static NodeList<Expression> leach(String input) {
-        System.out.println("found: '" + input + "'");
+    public NodeList<Expression> leach(String input) {
+        //System.out.println("found: '" + input + "'");
         if (input.trim().isEmpty()) {
             return new NodeList<>();
         }

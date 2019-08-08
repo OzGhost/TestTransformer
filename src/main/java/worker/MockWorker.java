@@ -11,29 +11,36 @@ import com.github.javaparser.ast.body.*;
 
 public class MockWorker {
 
-    private static final Function<Craft, Statement[]> MOCK_PROCESSOR = new Function<Craft, Statement[]>() {
-        @Override
-        public Statement[] apply(Craft craft) {
-            CallMeta cm = craft.getCallMeta();
-            if (cm.isRaise()) {
-                System.out.println("Hit throw: " + cm.toString());
-                return null;
-            } else if (cm.isVoid()) {
-                return null;
-            } else {
-                Statement[] output = new Statement[2];
-                MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-                callExpr.setArguments( ParameterMatchingWorker.leach(cm.getInput()) );
-                output[0] = new ExpressionStmt(callExpr);
-                AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-                output[1] = new ExpressionStmt(returnExpr);
-                return output;
-            }
-        }
-    };
+    private ParameterMatchingWorker paramWorker;
 
-    public static Statement transform(MockingMeta mockingMeta) {
-        return MockingMetaWrappingWorker.wrap(mockingMeta, MOCK_PROCESSOR, "Expectations");
+    private MockWorker(MethodWorker mlw) {
+        paramWorker = ParameterMatchingWorker.forWorker(mlw);
+    }
+
+    public static MockWorker forWorker(MethodWorker mlw) {
+        return new MockWorker(mlw);
+    }
+
+    public Statement transform(MockingMeta mockingMeta) {
+        return MockingMetaWrappingWorker.wrap(mockingMeta, this::processMockingCraft, "Expectations");
+    }
+
+    private Statement[] processMockingCraft(Craft craft) {
+        CallMeta cm = craft.getCallMeta();
+        if (cm.isRaise()) {
+            System.out.println("Hit throw: " + cm.toString());
+            return null;
+        } else if (cm.isVoid()) {
+            return null;
+        } else {
+            Statement[] output = new Statement[2];
+            MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+            callExpr.setArguments( paramWorker.leach(cm.getInput()) );
+            output[0] = new ExpressionStmt(callExpr);
+            AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
+            output[1] = new ExpressionStmt(returnExpr);
+            return output;
+        }
     }
 }
 

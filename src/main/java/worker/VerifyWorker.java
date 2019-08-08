@@ -11,20 +11,27 @@ import com.github.javaparser.ast.body.*;
 
 public class VerifyWorker {
 
-    private static final Function<Craft, Statement[]> VERIFY_PROCESSOR = new Function<Craft, Statement[]>() {
-        @Override
-        public Statement[] apply(Craft craft) {
-            Statement[] output = new Statement[2];
-            MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-            callExpr.setArguments( ParameterMatchingWorker.leach(craft.getCallMeta().getInput()) );
-            output[0] = new ExpressionStmt(callExpr);
-            AssignExpr countExpr = new AssignExpr(new NameExpr("times"), new IntegerLiteralExpr(1), AssignExpr.Operator.ASSIGN);
-            output[1] = new ExpressionStmt(countExpr);
-            return output;
-        }
-    };
+    private ParameterMatchingWorker paramWorker;
 
-    public static Statement transform(MockingMeta mockMeta) {
-        return MockingMetaWrappingWorker.wrap(mockMeta, VERIFY_PROCESSOR, "Verifications");
+    private VerifyWorker(MethodWorker mlw) {
+        paramWorker = ParameterMatchingWorker.forWorker(mlw);
+    }
+
+    public static VerifyWorker forWorker(MethodWorker mlw) {
+        return new VerifyWorker(mlw);
+    }
+
+    public Statement transform(MockingMeta mockMeta) {
+        return MockingMetaWrappingWorker.wrap(mockMeta, this::processVerifyingCraft, "Verifications");
+    }
+
+    private Statement[] processVerifyingCraft(Craft craft) {
+        Statement[] output = new Statement[2];
+        MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+        callExpr.setArguments( paramWorker.leach(craft.getCallMeta().getInput()) );
+        output[0] = new ExpressionStmt(callExpr);
+        AssignExpr countExpr = new AssignExpr(new NameExpr("times"), new IntegerLiteralExpr(1), AssignExpr.Operator.ASSIGN);
+        output[1] = new ExpressionStmt(countExpr);
+        return output;
     }
 }

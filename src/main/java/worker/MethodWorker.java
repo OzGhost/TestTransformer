@@ -96,7 +96,7 @@ public class MethodWorker {
             }
         }
 
-        Statement expectations = MockWorker.transform(records);
+        Statement expectations = MockWorker.forWorker(this).transform(records);
         newBodyStmts.add(expectations);
 
         for (int i = mockBreakPoint; i < baseStms.length; i++) {
@@ -105,7 +105,7 @@ public class MethodWorker {
             }
         }
 
-        Statement verifications = VerifyWorker.transform(rechecks);
+        Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
         newBodyStmts.add(verifications);
 
         methodUnit.getBody().get().setStatements(newBodyStmts);
