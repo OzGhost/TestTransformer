@@ -47,8 +47,9 @@ public class ParameterMatchingWorker {
             return new NodeList<>();
         }
         String[] elements = input.split(",");
+        int len = elements.length;
         NodeList<Expression> output = new NodeList<>();
-        for (int i = 0; i < elements.length; ++i) {
+        for (int i = 0; i < len; ++i) {
             Expression arg = elementLeach(elements[i].trim());
             if (arg == null) {
                 // need special look up for correct type :D
@@ -85,6 +86,9 @@ public class ParameterMatchingWorker {
     private static Expression trySimpleTranslate(String el) {
         for (int i = 0; i < MOCKITO_SIMPLE_MATCHER_SUFFIX.length; ++i) {
             if (el.endsWith(MOCKITO_SIMPLE_MATCHER_SUFFIX[i])) {
+                if (i == 3) { // reach anyList
+                    classLevelWorker.recordAdditionalImportation("java.util.List");
+                }
                 return new NameExpr(JMOCKIT_SIMPLE_MATCHERS[i]);
             }
         }

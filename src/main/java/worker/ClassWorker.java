@@ -48,5 +48,9 @@ public class ClassWorker {
         }
         return false;
     }
+
+    public void recordAdditionalImportation(String classToImport) {
+        System.out.println("Simulation: add importation for: " + classToImport);
+    }
 }
 
