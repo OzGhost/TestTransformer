@@ -31,18 +31,7 @@ public class CompilationUnitWorker {
         cUnit.addImport(new ImportDeclaration("mockit", false, true));
 
         for (ClassOrInterfaceDeclaration classUnit: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
-            new ClassWorker().transform(classUnit);
-            /*
-            classUnit.getMembers().forEach(e -> {
-                if (e instanceof FieldDeclaration) {
-                    ((FieldDeclaration)e).getAnnotations().forEach(j -> {
-                        System.out.println(j.getName().asString());
-                    });
-                    System.out.println(e.getClass());
-                    Printer.print(e);
-                }
-            });
-            */
+            new ClassWorker().setCompilationUnitWorker(this).transform(classUnit);
         }
 
         System.out.println(cUnit);
@@ -90,5 +79,14 @@ public class CompilationUnitWorker {
             }
         }
         return output;
+    }
+
+    public String findPackage(String type) {
+        System.out.println("Simulation: find package: " + type);
+        return "";
+    }
+
+    public void addImportationIfAbsent(String im) {
+        System.out.println("Simulation: add importation: " + im);
     }
 }

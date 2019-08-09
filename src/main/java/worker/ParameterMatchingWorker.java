@@ -1,6 +1,7 @@
 package worker;
 
 import meta.*;
+import storage.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.body.*;
@@ -26,8 +27,6 @@ public class ParameterMatchingWorker {
         "anyBoolean"
     };
 
-    private static ClassWorker classLevelWorker = new ClassWorker();
-
     private MethodWorker methodWorker;
 
     private ParameterMatchingWorker(MethodWorker mlw) {
@@ -38,19 +37,8 @@ public class ParameterMatchingWorker {
         return new ParameterMatchingWorker(mlw);
     }
 
-    public static void registerClassLevelWorker(ClassWorker cw) {
-        classLevelWorker = cw;
-    }
-
     public NodeList<Expression> leach(Craft craft) {
-        String subject = craft.getSubjectName();
-        String subjectType = methodWorker.findType(subject);
-        String method = craft.getMethodName();
-
         String input = craft.getCallMeta().getInput();
-
-        System.out.println("Match: " + subject + " -> '" + subjectType + "' -> " + method + " -> " + input);
-
         if (input.trim().isEmpty()) {
             return new NodeList<>();
         }
@@ -60,8 +48,14 @@ public class ParameterMatchingWorker {
         for (int i = 0; i < len; ++i) {
             Expression arg = elementLeach(elements[i].trim());
             if (arg == null) {
+                String subject = craft.getSubjectName();
+                String[] subjectType = methodWorker.findType(subject);
+                String method = craft.getMethodName();
+
                 // need special look up for correct type :D
-                output.add(new NameExpr("NoYou"));
+                String[] type = CodeBaseStorage.findType(subjectType, method, len, i);
+                output.add(new NameExpr("("+type[0]+")any"));
+                methodWorker.addImportationIfAbsent( type[1] );
             } else {
                 output.add(arg);
             }
@@ -69,7 +63,7 @@ public class ParameterMatchingWorker {
         return output;
     }
 
-    private static Expression elementLeach(String el) {
+    private Expression elementLeach(String el) {
         if (el.contains("any()")) {
             return null;
         }
@@ -91,11 +85,11 @@ public class ParameterMatchingWorker {
         return new NameExpr(el);
     }
 
-    private static Expression trySimpleTranslate(String el) {
+    private Expression trySimpleTranslate(String el) {
         for (int i = 0; i < MOCKITO_SIMPLE_MATCHER_SUFFIX.length; ++i) {
             if (el.endsWith(MOCKITO_SIMPLE_MATCHER_SUFFIX[i])) {
                 if (i == 3) { // reach anyList
-                    classLevelWorker.recordAdditionalImportation("java.util.List");
+                    methodWorker.addImportationIfAbsent("java.util.List");
                 }
                 return new NameExpr(JMOCKIT_SIMPLE_MATCHERS[i]);
             }

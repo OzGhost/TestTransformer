@@ -27,6 +27,7 @@ public class MethodWorker {
             );
 
     private MethodDeclaration methodUnit;
+    private ClassWorker classWorker;
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
     private List<String[]> cooked = new ArrayList<>();
@@ -36,6 +37,11 @@ public class MethodWorker {
 
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
+    }
+
+    public MethodWorker setClassWorker(ClassWorker cl) {
+        classWorker = cl;
+        return this;
     }
 
     public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
@@ -244,5 +250,9 @@ public class MethodWorker {
             }
         }
         return "";
+    }
+
+    public void addImportationIfAbsent(String im) {
+        classWorker.addImportationIfAbsent(im);
     }
 }

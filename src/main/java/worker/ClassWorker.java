@@ -10,11 +10,15 @@ import com.github.javaparser.ast.stmt.*;
 
 public class ClassWorker {
 
-    private Map<String, String> nameLeadingFields = new LinkedHashMap<>();
+    private CompilationUnitWorker cUnitWorker;
+
+    public ClassWorker setCompilationUnitWorker(CompilationUnitWorker cunit) {
+        cUnitWorker = cunit;
+        return this;
+    }
 
     public void transform(ClassOrInterfaceDeclaration classUnit) {
         WoodLog.reachClass(classUnit.getName().asString());
-        ParameterMatchingWorker.registerClassLevelWorker(this);
 
         List<FieldDeclaration> fields = new ArrayList<>();
         List<MethodDeclaration> methods = new ArrayList<>();
@@ -36,7 +40,10 @@ public class ClassWorker {
         }
 
         for (MethodDeclaration methodUnit: methods) {
-            new MethodWorker(methodUnit).setRequiredFields(mockedFields).transform();
+            new MethodWorker(methodUnit)
+                .setClassWorker(this)
+                .setRequiredFields(mockedFields)
+                .transform();
         }
     }
 
@@ -49,8 +56,12 @@ public class ClassWorker {
         return false;
     }
 
-    public void recordAdditionalImportation(String classToImport) {
-        System.out.println("Simulation: add importation for: " + classToImport);
+    public String findPackage(String type) {
+        return cUnitWorker.findPackage(type);
+    }
+
+    public void addImportationIfAbsent(String im) {
+        cUnitWorker.addImportationIfAbsent(im);
     }
 }
 
