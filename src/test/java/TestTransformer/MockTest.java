@@ -11,7 +11,8 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.core.classloader.annotations.*;
-import subject.*;
+import subject.NonStaticSubject;
+import subject.StaticSubject;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
