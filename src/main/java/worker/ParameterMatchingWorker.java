@@ -1,5 +1,6 @@
 package worker;
 
+import meta.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.body.*;
@@ -41,8 +42,15 @@ public class ParameterMatchingWorker {
         classLevelWorker = cw;
     }
 
-    public NodeList<Expression> leach(String input) {
-        //System.out.println("found: '" + input + "'");
+    public NodeList<Expression> leach(Craft craft) {
+        String subject = craft.getSubjectName();
+        String subjectType = methodWorker.findType(subject);
+        String method = craft.getMethodName();
+
+        String input = craft.getCallMeta().getInput();
+
+        System.out.println("Match: " + subject + " -> '" + subjectType + "' -> " + method + " -> " + input);
+
         if (input.trim().isEmpty()) {
             return new NodeList<>();
         }

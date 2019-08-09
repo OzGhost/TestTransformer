@@ -30,6 +30,7 @@ public class MethodWorker {
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
     private List<String[]> cooked = new ArrayList<>();
+    private List<String[]> declared = new ArrayList<>();
     private Set<String> takenNames = new HashSet<>();
 
 
@@ -40,6 +41,10 @@ public class MethodWorker {
     public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
         for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
             takenNames.add( vari.getName().asString() );
+            declared.add(new String[]{
+                vari.getType().asString(),
+                vari.getName().asString()
+            });
         }
         Set<String> calledName = new HashSet<>();
         for (NameExpr ne: methodUnit.findAll(NameExpr.class)) {
@@ -217,5 +222,27 @@ public class MethodWorker {
             }
         }
         return false;
+    }
+
+    public String findType(String subject) {
+        int len = cooked.size();
+        for (int i = 0; i < len; ++i) {
+            String[] currentPair = cooked.get( i );
+            String type = currentPair[0];
+            String name = currentPair[1];
+            if (type.equals(subject) || name.equals(subject)) {
+                return type;
+            }
+        }
+        len = declared.size();
+        for (int i = 0; i < len; ++i) {
+            String[] cp = declared.get(i);
+            String type = cp[0];
+            String name = cp[1];
+            if (type.equals(subject) || name.equals(subject)) {
+                return type;
+            }
+        }
+        return "";
     }
 }

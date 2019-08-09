@@ -28,7 +28,7 @@ public class VerifyWorker {
     private Statement[] processVerifyingCraft(Craft craft) {
         Statement[] output = new Statement[2];
         MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-        callExpr.setArguments( paramWorker.leach(craft.getCallMeta().getInput()) );
+        callExpr.setArguments( paramWorker.leach( craft ) );
         output[0] = new ExpressionStmt(callExpr);
         AssignExpr countExpr = new AssignExpr(new NameExpr("times"), new IntegerLiteralExpr(1), AssignExpr.Operator.ASSIGN);
         output[1] = new ExpressionStmt(countExpr);

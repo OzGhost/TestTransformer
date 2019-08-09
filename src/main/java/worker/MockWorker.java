@@ -35,7 +35,7 @@ public class MockWorker {
         } else {
             Statement[] output = new Statement[2];
             MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-            callExpr.setArguments( paramWorker.leach(cm.getInput()) );
+            callExpr.setArguments( paramWorker.leach( craft ) );
             output[0] = new ExpressionStmt(callExpr);
             AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
             output[1] = new ExpressionStmt(returnExpr);
