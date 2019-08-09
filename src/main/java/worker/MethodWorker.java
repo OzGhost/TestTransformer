@@ -230,14 +230,14 @@ public class MethodWorker {
         return false;
     }
 
-    public String findType(String subject) {
+    public String[] findType(String subject) {
         int len = cooked.size();
         for (int i = 0; i < len; ++i) {
             String[] currentPair = cooked.get( i );
             String type = currentPair[0];
             String name = currentPair[1];
             if (type.equals(subject) || name.equals(subject)) {
-                return type;
+                return classWorker.findType(type);
             }
         }
         len = declared.size();
@@ -246,10 +246,10 @@ public class MethodWorker {
             String type = cp[0];
             String name = cp[1];
             if (type.equals(subject) || name.equals(subject)) {
-                return type;
+                return classWorker.findType(type);
             }
         }
-        return "";
+        return new String[0];
     }
 
     public void addImportationIfAbsent(String im) {

@@ -1,6 +1,7 @@
 package worker;
 
 import meta.*;
+import static meta.Name.*;
 import storage.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.expr.*;
@@ -54,8 +55,12 @@ public class ParameterMatchingWorker {
 
                 // need special look up for correct type :D
                 String[] type = CodeBaseStorage.findType(subjectType, method, len, i);
-                output.add(new NameExpr("("+type[0]+")any"));
-                methodWorker.addImportationIfAbsent( type[1] );
+                if (type.length != 2) {
+                    output.add(new NameExpr("anyString"));
+                } else {
+                    output.add(new NameExpr("("+type[0]+")any"));
+                    methodWorker.addImportationIfAbsent( type[1] );
+                }
             } else {
                 output.add(arg);
             }

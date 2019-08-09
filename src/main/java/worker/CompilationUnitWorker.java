@@ -89,4 +89,9 @@ public class CompilationUnitWorker {
     public void addImportationIfAbsent(String im) {
         System.out.println("Simulation: add importation: " + im);
     }
+
+    public String[] findType(String type) {
+        System.out.println("Simulation: find type: " + type);
+        return new String[]{"List", "java.util"};
+    }
 }

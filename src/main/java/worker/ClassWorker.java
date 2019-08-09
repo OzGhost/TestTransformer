@@ -63,5 +63,9 @@ public class ClassWorker {
     public void addImportationIfAbsent(String im) {
         cUnitWorker.addImportationIfAbsent(im);
     }
+
+    public String[] findType(String type) {
+        return cUnitWorker.findType(type);
+    }
 }
 
