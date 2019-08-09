@@ -8,7 +8,7 @@ if [ -z $base ]; then
 fi;
 
 if [ -d $base ]; then
-    find $base -name "*.java" | grep -v "\/unittest\/" > scan_out
+    find $base -name "*.java" | grep -v "Test.java" > scan_out
 else
     echo "Given folder '" $base "' does not exists!"
     exit;
