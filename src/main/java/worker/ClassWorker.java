@@ -56,10 +56,6 @@ public class ClassWorker {
         return false;
     }
 
-    public String findPackage(String type) {
-        return cUnitWorker.findPackage(type);
-    }
-
     public void addImportationIfAbsent(String im) {
         cUnitWorker.addImportationIfAbsent(im);
     }

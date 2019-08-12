@@ -12,8 +12,11 @@ import com.github.javaparser.ast.stmt.*;
 
 public class CompilationUnitWorker {
 
+    private Map<String, String> typeToPkgMap;
+    private CompilationUnit cUnit;
+
     public CompilationUnit transform(String filePath) throws Exception {
-        CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
+        cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
         //CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
         //Printer.print(cUnit);
         //if (true) return cUnit;
@@ -81,17 +84,61 @@ public class CompilationUnitWorker {
         return output;
     }
 
-    public String findPackage(String type) {
-        System.out.println("Simulation: find package: " + type);
-        return "";
-    }
-
     public void addImportationIfAbsent(String im) {
-        System.out.println("Simulation: add importation: " + im);
+        if (cUnit != null) {
+            NodeList<ImportDeclaration> ims = cUnit.getImports();
+            boolean imported = false;
+            for (ImportDeclaration i: ims) {
+                if (i.getName().asString().equals(im)) {
+                    imported = true;
+                    break;
+                }
+            }
+            if ( ! imported) {
+                ims.add(new ImportDeclaration(im, false, false));
+            }
+        }
     }
 
     public String[] findType(String type) {
-        System.out.println("Simulation: find type: " + type);
-        return new String[]{"List", "java.util"};
+        String packageOfType = findPackage(type);
+        return new String[]{type, packageOfType};
+    }
+
+    private String findPackage(String type) {
+        if (typeToPkgMap == null) {
+            typeToPkgMap = new HashMap<>();
+            if (cUnit != null) {
+                for (ImportDeclaration im: cUnit.getImports()) {
+                    if ( ! im.isAsterisk()) {
+                        String[] typeWithPkg = decompileImportation(im.getName().asString());
+                        typeToPkgMap.put(typeWithPkg[0], typeWithPkg[1]);
+                    }
+                }
+            }
+        }
+        return typeToPkgMap.get(type);
+    }
+
+    private String[] decompileImportation(String im) {
+        char[] imChars = im.toCharArray();
+        int len = imChars.length;
+        int i = len - 1;
+        char[] typeStack = new char[len];
+        int j = 0;
+        for (; i >= 0 && imChars[i] != '.'; --i) {
+            typeStack[j++] = imChars[i];
+        }
+        int k = 0;
+        char[] type = new char[j];
+        while (j > 0) {
+            type[k++] = typeStack[--j];
+        }
+        char[] pkg = new char[i];
+        k = 0;
+        for (; k < i; ++k) {
+            pkg[k] = imChars[k];
+        }
+        return new String[]{new String(type), new String(pkg)};
     }
 }
