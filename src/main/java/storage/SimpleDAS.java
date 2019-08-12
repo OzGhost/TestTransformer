@@ -18,5 +18,9 @@ public abstract class SimpleDAS<U, T> {
 
     abstract protected T createValue();
 
+    public boolean isEmpty() {
+        return das.isEmpty();
+    }
+
 }
 

@@ -28,12 +28,14 @@ public class MockTest {
     public void duplicate_declare() {
         NonStaticSubject fnss = mock(NonStaticSubject.class);
         when(fnss.lift(eq(6))).thenReturn(2);
+        new App().getVal();
     }
 
     @Test
     public void test_mock_all_with_field_base() {
         mockStatic(NonStaticSubject.class);
         when(fnss.lift(eq(6))).thenReturn(2);
+        new App().getVal();
     }
 
     @Test
