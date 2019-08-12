@@ -33,7 +33,6 @@ public class MockTest {
 
     @Test
     public void test_mock_all_with_field_base() {
-        mockStatic(NonStaticSubject.class);
         when(fnss.lift(eq(6))).thenReturn(2);
         new App().getVal();
     }
