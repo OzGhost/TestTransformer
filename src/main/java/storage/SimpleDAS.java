@@ -22,5 +22,12 @@ public abstract class SimpleDAS<U, T> {
         return das.isEmpty();
     }
 
+    public void load(Map<U, T> d) {
+        das = d;
+        if (das == null) {
+            das = new HashMap<>();
+        }
+    }
+
 }
 
