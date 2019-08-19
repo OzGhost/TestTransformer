@@ -2,12 +2,15 @@ package storage;
 
 import java.util.Optional;
 import worker.WoodLog;
+import worker.NameUtil;
 import static meta.Name.*;
 import java.io.*;
 import java.util.*;
 import java.util.function.Consumer;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.*;
+import com.github.javaparser.ast.body.*;
+import com.github.javaparser.ast.type.*;
 
 public class CodeBaseStorage {
 
@@ -29,6 +32,8 @@ public class CodeBaseStorage {
                     try {
                         rtype = StaticJavaParser.parse(new File(fileName));
                     } catch(FileNotFoundException e) {
+                        e.printStackTrace();
+                        WoodLog.attach(WARNING, "Failed to load file " + fileName);
                         continue;
                     }
                     Optional<PackageDeclaration> pkgDecl = rtype.getPackageDeclaration();
@@ -37,7 +42,7 @@ public class CodeBaseStorage {
                     }
                     String pkg = pkgDecl.get().getName().asString();
                     if (type[1].equals(pkg)) {
-                        Map<String, ParameterCountDAS> methodPieces = scan(rtype, type[0]);
+                        MethodDAS methodPieces = scan(rtype, type[0]);
                         methodDas.load(methodPieces);
                         break;
                     }
@@ -48,10 +53,57 @@ public class CodeBaseStorage {
         return paramPack.getPack();
     }
 
-    private static Map<String, ParameterCountDAS> scan(CompilationUnit rtype, String type) {
-        Map<String, ParameterCountDAS> mdas = new HashMap<>();
-        System.out.println("Simulation: scan " + type);
-        return mdas;
+    private static MethodDAS scan(CompilationUnit rtype, String type) {
+        MethodDAS methodPieces = new MethodDAS();
+        List<String> ims = new ArrayList<>(rtype.getImports().size());
+        for (ImportDeclaration im: rtype.getImports()) {
+            ims.add(im.getName().asString());
+        }
+        Map<String, String> imMap = NameUtil.decompileImports(ims);
+
+        for (ClassOrInterfaceDeclaration classDecl: rtype.findAll(ClassOrInterfaceDeclaration.class)) {
+            if ( ! classDecl.getName().asString().equals(type)) {
+                continue;
+            }
+            for (MethodDeclaration methodDecl: classDecl.findAll(MethodDeclaration.class)) {
+                String methodName = methodDecl.getName().asString();
+                int parameterCount = methodDecl.getParameters().size();
+
+                methodPieces
+                    .findByMethod(methodName)
+                    .findByParameterCount(parameterCount)
+                    .setPack( loadPack(methodDecl.getParameters(), imMap) );
+            }
+            break;
+        }
+        return methodPieces;
+    }
+
+    private static String[][] loadPack(NodeList<Parameter> params, Map<String, String> imMap) {
+        int len = params.size();
+        String[][] out = new String[len][2];
+        for (int i = 0; i < len; ++i) {
+            Parameter p = params.get(i);
+            Type pt = p.getType();
+            String type = "";
+            String im = "";
+            if (pt instanceof PrimitiveType) {
+                type = ((PrimitiveType)pt).asString();
+            } else if (pt instanceof ClassOrInterfaceType) {
+                type = ((ClassOrInterfaceType)pt).getName().asString();
+                im = imMap.get(type);
+                if (im == null) {
+                    im = "";
+                } else {
+                    im += "." + type;
+                }
+            } else {
+                WoodLog.attach(ERROR, "Found type " + pt.getClass().getCanonicalName() + " that not support yet");
+                type = "String";
+            }
+            out[i] = new String[]{type, im};
+        }
+        return out;
     }
 
     private static interface Loader {
@@ -80,7 +132,8 @@ public class CodeBaseStorage {
                         filename = reader.readLine();
                     }
                 } catch(IOException e) {
-                    WoodLog.attach(WARNING, "<?>", "Fail to load scan output!");
+                    e.printStackTrace();
+                    WoodLog.attach(WARNING, "Fail to load scan output!");
                 }
             }
             blackHole.accept(new VoidLoader(fileNames));

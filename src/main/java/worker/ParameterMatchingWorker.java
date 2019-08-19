@@ -62,7 +62,9 @@ public class ParameterMatchingWorker {
                     output.add(new NameExpr("anyString"));
                 } else {
                     output.add(new NameExpr("("+paramTypes[i][0]+")any"));
-                    methodWorker.addImportationIfAbsent( paramTypes[i][1] );
+                    if ( ! paramTypes[i][1].isEmpty()) {
+                        methodWorker.addImportationIfAbsent( paramTypes[i][1] );
+                    }
                 }
             } else {
                 output.add(arg);

@@ -16,5 +16,6 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
+        WoodLog.printCuts();
     }
 }

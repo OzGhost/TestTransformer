@@ -109,36 +109,15 @@ public class CompilationUnitWorker {
         if (typeToPkgMap == null) {
             typeToPkgMap = new HashMap<>();
             if (cUnit != null) {
+                List<String> ims = new ArrayList<>(cUnit.getImports().size());
                 for (ImportDeclaration im: cUnit.getImports()) {
                     if ( ! im.isAsterisk()) {
-                        String[] typeWithPkg = decompileImportation(im.getName().asString());
-                        typeToPkgMap.put(typeWithPkg[0], typeWithPkg[1]);
+                        ims.add(im.getName().asString());
                     }
                 }
+                typeToPkgMap = NameUtil.decompileImports(ims);
             }
         }
         return typeToPkgMap.get(type);
-    }
-
-    private String[] decompileImportation(String im) {
-        char[] imChars = im.toCharArray();
-        int len = imChars.length;
-        int i = len - 1;
-        char[] typeStack = new char[len];
-        int j = 0;
-        for (; i >= 0 && imChars[i] != '.'; --i) {
-            typeStack[j++] = imChars[i];
-        }
-        int k = 0;
-        char[] type = new char[j];
-        while (j > 0) {
-            type[k++] = typeStack[--j];
-        }
-        char[] pkg = new char[i];
-        k = 0;
-        for (; k < i; ++k) {
-            pkg[k] = imChars[k];
-        }
-        return new String[]{new String(type), new String(pkg)};
     }
 }
