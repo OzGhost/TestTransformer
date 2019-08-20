@@ -249,6 +249,7 @@ public class MethodWorker {
                 return classWorker.findType(type);
             }
         }
+        WoodLog.attach(ERROR, "Cannot find type of '" + subject + "' !");
         return new String[0];
     }
 

@@ -8,7 +8,7 @@ import worker.WoodLog;
 
 public class StaticVoidMockReader extends MockingReader {
     
-    private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\.class\\)");
+    private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\(([a-zA-Z\\d]+)\\.class\\)");
 
     @Override
     public int read(String stm, Node node, Node belowNode) {

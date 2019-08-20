@@ -46,7 +46,7 @@ public class ParameterMatchingWorker {
         String[] elements = input.split(",");
         int len = elements.length;
         NodeList<Expression> output = new NodeList<>();
-        String[][] paramTypes = null;
+        String[][] paramTypes = new String[0][0];
         for (int i = 0; i < len; ++i) {
             Expression arg = elementLeach(elements[i].trim());
             if (arg == null) {
@@ -55,7 +55,7 @@ public class ParameterMatchingWorker {
                 String method = craft.getMethodName();
 
                 // need special look up for correct type :D
-                if (paramTypes == null) {
+                if (paramTypes == null && subjectType.length == 2) {
                     paramTypes = CodeBaseStorage.findType(subjectType, method, len);
                 }
                 if (paramTypes.length == 0 || paramTypes[i].length == 0) {

@@ -20,7 +20,7 @@ if [ -d $ufold ]; then
     for i in `find $bfold -type f`; do
         rm $i;
     done;
-    find $ufold -type f -iname "*Test.java" > uts
+    find $ufold -type f -iname "*.java" > the_input_tests
 else
     echo "Given folder $base doesn't have folder 'unittest' as direct child";
     exit;
