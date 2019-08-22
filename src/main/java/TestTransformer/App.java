@@ -27,6 +27,7 @@ public class App {
             if (of.isEmpty()) continue;
             System.out.println("Processing: " + f);
             CompilationUnit cUnit = new CompilationUnitWorker().transform(f); 
+            if (true) break;
             try (FileWriter fw = new FileWriter(new File(of))) {
                 fw.write(cUnit.toString().toCharArray());
                 fw.flush();

@@ -18,6 +18,10 @@ public class MockingMeta {
         return smm;
     }
 
+    public boolean isEmpty() {
+        return subjectMetas.isEmpty();
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

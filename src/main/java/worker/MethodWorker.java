@@ -74,8 +74,9 @@ public class MethodWorker {
         replaceStaticMockDeclaration(methodUnit);
 
         Statement[] baseStms = getStms(methodUnit);
-        int[] stmTypes = new int[baseStms.length];
-        for (int i = 0; i < baseStms.length; i++) {
+        int len = baseStms.length;
+        int[] stmTypes = new int[len];
+        for (int i = 0; i < len; i++) {
             Node n = baseStms[i];
             Node belowNode = null;
             if (i+1 < baseStms.length) {
@@ -94,10 +95,31 @@ public class MethodWorker {
                 stmTypes[i] = nType;
             }
         }
-        int mockBreakPoint = baseStms.length - 1;
-        while (mockBreakPoint >= 0 && stmTypes[mockBreakPoint] != MOCK_STM) {
-            mockBreakPoint--;
+        int lastVerifyStm = baseStms.length - 1;
+        while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM) {
+            lastVerifyStm--;
         }
+        if ( ! rechecks.isEmpty() && lastVerifyStm >= 0) {
+            Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
+            baseStms[lastVerifyStm].replace(verifications);
+            stmTypes[lastVerifyStm] = NORMAL_STM;
+        }
+
+        int lastMockStm = baseStms.length - 1;
+        while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM) {
+            lastMockStm--;
+        }
+        if ( ! records.isEmpty() && lastMockStm >= 0) {
+            Statement expectations = MockWorker.forWorker(this).transform(records);
+            baseStms[lastMockStm].replace(expectations);
+            stmTypes[lastMockStm] = NORMAL_STM;
+        }
+        for (int i = 0; i < len; ++i) {
+            if (stmTypes[i] != NORMAL_STM) {
+                baseStms[i].remove();
+            }
+        }
+        /*
         mockBreakPoint++;
         NodeList<Statement> newBodyStmts = new NodeList<>();
 
@@ -107,8 +129,10 @@ public class MethodWorker {
             }
         }
 
-        Statement expectations = MockWorker.forWorker(this).transform(records);
-        newBodyStmts.add(expectations);
+        if ( ! records.isEmpty()) {
+            Statement expectations = MockWorker.forWorker(this).transform(records);
+            newBodyStmts.add(expectations);
+        }
 
         for (int i = mockBreakPoint; i < baseStms.length; i++) {
             if (stmTypes[i] == NORMAL_STM) {
@@ -116,10 +140,13 @@ public class MethodWorker {
             }
         }
 
-        Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
-        newBodyStmts.add(verifications);
+        if ( ! rechecks.isEmpty()) {
+            Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
+            newBodyStmts.add(verifications);
+        }
 
         methodUnit.getBody().get().setStatements(newBodyStmts);
+        */
 
         //System.out.println(records);
         //System.out.println(rechecks);
@@ -175,8 +202,8 @@ public class MethodWorker {
 
     private static Statement[] getStms(MethodDeclaration methodUnit) {
         ArrayList<Statement> stms = new ArrayList<>();
-        for(Statement n: methodUnit.getBody().get().getStatements()) {
-            stms.add(n);
+        for(Statement stm: methodUnit.findAll(ExpressionStmt.class)) {
+            stms.add(stm);
         }
         return stms.toArray(new Statement[stms.size()]);
     }
