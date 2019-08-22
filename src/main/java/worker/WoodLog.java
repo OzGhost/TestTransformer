@@ -24,15 +24,15 @@ public class WoodLog {
     }
 
     public static void attach(int level, String msg) {
-        attach(level, "<?>", msg);
+        attach(level, currentSubject, currentMethod, CallMeta.NIL, msg);
     }
 
     public static void attach(int level, String subject, String message) {
-        attach(level, subject, "<?>", CallMeta.NIL, message);
+        attach(level, subject, currentMethod, CallMeta.NIL, message);
     }
 
     public static void attach(int level, CallMeta callMeta, String message) {
-        attach(level, currentMethod, callMeta, message);
+        attach(level, currentSubject, currentMethod, callMeta, message);
     }
 
     public static void attach(int level, String call, CallMeta callMeta, String message) {

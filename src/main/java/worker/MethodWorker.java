@@ -159,7 +159,12 @@ public class MethodWorker {
         List<Node> repl = new ArrayList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
-                Type mockingType = ((ClassExpr)call.getArguments().get(0)).getType();
+                Expression firstArgumentExp = call.getArguments().get(0);
+                if ( ! (firstArgumentExp instanceof ClassExpr)) {
+                    WoodLog.attach(WARNING, "Found non-class argument for mock call");
+                    continue;
+                }
+                Type mockingType = ((ClassExpr)firstArgumentExp).getType();
                 String type = mockingType.asString();
                 String rname = NameUtil.createTypeBasedName(type, takenNames);
 
@@ -183,6 +188,10 @@ public class MethodWorker {
             for (MethodCallExpr call: stmt.findAll(MethodCallExpr.class)) {
                 if ("mockStatic".equals(call.getName().asString())) {
                     for (Expression ex: call.getArguments()) {
+                        if ( ! (ex instanceof ClassExpr)) {
+                            WoodLog.attach(WARNING, "Found non-class argument for mockStatic call");
+                            continue;
+                        }
                         Type argType = ((ClassExpr)ex).getType();
                         String type = argType.asString();
                         if ( ! isCookedType(type)) {
