@@ -285,6 +285,10 @@ public class MethodWorker {
                 return classWorker.findType(type);
             }
         }
+        char fc = subject.charAt(0);
+        if ('A' <= fc && fc <= 'Z') {
+            return classWorker.findType(subject);
+        }
         WoodLog.attach(ERROR, "Cannot find type of '" + subject + "' !");
         return new String[0];
     }
