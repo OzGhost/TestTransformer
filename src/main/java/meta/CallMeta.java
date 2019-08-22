@@ -7,7 +7,7 @@ public class CallMeta {
     public static final CallMeta NIL = new CallMeta(){
         @Override
         public String toString() {
-            return "CallMeta.NIL";
+            return "NIL";
         }
     };
 

@@ -103,6 +103,14 @@ public class CompilationUnitWorker {
 
     public String[] findType(String type) {
         String packageOfType = findPackage(type);
+        if (packageOfType == null) {
+            // assume no import -> same package with running class
+            Optional<PackageDeclaration> pkgDecl = cUnit.getPackageDeclaration();
+            if ( ! pkgDecl.isPresent()) {
+                return new String[0]; // say no more
+            }
+            packageOfType = pkgDecl.get().getName().asString();
+        }
         return new String[]{type, packageOfType};
     }
 
