@@ -12,6 +12,7 @@ public class ParameterMatchingWorker {
 
     private static final Pattern ANY_WITH_TYPE_MATCHER = Pattern.compile("any\\((.+)\\.class\\)");
     private static final Pattern EQUAL_MATCHER = Pattern.compile("eq\\((.+)\\)");
+    private static final Pattern SAME_MATCHER = Pattern.compile("same\\((.+)\\)");
 
     private static final String[] MOCKITO_SIMPLE_MATCHER_SUFFIX = new String[]{
         "anyInt()",
@@ -87,6 +88,11 @@ public class ParameterMatchingWorker {
         }
         // eq("something")
         m = EQUAL_MATCHER.matcher(el);
+        if (m.find()) {
+            return new NameExpr(m.group(1));
+        }
+        // same(something)
+        m = SAME_MATCHER.matcher(el);
         if (m.find()) {
             return new NameExpr(m.group(1));
         }
