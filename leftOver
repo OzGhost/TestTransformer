@@ -1,5 +1,5 @@
-234 : Mockito -> verify
-142 : PowerMockito.verifyStatic
+x 234 : Mockito -> verify(sth)
+x 142 : PowerMockito.verifyStatic
 74 : PowerMockito.when(sth, "doSth").thenReturn(sth)
 68 : Mockito.when(sth.doSth()).thenThrow(Class<?>/sth)
 65 : PowerMockito.whenNew
@@ -20,8 +20,12 @@
 6 : Mockito.anyInt
 5 : PowerMockito.verifyNoMoreInteractions
 5 : PowerMockito.doAnswer
+5 : Mockito -> verify(someCall)
 2 : PowerMockito.when(sth.doSth()).thenAnswer(sth)
 2 : MockitoAnnotations.initMocks
 1 : PowerMockito.stub
 1 : PowerMockito.verifyPrivate
+
+~ : ArgumentCaptor
+~ : fact based verify
 

@@ -18,6 +18,7 @@ public class CallMeta {
     private String cause;
     private Expression outputExpr;
     private String fact;
+    private boolean isPrivate;
 
     public CallMeta(String param, String out, boolean isRaise, boolean isVoid) {
         input = param;
@@ -70,9 +71,19 @@ public class CallMeta {
         return fact;
     }
 
+    public boolean isPrivate() {
+        return isPrivate;
+    }
+
+    public CallMeta asPrivateCall() {
+        isPrivate = true;
+        return this;
+    }
+
     @Override
     public String toString() {
         return new StringBuilder()
+            .append(isPrivate ? "p" : "")
             .append('[')
             .append(input)
             .append("] -> [")
