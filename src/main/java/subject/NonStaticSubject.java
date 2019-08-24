@@ -22,4 +22,12 @@ public class NonStaticSubject {
         }
         return 150;
     }
+
+    public int fval() {
+        return pval();
+    }
+
+    private int pval() {
+        return 22;
+    }
 }

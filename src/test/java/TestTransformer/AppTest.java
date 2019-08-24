@@ -13,4 +13,12 @@ public class AppTest {
         App t = new App();
         assertEquals(t.getVal(), 189+29+100+105+99+99);
     }
+    @Test
+    public void test_Fn01() {
+        assertEquals(new App().fn01(), 22);
+    }
+    @Test
+    public void test_fn02() {
+        assertEquals(new App().fn02(), 98);
+    }
 }

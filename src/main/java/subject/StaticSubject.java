@@ -16,4 +16,12 @@ public class StaticSubject {
       }
       return 1;
   }
+
+  public static int fval() throws Exception {
+      return pval();
+  }
+
+  private static int pval() throws Exception {
+      return 98;
+  }
 }

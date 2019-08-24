@@ -4,15 +4,16 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import java.util.List;
 import mockit.*;
+//import static mockit.Deencapsulation.*;
 import subject.*;
 
 public class AlterTest {
 
-    @Mocked NonStaticSubject nss;
-    @Mocked StaticSubject ss;
-
     @Test
-    public void test_mock_alternative_way() {
+    public void test_mock_alternative_way(
+            @Mocked NonStaticSubject nss,
+            @Mocked StaticSubject ss
+    ) {
         int[] noRefunCounter = new int[1];
         int[] getRefunCounter = new int[1];
         new Expectations() {{
@@ -33,5 +34,16 @@ public class AlterTest {
             StaticSubject.getRefun(); times = 1;
             StaticSubject.noRefun(); times = 1;
         }};
+    }
+
+    @Test
+    public void test_fn02_private_static_mock() {
+        new MockUp<StaticSubject>() {
+            @Mock
+            int pval() {
+                return 66;
+            }
+        };
+        assertEquals(66, new App().fn02());
     }
 }

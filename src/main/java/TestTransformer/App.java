@@ -18,6 +18,18 @@ public class App {
         return StaticSubject.getRefun() + nss.val() + Storage.feed + Storage.foo + nss.lift(80) + nss.lift(6);
     }
 
+    public int fn01() {
+        return new NonStaticSubject().fval();
+    }
+
+    public int fn02() {
+        try {
+            return StaticSubject.fval();
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
     public static void main(String[] args) throws Exception {
         List<String> lines = LineLoader.loadFile("the_input_tests");
         int len = lines.size();
@@ -27,7 +39,7 @@ public class App {
             if (of.isEmpty()) continue;
             System.out.println("Processing: " + f);
             CompilationUnit cUnit = new CompilationUnitWorker().transform(f); 
-            //if (true) break;
+            if (true) break;
             try (FileWriter fw = new FileWriter(new File(of))) {
                 fw.write(cUnit.toString().toCharArray());
                 fw.flush();

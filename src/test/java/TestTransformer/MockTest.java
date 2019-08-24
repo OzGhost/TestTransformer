@@ -9,6 +9,7 @@ import static org.mockito.Mockito.*;
 import org.powermock.api.mockito.PowerMockito;
 import static org.powermock.api.mockito.PowerMockito.mockStatic;
 import static org.powermock.api.mockito.PowerMockito.verifyStatic;
+import static org.powermock.api.mockito.PowerMockito.whenNew;
 import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.core.classloader.annotations.*;
 import subject.NonStaticSubject;
@@ -17,7 +18,8 @@ import subject.StaticSubject;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
     NonStaticSubject.class,
-    StaticSubject.class
+    StaticSubject.class,
+    App.class
 })
 public class MockTest {
 
@@ -67,5 +69,23 @@ public class MockTest {
         StaticSubject.getRefun();
         verifyStatic(StaticSubject.class, times(1));
         StaticSubject.noRefun();
+    }
+
+    @Test
+    public void test_fn01_private_mock() throws Exception {
+        NonStaticSubject nss = new NonStaticSubject();
+        nss = Mockito.spy(nss);
+        whenNew(NonStaticSubject.class).withNoArguments().thenReturn(nss);
+        //PowerMockito.doReturn(35).when(nss, "pval");
+        
+        //assertEquals(35, new App().fn01());
+    }
+
+    @Test
+    @Ignore
+    public void test_fn02_private_static_mock() throws Exception {
+        PowerMockito.when(StaticSubject.class, "pval").thenReturn(66);
+        PowerMockito.when(StaticSubject.class, "pval", 10).thenReturn(66);
+        assertEquals(66, new App().fn02());
     }
 }
