@@ -1,0 +1,27 @@
+234 : Mockito -> verify
+142 : PowerMockito.verifyStatic
+74 : PowerMockito.when(sth, "doSth").thenReturn(sth)
+68 : Mockito.when(sth.doSth()).thenThrow(Class<?>/sth)
+65 : PowerMockito.whenNew
+60 : Mockito/PowerMockito -> spy
+51 : PowerMockito.doNothing().when(sth, "doSth", args)
+39 : PowerMockito.doReturn(sth).when(sth, "methodName", <param>)
+38 : Mockito.doThrow(sth).when(sth).doSth()
+38 : PowerMockito.doThrow(sth).when(sth, "doSth", args)
+14 : Mockito.argThat
+10 : Mockito.mock on field
+10 : MockUtil.verifyStaticCall
+10 : PowerMockito.verifyZeroInteractions
+9 : PowerMockito.suppress
+9 : PowerMockito.when(sth.doSth()).thenCallRealMethod()
+8 : Mockito.anyMap()
+7 : PowerMockito.verifyNew
+7 : Mockito.isNull
+6 : Mockito.anyInt
+5 : PowerMockito.verifyNoMoreInteractions
+5 : PowerMockito.doAnswer
+2 : PowerMockito.when(sth.doSth()).thenAnswer(sth)
+2 : MockitoAnnotations.initMocks
+1 : PowerMockito.stub
+1 : PowerMockito.verifyPrivate
+
