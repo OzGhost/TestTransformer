@@ -7,11 +7,12 @@ import java.util.List;
 
 public class NameUtil {
 
-    private static final int CASE_DELTA = (int)'a' - (int)'A';
+    private static final char CASE_DELTA = 'a' - 'A';
 
     public static final String createTypeBasedName(String varType, Set<String> usedVarName) {
-        char firstCharLowerCase = (char)( (int) varType.charAt(0) + CASE_DELTA );
-        String base = new StringBuilder(varType.length())
+        char firstCharLowerCase = (char)(varType.charAt(0) + CASE_DELTA);
+        String base = new StringBuilder(varType.length() + 1)
+                            .append('_')
                             .append(firstCharLowerCase)
                             .append(varType.substring(1, varType.length()))
                             .toString();
