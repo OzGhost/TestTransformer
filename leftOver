@@ -28,4 +28,8 @@ x 142 : PowerMockito.verifyStatic
 
 ~ : ArgumentCaptor
 ~ : fact based verify
+~ : ch.axonivy.fintech.mortgage.mockutil.MortgageTestPrepareUtil
+~ : ch.axonivy.fintech.guiframework.mock.MockUtil
+~ : ch.axonivy.fintech.standard.core.mock.InvocationCounter
+~ : Whitebox
 
