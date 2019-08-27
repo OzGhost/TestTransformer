@@ -16,8 +16,8 @@ public class CompilationUnitWorker {
     private CompilationUnit cUnit;
 
     public CompilationUnit transform(String filePath) throws Exception {
-        cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
-        //cUnit = StaticJavaParser.parse(new File(filePath));
+        //cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
+        cUnit = StaticJavaParser.parse(new File(filePath));
         //CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
         //Printer.print(cUnit);
         //if (true) return cUnit;

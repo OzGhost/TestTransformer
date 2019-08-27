@@ -1,5 +1,6 @@
 package meta;
 
+import worker.WoodLog;
 import com.github.javaparser.ast.expr.Expression;
 
 public class CallMeta {
@@ -39,6 +40,7 @@ public class CallMeta {
     public CallMeta(String param, String truely) {
         input = param;
         fact = truely;
+        WoodLog.facts.add(truely.trim());
     }
 
     private CallMeta() {}

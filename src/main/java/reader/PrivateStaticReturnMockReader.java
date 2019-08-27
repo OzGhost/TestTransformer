@@ -22,19 +22,7 @@ public class PrivateStaticReturnMockReader extends MockingReader {
         param = param == null ? "" : param;
         String out = mp.group(4);
 
-        System.out.println(""+subject+":"+methodName+":"+param+":"+out);
-        if (true) return UNKNOW_STM;
-
-        Expression outExpr = null;
-        try {
-            outExpr = node.findFirst(MethodCallExpr.class)
-                                    .get()
-                                    .getArguments()
-                                    .get(0);
-        } catch(Exception e) {
-            System.out.println("re: " + node);
-            throw new RuntimeException(e);
-        }
+        Expression outExpr = ReaderUtil.getOutputExpression(node);
 
         craft.setSubjectName(subject);
         craft.setMethodName(methodName);

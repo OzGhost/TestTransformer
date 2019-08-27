@@ -5,6 +5,8 @@ import java.util.*;
 
 public class WoodLog {
 
+    public static final Set<String> facts = new HashSet<>();
+
     private static String currentClass = "";
     private static String currentMethod = "";
     private static String currentSubject = "";
