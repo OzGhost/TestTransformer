@@ -34,6 +34,7 @@ public class MethodWorker {
     private List<String[]> cooked = new ArrayList<>();
     private List<String[]> declared = new ArrayList<>();
     private Set<String> takenNames = new HashSet<>();
+    private Set<String> icNames = new HashSet<>();
 
 
     public MethodWorker(MethodDeclaration mu) {
@@ -63,6 +64,25 @@ public class MethodWorker {
                 String type = vari.getType().asString();
                 cooked.add(new String[]{type, name});
                 takenNames.add(name);
+            }
+        }
+        return this;
+    }
+
+    public MethodWorker setICNames(List<String> icns) {
+        icNames.addAll(icns);
+        for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
+            if ("InvocationCounter".equals(vari.getType().asString())) {
+                icNames.add(vari.getName().asString());
+            }
+        }
+        for (MethodCallExpr mce: methodUnit.findAll(MethodCallExpr.class)) {
+            if ("times".equals( mce.getName().asString() )) {
+                mce.getScope().ifPresent(callee -> {
+                    if (icNames.contains(callee.toString())) {
+                        WoodLog.icp.add(mce.getParentNode().get().toString());
+                    }
+                });
             }
         }
         return this;

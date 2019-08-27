@@ -51,7 +51,10 @@ public class App {
         //CompilationUnit cUnit = null;//new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
         //WoodLog.printCuts();
         for (String s: WoodLog.facts) {
-            System.out.println(s);
+            System.out.println("hit fact: " + s);
+        }
+        for (String s: WoodLog.icp) {
+            System.out.println("ic: " + s);
         }
     }
 

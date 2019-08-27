@@ -6,6 +6,7 @@ import java.util.*;
 public class WoodLog {
 
     public static final Set<String> facts = new HashSet<>();
+    public static final List<String> icp = new ArrayList<>();
 
     private static String currentClass = "";
     private static String currentMethod = "";

@@ -32,10 +32,16 @@ public class ClassWorker {
         }
 
         List<VariableDeclarator> mockedFields = new ArrayList<>();
+        List<String> icNames = new ArrayList<>();
         for (FieldDeclaration fieldUnit: fields) {
             if ( isMockField(fieldUnit) ) {
                 mockedFields.addAll(fieldUnit.getVariables());
                 fieldUnit.remove();
+            }
+            if ( isIC(fieldUnit) ) {
+                for (VariableDeclarator v: fieldUnit.getVariables()) {
+                    icNames.add( v.getName().asString() );
+                }
             }
         }
 
@@ -43,6 +49,7 @@ public class ClassWorker {
             new MethodWorker(methodUnit)
                 .setClassWorker(this)
                 .setRequiredFields(mockedFields)
+                .setICNames(icNames)
                 .transform();
         }
     }
@@ -54,6 +61,11 @@ public class ClassWorker {
             }
         }
         return false;
+    }
+
+    private boolean isIC(FieldDeclaration f) {
+        Type t = f.getVariables().get(0).getType();
+        return "InvocationCounter".equals(t.asString());
     }
 
     public void addImportationIfAbsent(String im) {

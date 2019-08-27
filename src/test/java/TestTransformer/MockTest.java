@@ -23,6 +23,8 @@ import subject.StaticSubject;
 })
 public class MockTest {
 
+    InvocationCounter abc, xyz, ckc;
+
     @Mock NonStaticSubject fnss;
     NonStaticSubject they;
 
