@@ -2,12 +2,18 @@ package reader;
 
 import static meta.Name.*;
 import worker.WoodLog;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
 public class ReaderUtil {
+
+    private static Pattern IC_EQ_P = Pattern.compile("assertEquals\\((\\d+)\\s*,\\s*[a-zA-Z0-9_$]+\\.times\\(\\)\\)");
+    private static Pattern IC_THAT_P = Pattern.compile("assertThat\\([a-zA-Z0-9_$]+\\.times\\(\\)\\s*,\\s*[a-zA-Z0-9_$]*?\\.?(?:is|equalTo)\\((\\d+)\\)\\)");
 
     private ReaderUtil() {
         throw new UnsupportedOperationException();
@@ -24,6 +30,29 @@ public class ReaderUtil {
         }
         WoodLog.attach(WARNING, "Found no 'thenReturn' call in: "+nodeWithThenReturnMethodCall.toString());
         return null;
+    }
+
+    public static int getICExpectedTimes(String stm) {
+        Matcher icm = IC_EQ_P.matcher(stm);
+        if ( icm.find() ) {
+            return Integer.parseInt(icm.group(1));
+        }
+        icm = IC_THAT_P.matcher(stm);
+        if ( icm.find() ) {
+            return Integer.parseInt(icm.group(1));
+        }
+        return -1;
+    }
+
+    public static Node findClosestParent(Node currentNode, Class<? extends Node> parentType) {
+        Node target = null;
+        Optional<Node> on = currentNode.getParentNode();
+        while (on.isPresent()) {
+            target = on.get();
+            if (target.getClass() == parentType) break;
+            on = target.getParentNode();
+        }
+        return target;
     }
 }
 

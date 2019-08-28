@@ -71,16 +71,49 @@ public class MethodWorker {
 
     public MethodWorker setICNames(List<String> icns) {
         icNames.addAll(icns);
+        List<Node> useless = new ArrayList<>();
         for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
             if ("InvocationCounter".equals(vari.getType().asString())) {
                 icNames.add(vari.getName().asString());
+                useless.add(vari);
             }
+        }
+        for (Node u: useless) {
+            u.remove();
         }
         for (MethodCallExpr mce: methodUnit.findAll(MethodCallExpr.class)) {
             if ("times".equals( mce.getName().asString() )) {
                 mce.getScope().ifPresent(callee -> {
                     if (icNames.contains(callee.toString())) {
-                        WoodLog.icp.add(mce.getParentNode().get().toString());
+                        Node stmNode = ReaderUtil.findClosestParent(mce, ExpressionStmt.class);
+                        String assertStm = stmNode.toString();
+                        int time = ReaderUtil.getICExpectedTimes(assertStm);
+                        if (time < 0) {
+                            WoodLog.attach(WARNING, "Cannot extract time from statement: " + assertStm);
+                        } else {
+                            Node blockNode = ReaderUtil.findClosestParent(stmNode, BlockStmt.class);
+                            List<Node> sibs = blockNode.getChildNodes();
+                            int i = sibs.size() - 1;
+                            while (i >= 0 && sibs.get(i) != stmNode) --i;
+                            boolean match = false;
+                            Node nameNode = null;
+                            while ( i > 0 && ! match) {
+                                --i;
+                                for (NameExpr name: sibs.get(i).findAll(NameExpr.class)) {
+                                    if (callee.toString().equals(name.getNameAsString())) {
+                                        nameNode = name;
+                                        match = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if ( i < 0) {
+                                WoodLog.attach(WARNING, "Found no ic instance setup for: " + assertStm);
+                            } else {
+                                nameNode.replace(new NameExpr("times("+time+")"));
+                                stmNode.remove();
+                            }
+                        }
                     }
                 });
             }

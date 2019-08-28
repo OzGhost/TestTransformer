@@ -37,11 +37,11 @@ public class ClassWorker {
             if ( isMockField(fieldUnit) ) {
                 mockedFields.addAll(fieldUnit.getVariables());
                 fieldUnit.remove();
-            }
-            if ( isIC(fieldUnit) ) {
+            } else if ( isIC(fieldUnit) ) {
                 for (VariableDeclarator v: fieldUnit.getVariables()) {
                     icNames.add( v.getName().asString() );
                 }
+                fieldUnit.remove();
             }
         }
 

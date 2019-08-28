@@ -40,7 +40,6 @@ public class CallMeta {
     public CallMeta(String param, String truely) {
         input = param;
         fact = truely;
-        WoodLog.facts.add(truely.trim());
     }
 
     private CallMeta() {}

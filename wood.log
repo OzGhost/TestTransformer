@@ -1,48 +1,7 @@
-atLeastOnce
-atLeastOnce()
-callBackUtilCounter
-cobJavaScriptFactoryCounter
-counter
-counterEquity
-counterIncome
-counterObligation
-never()
-times(0)
-times(0)
-times(1)
-times(1)
-times(2)
-times(2)
-times(3)
-times(3)
-times(4)
-times(4)
-times(5)
-times(6)
-times(7)
-times(7)
-times(8)
-times(9)
-times(numberOfpushMessage)
-times(numberOfPushMessageWithSubsequentNavigator)
-uIComponentUtilCounter
-VerificationModeFactory.times(1)
 
-assertEquals(0, counterEquity.times())
-assertEquals(0, counterIncome.times())
-assertEquals(0, counterObligation.times())
-assertEquals(0, counter.times())
-assertEquals(1, callBackUtilCounter.times())
-assertEquals(1, cobJavaScriptFactoryCounter.times())
-assertEquals(1, counterEquity.times())
-assertEquals(1, counterIncome.times())
-assertEquals(1, counterObligation.times())
-assertEquals(1, counter.times())
-assertEquals(1, uIComponentUtilCounter.times())
-assertEquals(6, counter.times())
-assertThat(counter.times(), CoreMatchers.equalTo(1))
-assertThat(counter.times(), CoreMatchers.is(0))
-assertThat(counter.times(), CoreMatchers.is(1))
-assertThat(counter.times(), is(0))
-assertThat(counter.times(), is(1))
-assertThat(counter.times(), Is.is(1))
+atLeastOnce
+counter
+never
+times
+VerificationModeFactory.times
+

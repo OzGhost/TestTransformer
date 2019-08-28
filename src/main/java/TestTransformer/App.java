@@ -37,7 +37,7 @@ public class App {
             String f = lines.get(i);
             String of = click(f);
             if (of.isEmpty()) continue;
-            System.out.println("Processing: " + f);
+            //System.out.println("Processing: " + f);
             CompilationUnit cUnit = new CompilationUnitWorker().transform(f); 
             //if (true) break;
             try (FileWriter fw = new FileWriter(new File(of))) {
@@ -50,12 +50,6 @@ public class App {
         }
         //CompilationUnit cUnit = null;//new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
         //WoodLog.printCuts();
-        for (String s: WoodLog.facts) {
-            System.out.println("hit fact: " + s);
-        }
-        for (String s: WoodLog.icp) {
-            System.out.println("ic: " + s);
-        }
     }
 
     private static String click(String input) {

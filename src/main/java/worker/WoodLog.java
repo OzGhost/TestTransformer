@@ -5,9 +5,6 @@ import java.util.*;
 
 public class WoodLog {
 
-    public static final Set<String> facts = new HashSet<>();
-    public static final List<String> icp = new ArrayList<>();
-
     private static String currentClass = "";
     private static String currentMethod = "";
     private static String currentSubject = "";
@@ -26,23 +23,23 @@ public class WoodLog {
         currentSubject = subjectName;
     }
 
-    public static void attach(int level, String msg) {
-        attach(level, currentSubject, "", CallMeta.NIL, msg);
+    public static Cut attach(int level, String msg) {
+        return attach(level, currentSubject, "", CallMeta.NIL, msg);
     }
 
-    public static void attach(int level, String subject, String message) {
-        attach(level, subject, "", CallMeta.NIL, message);
+    public static Cut attach(int level, String subject, String message) {
+        return attach(level, subject, "", CallMeta.NIL, message);
     }
 
-    public static void attach(int level, CallMeta callMeta, String message) {
-        attach(level, currentSubject, "", callMeta, message);
+    public static Cut attach(int level, CallMeta callMeta, String message) {
+        return attach(level, currentSubject, "", callMeta, message);
     }
 
-    public static void attach(int level, String call, CallMeta callMeta, String message) {
-        attach(level, currentSubject, call, callMeta, message);
+    public static Cut attach(int level, String call, CallMeta callMeta, String message) {
+        return attach(level, currentSubject, call, callMeta, message);
     }
 
-    public static void attach(int level, String subject, String call, CallMeta callMeta, String message) {
+    public static Cut attach(int level, String subject, String call, CallMeta callMeta, String message) {
         Cut cut = new Cut();
         cut.level = level;
         cut.classLevel = currentClass;
@@ -52,6 +49,7 @@ public class WoodLog {
         cut.callMeta = callMeta;
         cut.message = message;
         cuts.offer(cut);
+        return cut;
     }
 
     private static void cleanCurrentStamps() {
