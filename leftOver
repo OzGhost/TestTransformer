@@ -1,6 +1,7 @@
+---- mockito elimination ----
 x 234 : Mockito -> verify(sth)
 x 142 : PowerMockito.verifyStatic
-~ : fact based verify
+x : fact based verify
 74 : PowerMockito.when(sth, "doSth").thenReturn(sth)
 68 : Mockito.when(sth.doSth()).thenThrow(Class<?>/sth)
 65 : PowerMockito.whenNew
@@ -26,10 +27,12 @@ x 142 : PowerMockito.verifyStatic
 2 : MockitoAnnotations.initMocks
 1 : PowerMockito.stub
 1 : PowerMockito.verifyPrivate
+923 -> in total
 
-~ : ArgumentCaptor
-~ : ch.axonivy.fintech.mortgage.mockutil.MortgageTestPrepareUtil
-~ : ch.axonivy.fintech.guiframework.mock.MockUtil
-~ : ch.axonivy.fintech.standard.core.mock.InvocationCounter
-~ : Whitebox
+---- sth else ----
+425 : ch.axonivy.fintech.guiframework.mock.MockUtil
+182 : Whitebox
+148 : ch.axonivy.fintech.mortgage.mockutil.MortgageTestPrepareUtil
+25 : ArgumentCaptor
+780 -> in total
 
