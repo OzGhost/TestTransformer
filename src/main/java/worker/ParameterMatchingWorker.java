@@ -59,7 +59,9 @@ public class ParameterMatchingWorker {
                 }
                 if (paramTypes.length == 0 || paramTypes[i].length != 2) {
                     output.add(new NameExpr("anyString"));
-                    WoodLog.attach(ERROR, "Cannot find concrete type of " + subject + "::" + method + "::" + len);
+                    WoodLog.attach(ERROR, "Cannot find concrete type of "
+                            + (subjectType.length == 2 ? subjectType[0] : subject)
+                            + "::" + method + "::" + len);
                 } else {
                     output.add(new NameExpr("("+paramTypes[i][0]+")any"));
                     if ( ! paramTypes[i][1].isEmpty()) {

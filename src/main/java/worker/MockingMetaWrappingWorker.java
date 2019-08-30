@@ -12,6 +12,7 @@ import com.github.javaparser.ast.body.*;
 public class MockingMetaWrappingWorker {
 
     public static Statement wrap(MockingMeta mockMeta, Function<Craft, Statement[]> craftProcessor, String wrapperName) {
+        //TODO: remove me please!;
         Craft travelCraft = new Craft();
         NodeList<Statement> mockingStmts = new NodeList<>();
         Expression expr = null;
@@ -31,10 +32,10 @@ public class MockingMetaWrappingWorker {
                 }
             }
         }
-        return wrapMockStatement(mockingStmts, wrapperName);
+        return wrapMockingStatement(mockingStmts, wrapperName);
     }
 
-    private static Statement wrapMockStatement(NodeList<Statement> mockingStmts, String wrapperName) {
+    public static Statement wrapMockingStatement(NodeList<Statement> mockingStmts, String wrapperName) {
         BlockStmt bodyBlock = new BlockStmt(mockingStmts);
         InitializerDeclaration initBlock = new InitializerDeclaration(false, bodyBlock);
         NodeList<BodyDeclaration<?>> initBlockAsList = new NodeList<>();

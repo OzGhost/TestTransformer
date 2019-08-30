@@ -149,62 +149,30 @@ public class MethodWorker {
                 stmTypes[i] = nType;
             }
         }
-        int lastVerifyStm = baseStms.length - 1;
-        while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM) {
-            lastVerifyStm--;
-        }
-        if ( ! rechecks.isEmpty() && lastVerifyStm >= 0) {
-            Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
-            baseStms[lastVerifyStm].replace(verifications);
-            stmTypes[lastVerifyStm] = NORMAL_STM;
+        if ( ! rechecks.isEmpty()) {
+            int lastVerifyStm = baseStms.length - 1;
+            while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM)
+                lastVerifyStm--;
+            if (lastVerifyStm >= 0) {
+                Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
+                baseStms[lastVerifyStm].replace(verifications);
+            }
         }
 
-        int lastMockStm = baseStms.length - 1;
-        while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM) {
-            lastMockStm--;
-        }
-        if ( ! records.isEmpty() && lastMockStm >= 0) {
-            Statement expectations = MockWorker.forWorker(this).transform(records);
-            baseStms[lastMockStm].replace(expectations);
-            stmTypes[lastMockStm] = NORMAL_STM;
+        if ( ! records.isEmpty()) {
+            int lastMockStm = baseStms.length - 1;
+            while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM)
+                lastMockStm--;
+            if (lastMockStm >= 0) {
+                Statement expectations = Caster.forWorker(this).replay(records);
+                baseStms[lastMockStm].replace(expectations);
+            }
         }
         for (int i = 0; i < len; ++i) {
             if (stmTypes[i] != NORMAL_STM) {
                 baseStms[i].remove();
             }
         }
-        /*
-        mockBreakPoint++;
-        NodeList<Statement> newBodyStmts = new NodeList<>();
-
-        for (int i = 0; i < mockBreakPoint; i++) {
-            if (stmTypes[i] == NORMAL_STM) {
-                newBodyStmts.add( baseStms[i] );
-            }
-        }
-
-        if ( ! records.isEmpty()) {
-            Statement expectations = MockWorker.forWorker(this).transform(records);
-            newBodyStmts.add(expectations);
-        }
-
-        for (int i = mockBreakPoint; i < baseStms.length; i++) {
-            if (stmTypes[i] == NORMAL_STM) {
-                newBodyStmts.add( baseStms[i] );
-            }
-        }
-
-        if ( ! rechecks.isEmpty()) {
-            Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
-            newBodyStmts.add(verifications);
-        }
-
-        methodUnit.getBody().get().setStatements(newBodyStmts);
-        */
-
-        //System.out.println(records);
-        //System.out.println(rechecks);
-        //WoodLog.printCuts();
         methodUnit.setParameters( createParameters() );
     }
 
@@ -215,7 +183,7 @@ public class MethodWorker {
             if ("mock".equals(call.getName().asString())) {
                 Expression firstArgumentExp = call.getArguments().get(0);
                 if ( ! (firstArgumentExp instanceof ClassExpr)) {
-                    WoodLog.attach(WARNING, "Found non-class argument for mock call");
+                    WoodLog.attach(WARNING, "Found non-class argument for mock call: " + call.toString());
                     continue;
                 }
                 Type mockingType = ((ClassExpr)firstArgumentExp).getType();
@@ -243,7 +211,7 @@ public class MethodWorker {
                 if ("mockStatic".equals(call.getName().asString())) {
                     for (Expression ex: call.getArguments()) {
                         if ( ! (ex instanceof ClassExpr)) {
-                            WoodLog.attach(WARNING, "Found non-class argument for mockStatic call");
+                            WoodLog.attach(WARNING, "Found non-class argument for mockStatic call: " + call.toString());
                             continue;
                         }
                         Type argType = ((ClassExpr)ex).getType();

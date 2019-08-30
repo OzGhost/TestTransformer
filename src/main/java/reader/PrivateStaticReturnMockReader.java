@@ -26,7 +26,7 @@ public class PrivateStaticReturnMockReader extends MockingReader {
 
         craft.setSubjectName(subject);
         craft.setMethodName(methodName);
-        CallMeta meta = new CallMeta(param, out, outExpr, false, false);
+        CallMeta meta = new CallMeta(param, out, outExpr, false, false).asPrivateCall();
         craft.setCallMeta(meta);
         return MOCK_STM;
     }

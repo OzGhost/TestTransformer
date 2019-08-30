@@ -18,7 +18,7 @@ public class StaticVoidMockReader extends MockingReader {
         }
         String subject = staticVoidMp.group(1);
         if (belowNode == null) {
-            WoodLog.attach(ERROR, subject, "Found no recall for <"+stm+">");
+            WoodLog.attach(ERROR, subject, "Found no recall for ["+stm+"]");
             return MOCK_STM;
         }
         String recallPattern = subject + STATIC_RECALL_PATTERN_SUFFIX;
@@ -34,7 +34,7 @@ public class StaticVoidMockReader extends MockingReader {
 
             return FOLLOWED_MOCK_STM;
         }
-        WoodLog.attach(ERROR, subject, "Found no recall in <" + belowNode.toString() + "> for <"+stm+">");
+        WoodLog.attach(ERROR, subject, "Found no recall in [" + belowNode.toString() + "] for ["+stm+"]");
         return MOCK_STM;
     }
 }

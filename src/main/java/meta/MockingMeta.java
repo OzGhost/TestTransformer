@@ -46,4 +46,23 @@ public class MockingMeta {
             .append(':')
             .append(item.getValue().toString());
     }
+
+    public List<Craft> toCrafts() {
+        List<Craft> crafts = new ArrayList<>();
+        for (Map.Entry<String, SubjectMeta> meta: subjectMetas.entrySet()) {
+            Craft travelCraft = new Craft();
+            travelCraft.setSubjectName(meta.getKey());
+            SubjectMeta subjectMeta = meta.getValue();
+            for (Map.Entry<String, List<CallMeta>> mm: subjectMeta.getMethodMetas().entrySet()) {
+                travelCraft.setMethodName(mm.getKey());
+                List<CallMeta> callMetas = mm.getValue();
+                for (CallMeta cm: callMetas) {
+                    travelCraft.setCallMeta(cm);
+                    crafts.add(travelCraft);
+                }
+            }
+        }
+        return crafts;
+    }
 }
+

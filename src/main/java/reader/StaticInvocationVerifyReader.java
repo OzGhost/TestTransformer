@@ -25,7 +25,7 @@ public class StaticInvocationVerifyReader extends MockingReader {
         }
         String subject = verifyStaticMp.group(1);
         if (belowNode == null) {
-            WoodLog.attach(ERROR, subject, "Found no recall for <"+stm+">");
+            WoodLog.attach(ERROR, subject, "Found no recall for ["+stm+"]");
             return VERIFY_STM;
         }
         String fact = "atLeastOnce";
@@ -44,7 +44,7 @@ public class StaticInvocationVerifyReader extends MockingReader {
             craft.setCallMeta(meta);
             return FOLLOWED_VERIFY_STM;
         }
-        WoodLog.attach(ERROR, subject, "Found no recall in <"+belowNode.toString()+"> for <"+stm+">");
+        WoodLog.attach(ERROR, subject, "Found no recall in ["+belowNode.toString()+"] for ["+stm+"]");
         return VERIFY_STM;
     }
 }

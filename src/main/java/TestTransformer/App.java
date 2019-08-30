@@ -49,7 +49,7 @@ public class App {
             //break;
         }
         //CompilationUnit cUnit = null;//new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
-        //WoodLog.printCuts();
+        WoodLog.printCuts();
     }
 
     private static String click(String input) {
