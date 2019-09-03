@@ -2,13 +2,14 @@ package worker;
 
 import meta.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class WoodLog {
 
     private static String currentClass = "";
     private static String currentMethod = "";
     private static String currentSubject = "";
-    private static Queue<Cut> cuts = new LinkedList<>();
+    private static Queue<Cut> cuts = new ConcurrentLinkedQueue<>();
 
     public static void reachClass(String className) {
         cleanCurrentStamps();

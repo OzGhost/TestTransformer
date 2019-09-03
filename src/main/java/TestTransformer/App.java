@@ -5,6 +5,9 @@ import subject.*;
 import worker.*;
 import storage.LineLoader;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.ArrayList;
 import com.github.javaparser.ast.*;
 
@@ -31,44 +34,30 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        List<String> lines = LineLoader.loadFile("the_input_tests");
-        int len = lines.size();
-        for (int i = 0; i < len; ++i) {
-            String f = lines.get(i);
-            String of = click(f);
-            if (of.isEmpty()) continue;
-            //System.out.println("Processing: " + f);
-            CompilationUnit cUnit = new CompilationUnitWorker().transform(f); 
-            //if (true) break;
-            try (FileWriter fw = new FileWriter(new File(of))) {
-                fw.write(cUnit.toString().toCharArray());
-                fw.flush();
+        int nProcessor = Runtime.getRuntime().availableProcessors();
+        if (nProcessor > 1) {
+            --nProcessor;
+        }
+        CountDownLatch endPoint = new CountDownLatch(nProcessor);
+        BlockingQueue<String> q = new LinkedBlockingQueue();
+        for (int i = 0; i < nProcessor; ++i) {
+            new Thread(new UnitWorker(q, endPoint)).start();
+        }
+        LineLoader.loadFile("the_input_tests", line -> {
+            try {
+                q.put(line);
             } catch(Exception e) {
                 e.printStackTrace();
             }
-            //break;
+        });
+        try {
+            for (int i = 0; i < nProcessor; ++i) {
+                q.put("EOF");
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
         }
-        //CompilationUnit cUnit = null;//new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
-        WoodLog.printCuts();
-    }
-
-    private static String click(String input) {
-        int ui = input.indexOf("unittest");
-        if (ui < 0) return "";
-        char[] ci = input.toCharArray();
-        char[] oi = new char[ci.length + 1];
-        int k = 0;
-        for (int i = 0; i < ui; ++i) {
-            oi[k++] = ci[i];
-        }
-        char[] ji = "jmocktest".toCharArray();
-        for (int i = 0; i < ji.length; ++i) {
-            oi[k++] = ji[i];
-        }
-        ui += 8;
-        while (ui < ci.length) {
-            oi[k++] = ci[ui++];
-        }
-        return new String(oi);
+        endPoint.await();
+        //WoodLog.printCuts();
     }
 }

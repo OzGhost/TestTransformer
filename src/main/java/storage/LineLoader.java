@@ -2,19 +2,27 @@ package storage;
 
 import static meta.Name.*;
 import worker.WoodLog;
+import java.util.function.Consumer;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.*;
 
 public class LineLoader {
 
+    private static final VoidConsumer DEFAULT_LINE_FEED = new VoidConsumer();
+
     public static List<String> loadFile(String fn) {
+        return loadFile(fn, DEFAULT_LINE_FEED);
+    }
+
+    public static List<String> loadFile(String fn, Consumer<String> lineFeed) {
         List<String> lines = new ArrayList<>();
         String workingDir = ClassLoader.getSystemResource(".").getPath();
         File dFile = locateFileByName(workingDir, fn);
         try (BufferedReader reader = new BufferedReader(new FileReader(dFile))) {
             String line = reader.readLine();
             while (line != null) {
+                lineFeed.accept(line);
                 lines.add(line);
                 line = reader.readLine();
             }
@@ -47,6 +55,11 @@ public class LineLoader {
             o[k+i] = scn[i];
         }
         return new File(new String(o));
+    }
+
+    private static class VoidConsumer implements Consumer<String> {
+        @Override
+        public void accept(String treat) {}
     }
 }
 
