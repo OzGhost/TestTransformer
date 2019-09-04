@@ -28,7 +28,7 @@ public class UnitWorker implements Runnable {
             if ("EOF".equals(line)) {
                 break;
             }
-            System.out.println("["+Thread.currentThread().getId()+"] Processing: " + line);
+            //System.out.println("["+Thread.currentThread().getId()+"] Processing: " + line);
 
             String of = toOutputPath(line);
             if (of.isEmpty()) continue;

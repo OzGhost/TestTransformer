@@ -27,20 +27,21 @@ public class MockWorker {
 
     private Statement[] processMockingCraft(Craft craft) {
         CallMeta cm = craft.getCallMeta();
-        if (cm.isRaise()) {
-            System.out.println("Hit throw: " + cm.toString());
-            return null;
-        } else if (cm.isVoid()) {
-            return null;
-        } else {
-            Statement[] output = new Statement[2];
-            MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
-            callExpr.setArguments( paramWorker.leach( craft ) );
-            output[0] = new ExpressionStmt(callExpr);
-            AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-            output[1] = new ExpressionStmt(returnExpr);
-            return output;
+        if (cm.isVoid()) return null;
+        Statement[] output = new Statement[2];
+        MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+        callExpr.setArguments( paramWorker.leach( craft ) );
+        output[0] = new ExpressionStmt(callExpr);
+        //AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
+        AssignExpr outExpr = null;
+        try {
+            outExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
+        } catch(java.lang.IndexOutOfBoundsException ex) {
+            System.out.println("Current call: " + cm);
+            throw ex;
         }
+        output[1] = new ExpressionStmt(outExpr);
+        return output;
     }
 }
 

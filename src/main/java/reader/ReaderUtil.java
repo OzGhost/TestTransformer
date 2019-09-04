@@ -19,17 +19,25 @@ public class ReaderUtil {
         throw new UnsupportedOperationException();
     }
 
-    public static Expression getOutputExpression(Node nodeWithThenReturnMethodCall) {
-        for (MethodCallExpr m: nodeWithThenReturnMethodCall.findAll(MethodCallExpr.class)) {
-            if ("thenReturn".equals(m.getName().asString())) {
+    public static Expression getReturnExpression(Node inputNode) {
+        return getFirstArgumentExpr(inputNode, "thenReturn");
+    }
+
+    private static Expression getFirstArgumentExpr(Node inputNode, String methodName) {
+        for (MethodCallExpr m: inputNode.findAll(MethodCallExpr.class)) {
+            if (methodName.equals(m.getName().asString())) {
                 NodeList<Expression> args = m.getArguments();
                 if (args.size() == 1) {
                     return args.get(0);
                 }
             }
         }
-        WoodLog.attach(WARNING, "Found no 'thenReturn' call in: "+nodeWithThenReturnMethodCall.toString());
+        WoodLog.attach(WARNING, "Found no '"+methodName+"' phase in: "+inputNode.toString());
         return null;
+    }
+
+    public static Expression getThrowExpression(Node inputNode) {
+        return getFirstArgumentExpr(inputNode, "thenThrow");
     }
 
     public static int getICExpectedTimes(String stm) {

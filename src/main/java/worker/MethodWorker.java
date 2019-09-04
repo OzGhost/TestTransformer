@@ -19,7 +19,8 @@ public class MethodWorker {
     private static final ImmutableList<MockingReader> MOCK_READER = ImmutableList.of(
             new ReturnMockReader(),
             new VoidMockReader(),
-            new StaticVoidMockReader()
+            new StaticVoidMockReader(),
+            new FunctionThrowMockReader()
             //new PrivateStaticReturnMockReader()
             );
     private static final ImmutableList<MockingReader> VERIFY_READER = ImmutableList.of(

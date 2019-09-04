@@ -1,5 +1,5 @@
 ---- mockito elimination ----
-68 -> when(<M>).thenThrow(<...>)
+.... 68 -> when(<M>).thenThrow(<...>)
 65 -> whenNew(<C>)<...>
 60 -> spy(...)
 48 -> doNothing().when(<C>, "privateMethod", <paramMatchers>)
@@ -33,6 +33,7 @@
  1 -> mock(<...>)
  1 -> verifyPrivate(<...>
  1 -> when(<...>).thenAnswer(<...>
+ 1 -> when(..., "privateMethod", <paramMatchers>).thenThrow(<...>)
 468 <<=- in total
 
 ---- others ----

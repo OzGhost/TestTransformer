@@ -22,7 +22,7 @@ public class PrivateStaticReturnMockReader extends MockingReader {
         param = param == null ? "" : param;
         String out = mp.group(4);
 
-        Expression outExpr = ReaderUtil.getOutputExpression(node);
+        Expression outExpr = ReaderUtil.getReturnExpression(node);
 
         craft.setSubjectName(subject);
         craft.setMethodName(methodName);
