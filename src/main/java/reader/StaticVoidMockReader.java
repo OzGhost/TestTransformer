@@ -11,15 +11,15 @@ public class StaticVoidMockReader extends MockingReader {
     private static final Pattern STATIC_VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\(([a-zA-Z\\d]+)\\.class\\)");
 
     @Override
-    public int read(String stm, Node node, Node belowNode) {
+    public StatementPiece read(String stm, Node node, Node belowNode) {
         Matcher staticVoidMp = STATIC_VOID_MP.matcher(stm);
         if ( ! staticVoidMp.find()) {
-            return UNKNOW_STM;
+            return new StatementPiece(UNKNOW_STM);
         }
         String subject = staticVoidMp.group(1);
         if (belowNode == null) {
             WoodLog.attach(ERROR, subject, "Found no recall for ["+stm+"]");
-            return MOCK_STM;
+            return new StatementPiece(MOCK_STM);
         }
         String recallPattern = subject + STATIC_RECALL_PATTERN_SUFFIX;
         Matcher staticVoidFollowMp = Pattern.compile(recallPattern).matcher(belowNode.toString());
@@ -28,14 +28,14 @@ public class StaticVoidMockReader extends MockingReader {
             String param = staticVoidFollowMp.group(2);
             CallMeta meta = new CallMeta(param, "", false, true);
 
+            Craft craft = new Craft();
             craft.setSubjectName(subject);
             craft.setMethodName(call);
             craft.setCallMeta(meta);
-
-            return FOLLOWED_MOCK_STM;
+            return new StatementPiece(FOLLOWED_MOCK_STM).beWith(craft);
         }
         WoodLog.attach(ERROR, subject, "Found no recall in [" + belowNode.toString() + "] for ["+stm+"]");
-        return MOCK_STM;
+        return new StatementPiece(MOCK_STM);
     }
 }
 

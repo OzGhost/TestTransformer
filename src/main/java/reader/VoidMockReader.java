@@ -10,10 +10,10 @@ public class VoidMockReader extends MockingReader {
     private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.([^\\(]+)\\((.*)\\)");
 
     @Override
-    public int read(String stm, Node node, Node belowNode) {
+    public StatementPiece read(String stm, Node node, Node belowNode) {
         Matcher voidMp = VOID_MP.matcher(stm);
         if ( ! voidMp.find()) {
-            return UNKNOW_STM;
+            return new StatementPiece(UNKNOW_STM);
         }
         String subject = voidMp.group(1);
         String call = voidMp.group(2);
@@ -21,9 +21,10 @@ public class VoidMockReader extends MockingReader {
 
         CallMeta meta = new CallMeta(param, "", false, true);
 
+        Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(call);
         craft.setCallMeta(meta);
-        return MOCK_STM;
+        return new StatementPiece(MOCK_STM).beWith(craft);
     }
 }

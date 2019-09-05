@@ -34,6 +34,9 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
+        //CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
+        //System.out.println(cUnit);
+        //if (true) return;
         int nProcessor = Runtime.getRuntime().availableProcessors();
         if (nProcessor > 1) {
             --nProcessor;

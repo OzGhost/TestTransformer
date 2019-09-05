@@ -23,7 +23,21 @@ import subject.StaticSubject;
 })
 public class MockTest {
 
+    /*
     InvocationCounter abc, xyz, ckc;
+
+    @Test
+    public void test_invocationCounter() {
+        verifyStatic(NonStaticSubject.class, ckc);
+        NonStaticSubject.create(anyInt(), any(Long.class), anyList());
+        assertEquals(4, ckc.times());
+
+        verify(ss, abc).val();
+        assertEquals(8, abc.times());
+        verify(ss, abc).noReturn();
+        assertEquals(9, abc.times());
+    }
+    */
 
     @Mock NonStaticSubject fnss;
     NonStaticSubject they;
@@ -89,5 +103,13 @@ public class MockTest {
         PowerMockito.when(StaticSubject.class, "pval").thenReturn(66);
         PowerMockito.when(StaticSubject.class, "pval", 10).thenReturn(66);
         assertEquals(66, new App().fn02());
+    }
+
+    @Test
+    public void test_fn01_mock_when_new() throws Exception {
+        NonStaticSubject nss = mock(NonStaticSubject.class);
+        PowerMockito.whenNew(NonStaticSubject.class).withNoArguments().thenReturn(nss);
+        when(nss.fval()).thenReturn(100);
+        assertEquals(100, new App().fn01());
     }
 }

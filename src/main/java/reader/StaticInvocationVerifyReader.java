@@ -12,7 +12,7 @@ public class StaticInvocationVerifyReader extends MockingReader {
     private static final Pattern VERIFY_STATIC_WITHOUT_FACT_MP = Pattern.compile("verifyStatic\\(([a-zA-Z0-9_$]+)\\.class\\)");
     
     @Override
-    public int read(String stm, Node node, Node belowNode) {
+    public StatementPiece read(String stm, Node node, Node belowNode) {
         boolean withoutFact = true;
         Matcher verifyStaticMp = VERIFY_STATIC_WITHOUT_FACT_MP.matcher(stm);
         if ( ! verifyStaticMp.find()) {
@@ -20,13 +20,13 @@ public class StaticInvocationVerifyReader extends MockingReader {
             if (verifyStaticMp.find()) {
                 withoutFact = false;
             } else {
-                return UNKNOW_STM;
+                return new StatementPiece(UNKNOW_STM);
             }
         }
         String subject = verifyStaticMp.group(1);
         if (belowNode == null) {
             WoodLog.attach(ERROR, subject, "Found no recall for ["+stm+"]");
-            return VERIFY_STM;
+            return new StatementPiece(VERIFY_STM);
         }
         String fact = "atLeastOnce";
         if ( ! withoutFact) {
@@ -39,12 +39,13 @@ public class StaticInvocationVerifyReader extends MockingReader {
             String param = recallMatcher.group(2);
             CallMeta meta = new CallMeta(param, fact);
             
+            Craft craft = new Craft();
             craft.setSubjectName(subject);
             craft.setMethodName(methodName);
             craft.setCallMeta(meta);
-            return FOLLOWED_VERIFY_STM;
+            return new StatementPiece(FOLLOWED_VERIFY_STM).beWith(craft);
         }
         WoodLog.attach(ERROR, subject, "Found no recall in ["+belowNode.toString()+"] for ["+stm+"]");
-        return VERIFY_STM;
+        return new StatementPiece(VERIFY_STM);
     }
 }

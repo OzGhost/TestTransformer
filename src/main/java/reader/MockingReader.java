@@ -7,11 +7,5 @@ public abstract class MockingReader {
 
     protected static final String STATIC_RECALL_PATTERN_SUFFIX = "\\.([^\\(]+)\\((.*)\\)";
 
-    protected Craft craft = new Craft();
-
-    public Craft getCraft() {
-        return craft;
-    }
-
-    abstract public int read(String stm, Node node, Node belowNode);
+    abstract public StatementPiece read(String stm, Node node, Node belowNode);
 }

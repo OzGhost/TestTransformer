@@ -11,10 +11,10 @@ public class PrivateStaticReturnMockReader extends MockingReader {
     private static final Pattern P = Pattern.compile("when\\(([a-zA-Z0-9_$]+)\\.class,\\s*\"([a-zA-Z0-9_$]+)\"(?:\\s*,\\s*(.+))?\\)\\.thenReturn\\((.*)\\)");
 
     @Override
-    public int read(String stm, Node node, Node belowNode) {
+    public StatementPiece read(String stm, Node node, Node belowNode) {
         Matcher mp = P.matcher(stm);
         if ( ! mp.find()) {
-            return UNKNOW_STM;
+            return new StatementPiece(UNKNOW_STM);
         }
         String subject = mp.group(1);
         String methodName = mp.group(2);
@@ -24,11 +24,12 @@ public class PrivateStaticReturnMockReader extends MockingReader {
 
         Expression outExpr = ReaderUtil.getReturnExpression(node);
 
+        Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(methodName);
         CallMeta meta = new CallMeta(param, out, outExpr, false, false).asPrivateCall();
         craft.setCallMeta(meta);
-        return MOCK_STM;
+        return new StatementPiece(MOCK_STM).beWith(craft);
     }
 }
 

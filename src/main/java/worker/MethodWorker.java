@@ -20,7 +20,8 @@ public class MethodWorker {
             new ReturnMockReader(),
             new VoidMockReader(),
             new StaticVoidMockReader(),
-            new FunctionThrowMockReader()
+            new FunctionThrowMockReader(),
+            new NewInstanceMockReader()
             //new PrivateStaticReturnMockReader()
             );
     private static final ImmutableList<MockingReader> VERIFY_READER = ImmutableList.of(
@@ -243,22 +244,42 @@ public class MethodWorker {
     private int checkType(Node node, Node belowNode) {
         String nodeAsString = node.toString();
         for (MockingReader reader: MOCK_READER) {
-            int stmType = reader.read(nodeAsString, node, belowNode);
+            StatementPiece stmp = reader.read(nodeAsString, node, belowNode);
+            int stmType = stmp.getType();
             if (stmType != UNKNOW_STM) {
-                Craft craft = reader.getCraft();
-                records.getBySubjectName( craft.getSubjectName() )
-                    .getByMethodName( craft.getMethodName() )
-                    .add( craft.getCallMeta() );
+                Craft craft = stmp.getCraft();
+                if (craft != null) {
+                    records.getBySubjectName( craft.getSubjectName() )
+                        .getByMethodName( craft.getMethodName() )
+                        .add( craft.getCallMeta() );
+                }
+                String newMock = stmp.getRequestAsMock();
+                if (newMock != null) {
+                    boolean notMockedYet = true;
+                    for (String[] c: cooked) {
+                        if (newMock.equals(c[0])) {
+                            notMockedYet = false;
+                            break;
+                        }
+                    }
+                    if (notMockedYet) {
+                        //TODO: better handle for new instance injection
+                        WoodLog.attach(ERROR, "The given type suppose to be mocked but not: " + newMock);
+                    }
+                }
                 return stmType;
             }
         }
         for (MockingReader reader: VERIFY_READER) {
-            int stmType = reader.read(nodeAsString, node, belowNode);
+            StatementPiece stmp = reader.read(nodeAsString, node, belowNode);
+            int stmType = stmp.getType();
             if (stmType != UNKNOW_STM) {
-                Craft craft = reader.getCraft();
-                rechecks.getBySubjectName( craft.getSubjectName() )
-                    .getByMethodName( craft.getMethodName() )
-                    .add( craft.getCallMeta() );
+                Craft craft = stmp.getCraft();
+                if (craft != null) {
+                    rechecks.getBySubjectName( craft.getSubjectName() )
+                        .getByMethodName( craft.getMethodName() )
+                        .add( craft.getCallMeta() );
+                }
                 return stmType;
             }
         }

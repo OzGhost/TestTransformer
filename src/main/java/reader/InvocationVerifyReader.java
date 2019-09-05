@@ -10,10 +10,10 @@ public class InvocationVerifyReader extends MockingReader {
     private static final Pattern MP = Pattern.compile("verify\\(([a-zA-Z0-9_$]+)(?:\\s*,\\s*(.*?))?\\)\\.([a-zA-Z0-9]+)\\((.*)\\)");
     
     @Override
-    public int read(String stm, Node node, Node belowNode) {
+    public StatementPiece read(String stm, Node node, Node belowNode) {
         Matcher vmp = MP.matcher(stm);
         if ( ! vmp.find()) {
-            return UNKNOW_STM;
+            return new StatementPiece(UNKNOW_STM);
         }
         String subject = vmp.group(1);
         String fact = vmp.group(2);
@@ -23,10 +23,11 @@ public class InvocationVerifyReader extends MockingReader {
 
         CallMeta meta = new CallMeta(param, fact);
 
+        Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(methodName);
         craft.setCallMeta(meta);
-        return VERIFY_STM;
+        return new StatementPiece(VERIFY_STM).beWith(craft);
     }
 }
 

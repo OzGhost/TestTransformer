@@ -11,10 +11,10 @@ public class ReturnMockReader extends MockingReader {
     private static final Pattern RETURNABLE_MP = Pattern.compile("when\\(([^\\.]+)\\.([^\\(]+)\\((.*)\\)\\)\\.thenReturn\\((.+)\\)");
 
     @Override
-    public int read(String stm, Node node, Node belowNode) {
+    public StatementPiece read(String stm, Node node, Node belowNode) {
         Matcher returnMp = RETURNABLE_MP.matcher(stm);
         if ( ! returnMp.find()) {
-            return UNKNOW_STM;
+            return new StatementPiece(UNKNOW_STM);
         }
         String subject = returnMp.group(1);
         String call = returnMp.group(2);
@@ -32,11 +32,12 @@ public class ReturnMockReader extends MockingReader {
             throw new RuntimeException(e);
         }
 
+        Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(call);
         CallMeta meta = new CallMeta(param, out, outExpr, false, false);
         craft.setCallMeta(meta);
-        return MOCK_STM;
+        return new StatementPiece(MOCK_STM).beWith(craft);
     }
 }
 
