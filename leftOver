@@ -1,6 +1,6 @@
 ---- mockito elimination ----
 .... 68 -> when(<M>).thenThrow(<...>)
-65 -> whenNew(<C>)<...>
+.... 65 -> whenNew(<C>)<...>
 60 -> spy(...)
 48 -> doNothing().when(<C>, "privateMethod", <paramMatchers>)
 27 -> doThrow(<Ex>).when(<Instance>).<M>

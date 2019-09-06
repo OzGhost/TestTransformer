@@ -19,14 +19,16 @@ public class ParameterMatchingWorker {
         "anyLong()",
         "anyString()",
         "anyList()",
-        "anyBoolean()"
+        "anyBoolean()",
+        "any()"
     };
     private static final String[] JMOCKIT_SIMPLE_MATCHERS = new String[]{
         "anyInt",
         "anyLong",
         "anyString",
         "(List)any",
-        "anyBoolean"
+        "anyBoolean",
+        "null"
     };
 
     private MethodWorker methodWorker;
@@ -76,9 +78,6 @@ public class ParameterMatchingWorker {
     }
 
     private Expression elementLeach(String el) {
-        if (el.contains("any()")) {
-            return null;
-        }
         Expression output = trySimpleTranslate(el);
         if (output != null) {
             return output;

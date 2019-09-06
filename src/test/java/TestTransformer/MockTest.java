@@ -87,14 +87,14 @@ public class MockTest {
         StaticSubject.noRefun();
     }
 
+    /*
     @Test
     public void test_fn01_private_mock() throws Exception {
         NonStaticSubject nss = new NonStaticSubject();
         nss = Mockito.spy(nss);
         whenNew(NonStaticSubject.class).withNoArguments().thenReturn(nss);
-        //PowerMockito.doReturn(35).when(nss, "pval");
-        
-        //assertEquals(35, new App().fn01());
+        PowerMockito.doReturn(35).when(nss, "pval");
+        assertEquals(35, new App().fn01());
     }
 
     @Test
@@ -104,6 +104,7 @@ public class MockTest {
         PowerMockito.when(StaticSubject.class, "pval", 10).thenReturn(66);
         assertEquals(66, new App().fn02());
     }
+    */
 
     @Test
     public void test_fn01_mock_when_new() throws Exception {

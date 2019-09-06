@@ -128,6 +128,7 @@ public class MethodWorker {
 
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);
+        replaceSpy();
 
         Statement[] baseStms = getStms(methodUnit);
         int len = baseStms.length;
@@ -230,6 +231,37 @@ public class MethodWorker {
         }
         while ( ! useless.isEmpty()) {
             methodBody.remove(useless.pop());
+        }
+    }
+
+    private void replaceSpy() {
+        for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
+            if ("spy".equals(call.getName().asString())) {
+                Optional<Node> parentNodeOp = call.getParentNode();
+                if ( ! parentNodeOp.isPresent()) {
+                    WoodLog.attach(ERROR, "Find spy call out-of-context");
+                    continue;
+                }
+                Node parentNode = parentNodeOp.get();
+                String spyVar = "";
+                if (parentNode instanceof VariableDeclarator) {
+                    spyVar = ((VariableDeclarator)parentNode).getName().asString();
+                } else if (parentNode instanceof AssignExpr) {
+                    Expression tExpr = ((AssignExpr)parentNode).getTarget();
+                    if (tExpr instanceof NameExpr) {
+                        spyVar = ((NameExpr)tExpr).getName().asString();
+                    } else {
+                        WoodLog.attach(ERROR, "Find spy assign to sth not variable");
+                        continue;
+                    }
+                } else {
+                    WoodLog.attach(ERROR, "Find spy in unsupported context: " + parentNode.getClass().getCanonicalName());
+                    continue;
+                }
+                System.out.println("Found: " + spyVar + " in: " + parentNode);
+                // replace spy call
+                // record spyVar
+            }
         }
     }
 

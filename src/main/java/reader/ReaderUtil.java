@@ -52,7 +52,7 @@ public class ReaderUtil {
         return -1;
     }
 
-    public static Node findClosestParent(Node currentNode, Class<? extends Node> parentType) {
+    public static <T extends Node> T findClosestParent(Node currentNode, Class<T> parentType) {
         Node target = null;
         Optional<Node> on = currentNode.getParentNode();
         while (on.isPresent()) {
@@ -60,7 +60,8 @@ public class ReaderUtil {
             if (target.getClass() == parentType) break;
             on = target.getParentNode();
         }
-        return target;
+        if (target.getClass() == parentType) return (T) target;
+        return null;
     }
 }
 
