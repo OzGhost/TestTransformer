@@ -60,7 +60,7 @@ public class ReaderUtil {
             if (target.getClass() == parentType) break;
             on = target.getParentNode();
         }
-        if (target.getClass() == parentType) return (T) target;
+        if (target.getClass() == parentType) return parentType.cast(target);
         return null;
     }
 }

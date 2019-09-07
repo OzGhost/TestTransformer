@@ -1,5 +1,6 @@
 package worker;
 
+import static meta.Name.INTERRUPT_SIGNAL;
 import java.io.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
@@ -25,7 +26,7 @@ public class UnitWorker implements Runnable {
                 l.countDown();
                 Thread.currentThread().interrupt();
             }
-            if ("EOF".equals(line)) {
+            if (INTERRUPT_SIGNAL.equals(line)) {
                 break;
             }
             //System.out.println("["+Thread.currentThread().getId()+"] Processing: " + line);

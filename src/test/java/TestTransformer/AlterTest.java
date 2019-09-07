@@ -36,6 +36,7 @@ public class AlterTest {
         }};
     }
 
+    /*
     @Test
     public void test_fn02_private_static_mock() {
         new MockUp<StaticSubject>() {
@@ -45,5 +46,46 @@ public class AlterTest {
             }
         };
         assertEquals(66, new App().fn02());
+    }
+    */
+
+    @Test
+    public void test_fn03_whenNew(@Mocked NonStaticSubject nss) throws Exception {
+        new Expectations() {{
+            nss.fval(); result = 25;
+            nss.sval(); result = 100;
+        }};
+        assertEquals(125, new App().fn03());
+    }
+
+    @Test
+    public void test_fn03_spy_v1() throws Exception {
+        NonStaticSubject a = new NonStaticSubject();
+        new Expectations(a) {{
+            NonStaticSubject.create(anyInt, (Long)any, (List)any); result = a;
+            a.fval(); result = 25;
+        }};
+        assertEquals(60, new App().fn03_2());
+    }
+
+    @Test
+    public void test_fn03_spy_v2(@Mocked StaticSubject ss) throws Exception {
+        NonStaticSubject nss = new NonStaticSubject();
+        new Expectations(nss) {{
+            StaticSubject.getNext(); result = nss;
+            nss.sval(); result = 1;
+        }};
+        assertEquals(23, new App().fn03_1());
+    }
+
+    @Test
+    public void test_fn04_suppress_void_over_spy(@Mocked StaticSubject ss) throws Exception {
+        NonStaticSubject nss = new NonStaticSubject();
+        new Expectations(nss) {{
+            StaticSubject.getNext(); result = nss;
+            nss.sval(); result = 22;
+            nss.reset();
+        }};
+        assertEquals(44, new App().fn04());
     }
 }

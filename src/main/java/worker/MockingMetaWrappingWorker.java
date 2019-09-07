@@ -42,7 +42,7 @@ public class MockingMetaWrappingWorker {
         initBlockAsList.add(initBlock);
         ObjectCreationExpr expectBlock = new ObjectCreationExpr(
                 null,
-                new ClassOrInterfaceType(wrapperName),
+                new ClassOrInterfaceType(null, wrapperName),
                 new NodeList<>(),
                 new NodeList<>(),
                 initBlockAsList

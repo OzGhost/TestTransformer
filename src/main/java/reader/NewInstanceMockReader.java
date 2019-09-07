@@ -17,7 +17,7 @@ public class NewInstanceMockReader extends MockingReader {
             return new StatementPiece(UNKNOW_STM);
         }
         String instanceType = m.group(1);
-        return new StatementPiece(MOCK_STM).requestMock(instanceType);
+        return new StatementPiece(MOCK_STM).requestMock(instanceType).asRawType(NEW_INSTANT_INJECTION);
     }
 }
 

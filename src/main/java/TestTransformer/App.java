@@ -1,5 +1,6 @@
 package TestTransformer;
 
+import static meta.Name.INTERRUPT_SIGNAL;
 import java.io.*;
 import subject.*;
 import worker.*;
@@ -33,16 +34,39 @@ public class App {
         }
     }
 
+    public int fn03() {
+        NonStaticSubject s = new NonStaticSubject();
+        return s.fval() + s.sval();
+    }
+    public int fn03_1() {
+        NonStaticSubject s = StaticSubject.getNext();
+        return s.fval() + s.sval();
+    }
+    public int fn03_2() {
+        NonStaticSubject s = NonStaticSubject.create(1298, 9l, new ArrayList<>());
+        return s.fval() + s.sval();
+    }
+    public int fn04() {
+        //NonStaticSubject s = new NonStaticSubject();
+        NonStaticSubject s = StaticSubject.getNext();
+        //System.out.println("sval: " + s.sval());
+        s.reset();
+        return s.fval() + s.sval();
+    }
+
     public static void main(String[] args) throws Exception {
-        CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
-        System.out.println(cUnit);
-        if (true) return;
+        boolean real = true;
+        if ( ! real) {
+            CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
+            System.out.println(cUnit);
+            return;
+        }
         int nProcessor = Runtime.getRuntime().availableProcessors();
         if (nProcessor > 1) {
             --nProcessor;
         }
         CountDownLatch endPoint = new CountDownLatch(nProcessor);
-        BlockingQueue<String> q = new LinkedBlockingQueue();
+        BlockingQueue<String> q = new LinkedBlockingQueue<>();
         for (int i = 0; i < nProcessor; ++i) {
             new Thread(new UnitWorker(q, endPoint)).start();
         }
@@ -55,7 +79,7 @@ public class App {
         });
         try {
             for (int i = 0; i < nProcessor; ++i) {
-                q.put("EOF");
+                q.put(INTERRUPT_SIGNAL);
             }
         } catch(Exception e) {
             e.printStackTrace();

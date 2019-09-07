@@ -4,8 +4,19 @@ import java.util.List;
 
 public class NonStaticSubject {
 
+    int x = 35;
+
+    public NonStaticSubject() {}
+    public NonStaticSubject(int x) {
+        this.x = x;
+    }
+
     public static NonStaticSubject create(int input, Long sp, List<String> ac) {
         return new NonStaticSubject();
+    }
+
+    public static int rand() {
+        return 125;
     }
 
     public void noReturn(){
@@ -29,5 +40,13 @@ public class NonStaticSubject {
 
     private int pval() {
         return 22;
+    }
+
+    public int sval() {
+        return x;
+    }
+
+    public void reset() {
+        throw new RuntimeException("No you");
     }
 }

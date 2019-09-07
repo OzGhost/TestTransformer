@@ -113,4 +113,30 @@ public class MockTest {
         when(nss.fval()).thenReturn(100);
         assertEquals(100, new App().fn01());
     }
+
+    @Test
+    public void test_fn03_mock_and_spy_combine() throws Exception {
+        NonStaticSubject ss = mock(NonStaticSubject.class);
+        NonStaticSubject s = spy(new NonStaticSubject(100));
+        whenNew(NonStaticSubject.class).withNoArguments().thenReturn(s);
+        when(s.fval()).thenReturn(10);
+        assertEquals(110, new App().fn03());
+    }
+
+    @Test
+    public void test_fn03_spy() throws Exception {
+        NonStaticSubject s = spy(new NonStaticSubject(100));
+        whenNew(NonStaticSubject.class).withNoArguments().thenReturn(s);
+        when(s.fval()).thenReturn(10);
+        assertEquals(110, new App().fn03());
+    }
+
+    @Test
+    public void test_fn04_suppress_void_over_spy() throws Exception {
+        NonStaticSubject s = spy(NonStaticSubject.class);
+        mockStatic(StaticSubject.class);
+        when(StaticSubject.getNext()).thenReturn(s);
+        doNothing().when(s).reset();
+        assertEquals(57, new App().fn04());
+    }
 }

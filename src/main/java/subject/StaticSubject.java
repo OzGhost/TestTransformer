@@ -24,4 +24,8 @@ public class StaticSubject {
   private static int pval() throws Exception {
       return 98;
   }
+
+  public static NonStaticSubject getNext() {
+      return new NonStaticSubject();
+  }
 }

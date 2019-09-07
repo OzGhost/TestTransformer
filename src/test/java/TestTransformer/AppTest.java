@@ -21,4 +21,16 @@ public class AppTest {
     public void test_fn02() {
         assertEquals(new App().fn02(), 98);
     }
+    @Test
+    public void test_fn03() {
+        assertEquals(57, new App().fn03());
+    }
+    @Test
+    public void test_fn04() {
+        try {
+            new App().fn04();
+        } catch(Exception e) {
+            assertEquals("No you", e.getMessage());
+        }
+    }
 }

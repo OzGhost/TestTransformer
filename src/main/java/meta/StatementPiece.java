@@ -6,6 +6,7 @@ import java.util.LinkedList;
 
 public class StatementPiece {
     private int type;
+    private int rawType;
     private Craft craft;
     private String requestAsMock;
 
@@ -15,6 +16,15 @@ public class StatementPiece {
 
     public int getType() {
         return type;
+    }
+
+    public int getRawType() {
+        return rawType;
+    }
+
+    public StatementPiece asRawType(int rType) {
+        rawType = rType;
+        return this;
     }
 
     public String getRequestAsMock() {

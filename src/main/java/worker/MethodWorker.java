@@ -33,11 +33,10 @@ public class MethodWorker {
     private ClassWorker classWorker;
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
-    private List<String[]> cooked = new ArrayList<>();
-    private List<String[]> declared = new ArrayList<>();
+    private VarPool cooked = new VarPool();
+    private VarPool declared = new VarPool();
     private Set<String> takenNames = new HashSet<>();
     private Set<String> icNames = new HashSet<>();
-
 
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
@@ -50,11 +49,12 @@ public class MethodWorker {
 
     public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
         for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
-            takenNames.add( vari.getName().asString() );
-            declared.add(new String[]{
-                vari.getType().asString(),
-                vari.getName().asString()
-            });
+            String name = vari.getName().asString();
+            String type = vari.getName().asString();
+            takenNames.add( name );
+            declared.addVar( name )
+                .underType( type )
+                .from(DECLARED_INSTANCE);
         }
         Set<String> calledName = new HashSet<>();
         for (NameExpr ne: methodUnit.findAll(NameExpr.class)) {
@@ -64,7 +64,7 @@ public class MethodWorker {
             String name = vari.getName().asString();
             if ( calledName.contains(name) && ! takenNames.contains(name)) {
                 String type = vari.getType().asString();
-                cooked.add(new String[]{type, name});
+                cooked.addVar(name).underType(type).from(CLASS_FIELD);
                 takenNames.add(name);
             }
         }
@@ -196,7 +196,7 @@ public class MethodWorker {
                 ori.add(call);
                 repl.add(new NameExpr(rname));
 
-                cooked.add(new String[]{type, rname});
+                cooked.addVar(rname).underType(type).from(MOCKED_INSTANCE);
                 takenNames.add(rname);
             }
         }
@@ -221,7 +221,7 @@ public class MethodWorker {
                         String type = argType.asString();
                         if ( ! isCookedType(type)) {
                             String name = NameUtil.createTypeBasedName(type, takenNames);
-                            cooked.add(new String[]{type, name});
+                            cooked.addVar(name).underType(type).from(STATIC_INVOCATION);
                             takenNames.add(name);
                         }
                     }
@@ -259,7 +259,7 @@ public class MethodWorker {
                     continue;
                 }
                 System.out.println("Found: " + spyVar + " in: " + parentNode);
-                // replace spy call
+                // replace spy call 1. new 2. class
                 // record spyVar
             }
         }
@@ -286,16 +286,10 @@ public class MethodWorker {
                         .add( craft.getCallMeta() );
                 }
                 String newMock = stmp.getRequestAsMock();
-                if (newMock != null) {
-                    boolean notMockedYet = true;
-                    for (String[] c: cooked) {
-                        if (newMock.equals(c[0])) {
-                            notMockedYet = false;
-                            break;
-                        }
-                    }
-                    if (notMockedYet) {
-                        //TODO: better handle for new instance injection
+                int rType = stmp.getRawType();
+                if (newMock != null && rType == NEW_INSTANT_INJECTION) {
+                    if ( ! cooked.typeInPool(newMock)) {
+                        //TODO: better handle for new instance injection (if possible)
                         WoodLog.attach(ERROR, "The given type suppose to be mocked but not: " + newMock);
                     }
                 }
@@ -320,12 +314,10 @@ public class MethodWorker {
 
     private NodeList<Parameter> createParameters() {
         NodeList<Parameter> output = new NodeList<>();
-        int len = cooked.size();
-        for (int i = 0; i < len; ++i) {
-            String[] ci = cooked.get(i);
-            String type = ci[0];
-            String name = ci[1];
-            Parameter param = new Parameter(new ClassOrInterfaceType(type), name);
+        for (VarPiece v: cooked) {
+            String type = v.getType();
+            String name = v.getName();
+            Parameter param = new Parameter(new ClassOrInterfaceType(null, type), name);
             param.setAnnotations(new NodeList<>(new MarkerAnnotationExpr("Mocked")));
             output.add(param);
         }
@@ -333,39 +325,22 @@ public class MethodWorker {
     }
 
     private boolean isCookedType(String type) {
-        int len = cooked.size();
-        for (int i = 0; i < len; ++i) {
-            if (type.equals(cooked.get(i)[0])) {
-                return true;
-            }
-        }
-        return false;
+        return cooked.typeInPool(type);
     }
 
     public String[] findType(String subject) {
-        int len = cooked.size();
-        for (int i = 0; i < len; ++i) {
-            String[] currentPair = cooked.get( i );
-            String type = currentPair[0];
-            String name = currentPair[1];
-            if (type.equals(subject) || name.equals(subject)) {
-                return classWorker.findType(type);
+        VarPiece v = cooked.find(subject);
+        if (v == null)
+            v = declared.find(subject);
+        if (v == null) {
+            char fc = subject.charAt(0);
+            if ('A' <= fc && fc <= 'Z') {
+                return classWorker.findType(subject);
             }
+        } else {
+            return classWorker.findType(v.getType());
         }
-        len = declared.size();
-        for (int i = 0; i < len; ++i) {
-            String[] cp = declared.get(i);
-            String type = cp[0];
-            String name = cp[1];
-            if (type.equals(subject) || name.equals(subject)) {
-                return classWorker.findType(type);
-            }
-        }
-        char fc = subject.charAt(0);
-        if ('A' <= fc && fc <= 'Z') {
-            return classWorker.findType(subject);
-        }
-        WoodLog.attach(ERROR, "Cannot find type of '" + subject + "' !");
+        WoodLog.attach(ERROR, "Cannot find type of <" + subject + "> !");
         return new String[0];
     }
 
