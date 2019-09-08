@@ -37,6 +37,7 @@ public class MethodWorker {
     private VarPool declared = new VarPool();
     private Set<String> takenNames = new HashSet<>();
     private Set<String> icNames = new HashSet<>();
+    private Set<String> partialMockVars = new HashSet<>();
 
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
@@ -50,7 +51,7 @@ public class MethodWorker {
     public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
         for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
             String name = vari.getName().asString();
-            String type = vari.getName().asString();
+            String type = vari.getType().asString();
             takenNames.add( name );
             declared.addVar( name )
                 .underType( type )
@@ -163,6 +164,7 @@ public class MethodWorker {
         }
 
         if ( ! records.isEmpty()) {
+            reduceUnnecessaryPartialMock();
             int lastMockStm = baseStms.length - 1;
             while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM)
                 lastMockStm--;
@@ -235,6 +237,7 @@ public class MethodWorker {
     }
 
     private void replaceSpy() {
+        List<MethodCallExpr> spyCalls = new LinkedList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("spy".equals(call.getName().asString())) {
                 Optional<Node> parentNodeOp = call.getParentNode();
@@ -258,9 +261,23 @@ public class MethodWorker {
                     WoodLog.attach(ERROR, "Find spy in unsupported context: " + parentNode.getClass().getCanonicalName());
                     continue;
                 }
-                System.out.println("Found: " + spyVar + " in: " + parentNode);
-                // replace spy call 1. new 2. class
-                // record spyVar
+                spyCalls.add(call);
+                partialMockVars.add(spyVar);
+            }
+        }
+        for (MethodCallExpr c: spyCalls) {
+            NodeList<Expression> args = c.getArguments();
+            if (args.size() != 1) {
+                WoodLog.attach(ERROR, "Found non-supported number of spy call's args: expected 1 but was " + args.size());
+                continue;
+            }
+            Expression spyInstance = args.get(0);
+            if (spyInstance instanceof ClassExpr) {
+                WoodLog.attach(WARNING, "Spy a class");
+                ClassExpr spyClass = (ClassExpr) spyInstance;
+                c.replace( new NameExpr("new "+spyClass.getType().asString()+"()") );
+            } else {
+                c.replace(spyInstance);
             }
         }
     }
@@ -291,6 +308,8 @@ public class MethodWorker {
                     if ( ! cooked.typeInPool(newMock)) {
                         //TODO: better handle for new instance injection (if possible)
                         WoodLog.attach(ERROR, "The given type suppose to be mocked but not: " + newMock);
+                        String newMockVarName = NameUtil.createTypeBasedName(newMock, takenNames);
+                        cooked.addVar(newMockVarName).underType(newMock).from(NEW_OPERATION_INVOCATION);
                     }
                 }
                 return stmType;
@@ -310,6 +329,35 @@ public class MethodWorker {
             }
         }
         return NORMAL_STM;
+    }
+
+    private void reduceUnnecessaryPartialMock() {
+        Set<String> requiredPM = new HashSet<>();
+        for (String pmv: partialMockVars) {
+            if ( records.containsSubject(pmv) ) {
+                String type = findType(pmv)[0];
+                List<VarPiece> sameTypeCooked = cooked.findAllByType(type);
+                boolean accidentlyMocked = false;
+                List<VarPiece> uselessDish = new LinkedList<>();
+                for (VarPiece v: sameTypeCooked) {
+                    if (v.getSource() == STATIC_INVOCATION) {
+                        uselessDish.add(v);
+                    } else {
+                        accidentlyMocked = true;
+                        break;
+                    }
+                }
+                if (accidentlyMocked) {
+                    WoodLog.attach(ERROR, "Suppose to be mock partialy but fully mocked: " + type);
+                } else {
+                    for (VarPiece u: uselessDish) {
+                        cooked.remove(u);
+                    }
+                    requiredPM.add(pmv);
+                }
+            }
+        }
+        partialMockVars = requiredPM;
     }
 
     private NodeList<Parameter> createParameters() {
@@ -346,5 +394,9 @@ public class MethodWorker {
 
     public void addImportationIfAbsent(String im) {
         classWorker.addImportationIfAbsent(im);
+    }
+
+    public Set<String> getPMV() {
+        return partialMockVars;
     }
 }

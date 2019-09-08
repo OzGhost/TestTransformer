@@ -1,5 +1,6 @@
 package worker;
 
+import static meta.Name.ERROR;
 import meta.*;
 import java.util.*;
 import java.util.function.*;
@@ -21,26 +22,34 @@ public class MockWorker {
         return new MockWorker(mlw);
     }
 
-    public Statement transform(MockingMeta mockingMeta) {
-        return MockingMetaWrappingWorker.wrap(mockingMeta, this::processMockingCraft, "Expectations");
+    public Statement transform(MockingMeta mockingMeta, Set<String> pmv) {
+        NodeList<Statement> mockStms = new NodeList<>();
+        for (Craft craft: mockingMeta.toCrafts()) {
+            Statement[] stms = processMockingCraft(craft, pmv);
+            if (stms == null) continue;
+            mockStms.add(stms[0]);
+            if (stms[1] != null) {
+                mockStms.add(stms[1]);
+            }
+        }
+        return MockingMetaWrappingWorker.wrapMockingStatement(mockStms, "Expectations", pmv.toArray(new String[pmv.size()]));
     }
 
-    private Statement[] processMockingCraft(Craft craft) {
+    private Statement[] processMockingCraft(Craft craft, Set<String> pmv) {
         CallMeta cm = craft.getCallMeta();
-        if (cm.isVoid()) return null;
         Statement[] output = new Statement[2];
+        //if (cm.isVoid()) return null;
         MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
         callExpr.setArguments( paramWorker.leach( craft ) );
         output[0] = new ExpressionStmt(callExpr);
-        //AssignExpr returnExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-        AssignExpr outExpr = null;
-        try {
-            outExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-        } catch(java.lang.IndexOutOfBoundsException ex) {
-            System.out.println("Current call: " + cm);
-            throw ex;
+        if (cm.isVoid()) {
+            if (pmv.contains(craft.getSubjectName())) {
+                // have no result phase
+            }
+        } else {
+            AssignExpr outExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
+            output[1] = new ExpressionStmt(outExpr);
         }
-        output[1] = new ExpressionStmt(outExpr);
         return output;
     }
 }

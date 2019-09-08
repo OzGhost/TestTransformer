@@ -55,10 +55,11 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean real = true;
+        boolean real = false;
         if ( ! real) {
             CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
             System.out.println(cUnit);
+            WoodLog.printCuts();
             return;
         }
         int nProcessor = Runtime.getRuntime().availableProcessors();
@@ -85,6 +86,5 @@ public class App {
             e.printStackTrace();
         }
         endPoint.await();
-        //WoodLog.printCuts();
     }
 }

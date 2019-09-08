@@ -79,6 +79,29 @@ public class AlterTest {
     }
 
     @Test
+    public void test_fn03_spy_v3(@Mocked StaticSubject ss) throws Exception {
+        NonStaticSubject nss = new NonStaticSubject(20);
+        new Expectations(nss) {{
+            StaticSubject.getNext(); result = nss;
+            nss.fval(); result = 1;
+        }};
+        assertEquals(21, new App().fn03_1());
+    }
+
+    @Test
+    public void test_fn03_1_verify_without_mocked_or_spy(@Mocked StaticSubject ss) throws Exception {
+        NonStaticSubject nss = new NonStaticSubject();
+        new Expectations() {{
+            StaticSubject.getNext(); result = nss;
+        }};
+        assertEquals(57, new App().fn03_1());
+        new Verifications() {{
+            nss.fval(); times = 1;
+            nss.sval(); times = 1;
+        }};
+    }
+
+    @Test
     public void test_fn04_suppress_void_over_spy(@Mocked StaticSubject ss) throws Exception {
         NonStaticSubject nss = new NonStaticSubject();
         new Expectations(nss) {{

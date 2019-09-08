@@ -26,8 +26,16 @@ public class VerifyWorker {
         return new VerifyWorker(mlw);
     }
 
-    public Statement transform(MockingMeta mockMeta) {
-        return MockingMetaWrappingWorker.wrap(mockMeta, this::processVerifyingCraft, "Verifications");
+    public Statement transform(MockingMeta mockingMeta) {
+        NodeList<Statement> verifyStms = new NodeList<>();
+        for (Craft craft: mockingMeta.toCrafts()) {
+            Statement[] stms = processVerifyingCraft(craft);
+            verifyStms.add(stms[0]);
+            if (stms[1] != null) {
+                verifyStms.add(stms[1]);
+            }
+        }
+        return MockingMetaWrappingWorker.wrapMockingStatement(verifyStms, "Verifications");
     }
 
     private Statement[] processVerifyingCraft(Craft craft) {

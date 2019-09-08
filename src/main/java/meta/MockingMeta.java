@@ -18,6 +18,10 @@ public class MockingMeta {
         return smm;
     }
 
+    public boolean containsSubject(String subjectName) {
+        return subjectMetas.get(subjectName) != null;
+    }
+
     public boolean isEmpty() {
         return subjectMetas.isEmpty();
     }
@@ -48,9 +52,9 @@ public class MockingMeta {
     }
 
     public List<Craft> toCrafts() {
-        List<Craft> crafts = new ArrayList<>();
+        List<Craft> crafts = new LinkedList<>();
+        Craft travelCraft = new Craft();
         for (Map.Entry<String, SubjectMeta> meta: subjectMetas.entrySet()) {
-            Craft travelCraft = new Craft();
             travelCraft.setSubjectName(meta.getKey());
             SubjectMeta subjectMeta = meta.getValue();
             for (Map.Entry<String, List<CallMeta>> mm: subjectMeta.getMethodMetas().entrySet()) {
@@ -58,7 +62,7 @@ public class MockingMeta {
                 List<CallMeta> callMetas = mm.getValue();
                 for (CallMeta cm: callMetas) {
                     travelCraft.setCallMeta(cm);
-                    crafts.add(travelCraft);
+                    crafts.add(travelCraft.shadow());
                 }
             }
         }

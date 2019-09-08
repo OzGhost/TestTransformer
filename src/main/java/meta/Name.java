@@ -17,6 +17,7 @@ public class Name {
     public static final String MOCKED_INSTANCE = "SRC: mocked instance declaration";
     public static final String DECLARED_INSTANCE = "SRC: declared instance inside method";
     public static final String STATIC_INVOCATION = "SRC: static invocation mock";
+    public static final String NEW_OPERATION_INVOCATION = "SRC: when new invoked";
 
     public static final String INTERRUPT_SIGNAL = "SIGKIL";
 }

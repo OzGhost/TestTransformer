@@ -132,6 +132,15 @@ public class MockTest {
     }
 
     @Test
+    public void test_fn03_2_spy_v2() {
+        mockStatic(NonStaticSubject.class);
+        NonStaticSubject s = spy(new NonStaticSubject(100));
+        when(NonStaticSubject.create(anyInt(), any(), any())).thenReturn(s);
+        when(s.fval()).thenReturn(10);
+        assertEquals(110, new App().fn03_2());
+    }
+
+    @Test
     public void test_fn04_suppress_void_over_spy() throws Exception {
         NonStaticSubject s = spy(NonStaticSubject.class);
         mockStatic(StaticSubject.class);

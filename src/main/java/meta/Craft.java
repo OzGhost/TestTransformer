@@ -28,4 +28,12 @@ public class Craft {
     public CallMeta getCallMeta() {
         return callMeta;
     }
+
+    public Craft shadow() {
+        Craft c = new Craft();
+        c.subjectName = subjectName;
+        c.methodName = methodName;
+        c.callMeta = callMeta;
+        return c;
+    }
 }

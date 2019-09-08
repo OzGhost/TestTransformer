@@ -38,6 +38,7 @@ public class UnitWorker implements Runnable {
                 cUnit = new CompilationUnitWorker().transform(line); 
             } catch(Exception e) {
                 e.printStackTrace();
+                break;
             }
             if (cUnit == null) continue;
             try (FileWriter fw = new FileWriter(new File(of))) {
