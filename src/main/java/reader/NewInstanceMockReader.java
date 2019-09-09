@@ -8,7 +8,7 @@ import com.github.javaparser.ast.Node;
 
 public class NewInstanceMockReader extends MockingReader {
 
-    private static final Pattern MP = Pattern.compile("whenNew\\((.*)\\.class\\)");
+    private static final Pattern MP = Pattern.compile("whenNew\\((.*?)\\.class\\)");
 
     @Override
     public StatementPiece read(String stm, Node node, Node belowNode) {
