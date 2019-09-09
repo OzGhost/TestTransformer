@@ -41,6 +41,7 @@ public class MethodWorker {
 
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
+        WoodLog.reachMethod(methodUnit.getName().asString());
     }
 
     public MethodWorker setClassWorker(ClassWorker cl) {
@@ -125,7 +126,6 @@ public class MethodWorker {
     }
 
     public void transform() {
-        WoodLog.reachMethod(methodUnit.getName().asString());
 
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);
@@ -178,7 +178,7 @@ public class MethodWorker {
                 baseStms[i].remove();
             }
         }
-        methodUnit.setParameters( createParameters() );
+        methodUnit.getParameters().addAll( createParameters() );
     }
 
     private void replaceInstanceMockDeclaration(MethodDeclaration methodUnit) {
@@ -307,7 +307,7 @@ public class MethodWorker {
                 if (newMock != null && rType == NEW_INSTANT_INJECTION) {
                     if ( ! cooked.typeInPool(newMock)) {
                         //TODO: better handle for new instance injection (if possible)
-                        WoodLog.attach(ERROR, "The given type suppose to be mocked but not: " + newMock);
+                        WoodLog.attach(WARNING, "The given type suppose to be mocked but not: " + newMock);
                         String newMockVarName = NameUtil.createTypeBasedName(newMock, takenNames);
                         cooked.addVar(newMockVarName).underType(newMock).from(NEW_OPERATION_INVOCATION);
                     }

@@ -3,10 +3,10 @@ required no mocked when expect static
 __ -> when(<M>).thenThrow(<...>)
 __ -> whenNew(<C>)<...>
         inject spy -> <?>
-71 -> spy(...)
+__ -> spy(...)
         doNothing on spy -> just recall
-        mock + spy at the same time -> <?>
         verify non-spy/mocked -> possible
+        mock + spy at the same time -> <?>
 48 -> doNothing().when(<C>, "privateMethod", <paramMatchers>)
 27 -> doThrow(<Ex>).when(<Instance>).<M>
 23 -> doReturn(<...>).when(<i>).<M>

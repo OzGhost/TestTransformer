@@ -86,5 +86,6 @@ public class App {
             e.printStackTrace();
         }
         endPoint.await();
+        WoodLog.printCuts();
     }
 }

@@ -10,12 +10,16 @@ public class NameUtil {
     private static final char CASE_DELTA = 'a' - 'A';
 
     public static final String createTypeBasedName(String varType, Set<String> usedVarName) {
-        char firstCharLowerCase = (char)(varType.charAt(0) + CASE_DELTA);
+        char firstCharLowerCase = varType.charAt(0);
+        if ('A' <= firstCharLowerCase && firstCharLowerCase <= 'Z') {
+            firstCharLowerCase = (char)(varType.charAt(0) + CASE_DELTA);
+        }
         String base = new StringBuilder(varType.length() + 1)
                             .append('_')
                             .append(firstCharLowerCase)
-                            .append(varType.substring(1, varType.length()))
-                            .toString();
+                            .append(varType.substring(1))
+                            .toString()
+                            .replaceAll("\\.", "_"); // eliminate dot in package included type
         String output = base;
         int version = 1;
         while (usedVarName.contains(output)) {

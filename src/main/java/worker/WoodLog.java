@@ -6,26 +6,25 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class WoodLog {
 
-    private static String currentClass = "";
-    private static String currentMethod = "";
-    private static String currentSubject = "";
+    private static ThreadLocal<Cut> cCut = new ThreadLocal<>();
     private static Queue<Cut> cuts = new ConcurrentLinkedQueue<>();
 
     public static void reachClass(String className) {
-        cleanCurrentStamps();
-        currentClass = className;
+        Cut c = new Cut();
+        c.classLevel = className;
+        cCut.set(c);
     }
 
     public static void reachMethod(String methodName) {
-        currentMethod = methodName;
+        cCut.get().methodLevel = methodName;
     }
 
     public static void reachSubject(String subjectName) {
-        currentSubject = subjectName;
+        cCut.get().subjectLevel = subjectName;
     }
 
     public static Cut attach(int level, String msg) {
-        return attach(level, currentSubject, "", CallMeta.NIL, msg);
+        return attach(level, cCut.get().subjectLevel, "", CallMeta.NIL, msg);
     }
 
     public static Cut attach(int level, String subject, String message) {
@@ -33,30 +32,25 @@ public class WoodLog {
     }
 
     public static Cut attach(int level, CallMeta callMeta, String message) {
-        return attach(level, currentSubject, "", callMeta, message);
+        return attach(level, cCut.get().subjectLevel, "", callMeta, message);
     }
 
     public static Cut attach(int level, String call, CallMeta callMeta, String message) {
-        return attach(level, currentSubject, call, callMeta, message);
+        return attach(level, cCut.get().subjectLevel, call, callMeta, message);
     }
 
     public static Cut attach(int level, String subject, String call, CallMeta callMeta, String message) {
+        Cut c = cCut.get();
         Cut cut = new Cut();
         cut.level = level;
-        cut.classLevel = currentClass;
-        cut.methodLevel = currentMethod;
+        cut.classLevel = c.classLevel;
+        cut.methodLevel = c.methodLevel;
         cut.subjectLevel = subject;
         cut.call = call;
         cut.callMeta = callMeta;
         cut.message = message;
         cuts.offer(cut);
         return cut;
-    }
-
-    private static void cleanCurrentStamps() {
-        currentClass = "";
-        currentMethod = "";
-        currentSubject = "";
     }
 
     public static Queue<Cut> getCuts() {

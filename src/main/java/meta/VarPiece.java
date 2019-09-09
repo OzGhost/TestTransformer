@@ -50,7 +50,7 @@ public class VarPiece {
 
     @Override
     public String toString() {
-        return type + " : " + name + " : " + src;
+        return type + ":" + name + ":" + src;
     }
 }
 

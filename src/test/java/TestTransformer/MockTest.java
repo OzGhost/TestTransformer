@@ -87,6 +87,28 @@ public class MockTest {
         StaticSubject.noRefun();
     }
 
+    @Test
+    public void test_mock_all_with_helper() {
+        NonStaticSubject ss = mock(subject.NonStaticSubject.class);
+        helper(ss);
+        App t = new App();
+        assertEquals(t.getVal(), 8+16+20+4);
+    }
+
+    private void helper(NonStaticSubject ss) {
+        mockStatic(NonStaticSubject.class);
+        when(NonStaticSubject.create(anyInt(), any(), anyList())).thenReturn(ss);
+        when(ss.val()).thenReturn(16);
+        doNothing().when(ss).noReturn();
+        when(ss.lift(80)).thenReturn(20);
+        when(ss.lift(eq(6))).thenReturn(4);
+
+        mockStatic(StaticSubject.class);
+        when(StaticSubject.getRefun()).thenReturn(8);
+        PowerMockito.doNothing().when(StaticSubject.class);
+        StaticSubject.noRefun();
+    }
+
     /*
     @Test
     public void test_fn01_private_mock() throws Exception {
