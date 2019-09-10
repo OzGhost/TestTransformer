@@ -4,7 +4,6 @@ import org.junit.*;
 import static org.junit.Assert.*;
 import java.util.List;
 import mockit.*;
-//import static mockit.Deencapsulation.*;
 import subject.*;
 
 public class AlterTest {
@@ -131,5 +130,20 @@ public class AlterTest {
             nss.reset();
         }};
         assertEquals(44, new App().fn04());
+    }
+
+    @Test
+    public void test_fn06_suppress_static_void() throws Exception {
+        new MockUp<StaticSubject>() {
+            @Mock
+            void fn06_private() {
+                //do nothing
+            }
+            @Mock
+            int fn05() {
+                return 10;
+            }
+        };
+        new App().fn06();
     }
 }

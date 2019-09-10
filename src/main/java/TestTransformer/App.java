@@ -54,6 +54,14 @@ public class App {
         return s.fval() + s.sval();
     }
 
+    public int fn05() {
+        return StaticSubject.fn05();
+    }
+
+    public void fn06() {
+        StaticSubject.fn06();
+    }
+
     public static void main(String[] args) throws Exception {
         boolean real = false;
         if ( ! real) {

@@ -21,8 +21,10 @@ public class MethodWorker {
             new VoidMockReader(),
             new StaticVoidMockReader(),
             new FunctionThrowMockReader(),
-            new NewInstanceMockReader()
-            //new PrivateStaticReturnMockReader()
+            new NewInstanceMockReader(),
+            new PrivateStaticVoidMockReader(),
+            new PrivateStaticReturnMockReader(),
+            new PrivateReturnMockReader()
             );
     private static final ImmutableList<MockingReader> VERIFY_READER = ImmutableList.of(
             new InvocationVerifyReader(),

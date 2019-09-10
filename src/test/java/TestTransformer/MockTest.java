@@ -170,4 +170,11 @@ public class MockTest {
         doNothing().when(s).reset();
         assertEquals(57, new App().fn04());
     }
+
+    @Test
+    public void test_fn06_suppress_static_void() throws Exception {
+        mockStatic(StaticSubject.class);
+        PowerMockito.doNothing().when(StaticSubject.class, "fn06_private");
+        new App().fn06();
+    }
 }

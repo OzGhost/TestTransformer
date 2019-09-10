@@ -47,6 +47,11 @@ public class CallMeta {
         return this;
     }
 
+    public CallMeta thenGiveNothing() {
+        _void = true;
+        return this;
+    }
+
     public CallMeta asAReturn(Expression outExp) {
         _raise = false;
         outputExpr = outExp;

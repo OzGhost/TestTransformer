@@ -33,4 +33,16 @@ public class AppTest {
             assertEquals("No you", e.getMessage());
         }
     }
+    @Test
+    public void test_fn05() {
+        assertEquals(15, new App().fn05());
+    }
+    @Test
+    public void test_fn06() {
+        try {
+            new App().fn06();
+        } catch(Exception e) {
+            assertEquals("interrupted", e.getMessage());
+        }
+    }
 }

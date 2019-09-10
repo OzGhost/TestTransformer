@@ -28,4 +28,20 @@ public class StaticSubject {
   public static NonStaticSubject getNext() {
       return new NonStaticSubject();
   }
+
+  public static int fn05() {
+      return fn05_private();
+  }
+
+  public static int fn05_private() {
+      return 15;
+  }
+
+  public static void fn06() {
+      fn06_private();
+  }
+
+  private static void fn06_private() {
+      throw new RuntimeException("interrupted");
+  }
 }

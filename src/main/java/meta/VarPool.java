@@ -86,13 +86,6 @@ public class VarPool implements Iterable<VarPiece> {
 
         public void from(String src) {
             piece.setSource(src);
-            for (VarPiece v: master.vars) {
-                if (v.sameNameWith(piece)) {
-                    WoodLog.attach(WARNING, "Hit same name var: " + v.toString() + " vs " + piece.toString());
-                } else if (v.sameTypeWith(piece)) {
-                    WoodLog.attach(WARNING, "Hit same type var: " + v.toString() + " vs " + piece.toString());
-                }
-            }
             master.vars.add(piece);
         }
     }

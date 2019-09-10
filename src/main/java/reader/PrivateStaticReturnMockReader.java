@@ -16,6 +16,9 @@ public class PrivateStaticReturnMockReader extends MockingReader {
         if ( ! mp.find()) {
             return new StatementPiece(UNKNOW_STM);
         }
+        WoodLog.attach(ERROR, "Found forbidden mocking: private static return mock");
+        return new StatementPiece(UNKNOW_STM);
+        /*
         String subject = mp.group(1);
         String methodName = mp.group(2);
         String param = mp.group(3);
@@ -30,6 +33,7 @@ public class PrivateStaticReturnMockReader extends MockingReader {
         CallMeta meta = new CallMeta(param, out, outExpr, false, false).asPrivateCall();
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
+        */
     }
 }
 
