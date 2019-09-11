@@ -14,14 +14,22 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import org.powermock.core.classloader.annotations.*;
 import subject.NonStaticSubject;
 import subject.StaticSubject;
+import subject.NeutralSubject;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
     NonStaticSubject.class,
     StaticSubject.class,
-    App.class
+    App.class,
+    NeutralSubject.class
 })
 public class MockTest {
+
+    @Before
+    public void prepare() {
+        mockStatic(NeutralSubject.class);
+        when(NeutralSubject.doNoop()).thenReturn(33);
+    }
 
     /*
     InvocationCounter abc, xyz, ckc;

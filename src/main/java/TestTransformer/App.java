@@ -14,6 +14,10 @@ import com.github.javaparser.ast.*;
 
 public class App {
 
+    public App() {
+        NeutralSubject.doNoop();
+    }
+
     public int getVal() {
         Storage.reset();
         StaticSubject.noRefun();
@@ -67,7 +71,7 @@ public class App {
         if ( ! real) {
             CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
             System.out.println(cUnit);
-            WoodLog.printCuts();
+            //WoodLog.printCuts();
             return;
         }
         int nProcessor = Runtime.getRuntime().availableProcessors();

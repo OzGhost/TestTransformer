@@ -20,9 +20,10 @@ public class PrivateStaticVoidMockReader extends MockingReader {
         if ( ! m.find()) {
             return new StatementPiece(UNKNOW_STM);
         }
+        /*
         WoodLog.attach(ERROR, "Found forbidden mocking: private static void mock");
         return new StatementPiece(UNKNOW_STM);
-        /*
+        */
         String subject = m.group(1);
         String methodName = m.group(2);
         String param = m.group(3);
@@ -36,7 +37,6 @@ public class PrivateStaticVoidMockReader extends MockingReader {
             .asPrivateCall();
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
-        */
     }
 }
 

@@ -7,10 +7,10 @@ __ -> spy(...)
         doNothing on spy -> just recall
         verify non-spy/mocked -> possible
         mock + spy at the same time -> <?>
-F -> 48 -> doNothing().when(<C>, "privateMethod", <paramMatchers>)
+48 -> doNothing().when(<C>, "privateMethod", <paramMatchers>)
 27 -> doThrow(<Ex>).when(<Instance>).<M>
 23 -> doReturn(<...>).when(<i>).<M>
-F -> 18 -> doReturn(...).when(..., "privateMethod", <paramMatchers>)
+18 -> doReturn(...).when(..., "privateMethod", <paramMatchers>)
 15 -> eq(<...>
 14 -> argThat(<...>
 11 -> when(<i>, "privateMethod").thenReturn(<...>)

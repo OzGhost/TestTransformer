@@ -20,6 +20,7 @@ public class ClassWorker {
     public void transform(ClassOrInterfaceDeclaration classUnit) {
         WoodLog.reachClass(classUnit.getName().asString());
 
+
         List<FieldDeclaration> fields = new ArrayList<>();
         List<MethodDeclaration> methods = new ArrayList<>();
 
@@ -30,6 +31,8 @@ public class ClassWorker {
                 methods.add( (MethodDeclaration) declaration);
             }
         }
+
+        eliminatePrepareBlock(methods);
 
         List<VariableDeclarator> mockedFields = new ArrayList<>();
         List<String> icNames = new ArrayList<>();
@@ -52,6 +55,41 @@ public class ClassWorker {
                 .setICNames(icNames)
                 .transform();
         }
+
+        remapFuncCall(methods);
+    }
+
+    private void eliminatePrepareBlock(List<MethodDeclaration> methods) {
+        List<String> prepareFuncNames = new LinkedList<>();
+        List<MethodDeclaration> testBlocks = new LinkedList<>();
+        List<Node> useless = new LinkedList<>();
+        for (MethodDeclaration mUnit: methods) {
+            for (AnnotationExpr annotation: mUnit.getAnnotations()) {
+                String annotationName = annotation.getName().asString();
+                if ("Before".equals(annotationName)) {
+                    useless.add(annotation);
+                    prepareFuncNames.add(mUnit.getName().asString());
+                } else if ("Test".equals(annotationName)){
+                    testBlocks.add(mUnit);
+                }
+            }
+        }
+        for (String prepareFuncName: prepareFuncNames) {
+            for (MethodDeclaration testBlock: testBlocks) {
+                recallPrepareFuncInTestBlock(testBlock, prepareFuncName);
+            }
+        }
+        for (Node u: useless) {
+            u.remove();
+        }
+    }
+
+    private void recallPrepareFuncInTestBlock(MethodDeclaration testBlocks, String prepareFuncName) {
+        NodeList<Statement> nextStms = new NodeList<>();
+        nextStms.add( new ExpressionStmt(new MethodCallExpr(prepareFuncName)) );
+        NodeList<Statement> currentStms = testBlocks.getBody().get().getStatements();
+        nextStms.addAll(currentStms);
+        testBlocks.getBody().get().setStatements(nextStms);
     }
 
     private boolean isMockField(FieldDeclaration f) {
@@ -66,6 +104,9 @@ public class ClassWorker {
     private boolean isIC(FieldDeclaration f) {
         Type t = f.getVariables().get(0).getType();
         return "InvocationCounter".equals(t.asString());
+    }
+
+    private void remapFuncCall(List<MethodDeclaration> methods) {
     }
 
     public void addImportationIfAbsent(String im) {
