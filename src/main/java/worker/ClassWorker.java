@@ -22,7 +22,6 @@ public class ClassWorker {
     public void transform(ClassOrInterfaceDeclaration classUnit) {
         WoodLog.reachClass(classUnit.getName().asString());
 
-
         List<FieldDeclaration> fields = new ArrayList<>();
         List<MethodDeclaration> methods = new ArrayList<>();
 
@@ -60,6 +59,7 @@ public class ClassWorker {
         }
 
         reConnect(callGraph);
+        cleanUp(methods);
     }
 
     private void eliminatePrepareBlock(List<MethodDeclaration> methods) {
@@ -267,6 +267,34 @@ public class ClassWorker {
             p.setAnnotations(new NodeList<>(new MarkerAnnotationExpr("Mocked")));
             mUnit.getParameters().add(p);
         }
+    }
+
+    private void cleanUp(List<MethodDeclaration> methods) {
+        List<Node> useless = new LinkedList<>();
+        for (MethodDeclaration m: methods) {
+            if (isTestMethod(m)) {
+                continue;
+            }
+            for (Parameter p: m.getParameters()) {
+                for (AnnotationExpr a: p.getAnnotations()) {
+                    if ("Mocked".equals(a.getName().asString())) {
+                        useless.add(a);
+                    }
+                }
+            }
+        }
+        for (Node u: useless) {
+            u.remove();
+        }
+    }
+
+    private boolean isTestMethod(MethodDeclaration m) {
+        for (AnnotationExpr a: m.getAnnotations()) {
+            if ("Test".equals(a.getName().asString())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
