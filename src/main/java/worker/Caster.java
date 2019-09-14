@@ -27,7 +27,7 @@ public class Caster {
             }
         }
         if (fakingRequired) {
-            System.out.println("Simulator: faking invoked");
+            //System.out.println("Simulator: faking invoked");
         }
         Statement mockingReplayed = MockWorker.forWorker(worker).transform(records, worker.getPMV());
         return mockingReplayed;

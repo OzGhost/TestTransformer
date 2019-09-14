@@ -29,6 +29,43 @@ public class MockTest {
     public void prepare() {
         mockStatic(NeutralSubject.class);
         when(NeutralSubject.doNoop()).thenReturn(33);
+        doA();
+        doB();
+        doA(0);
+    }
+
+    private void doA() {
+        mockStatic(NonStaticSubject.class);
+        when(NonStaticSubject.doNoop()).thenReturn(33);
+        doD();
+    }
+
+    private void doB() {
+        mockStatic(StaticSubject.class);
+        when(StaticSubject.doNoop()).thenReturn(33);
+        doC();
+    }
+
+    private void doC() {
+        mockStatic(NonStaticSubject.class);
+        when(NonStaticSubject.doNoop()).thenReturn(33);
+        doD();
+    }
+
+    private void doD() {
+        mockStatic(StaticSubject.class);
+        when(StaticSubject.doNoop()).thenReturn(33);
+    }
+
+    private void doA(int x) {
+        mockStatic(NonStaticSubject.class);
+        when(NonStaticSubject.doNoop()).thenReturn(33);
+        doE();
+    }
+
+    private void doE() {
+        mockStatic(NeutralSubject.class);
+        when(NeutralSubject.doNoop()).thenReturn(33);
     }
 
     /*

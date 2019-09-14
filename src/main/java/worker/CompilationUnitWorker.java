@@ -17,7 +17,7 @@ public class CompilationUnitWorker {
 
     public CompilationUnit transform(String filePath) throws Exception {
         cUnit = StaticJavaParser.parse(new File(filePath));
-        //cUnit = StaticJavaParser.parse(new File("/zk/p/crdhway/unittest/ch/axonivy/fintech/crdhway/cob/propertytab/realsecurity/mortgagecertificatesummarytable/gfsupport/notifychange/PropertyLienOptionChangeListenerTest.java"));
+        //cUnit = StaticJavaParser.parse(new File("/zk/p/crdhway/unittest/ch/axonivy/fintech/crdhway/financingproposal/service/FinancingProposalGenerationServiceTest.java"));
         //cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
         //CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
         //Printer.print(cUnit);

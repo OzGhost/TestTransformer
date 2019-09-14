@@ -67,7 +67,7 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean real = false;
+        boolean real = true;
         if ( ! real) {
             CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
             System.out.println(cUnit);
@@ -78,6 +78,7 @@ public class App {
         if (nProcessor > 1) {
             --nProcessor;
         }
+        //nProcessor = 1;
         CountDownLatch endPoint = new CountDownLatch(nProcessor);
         BlockingQueue<String> q = new LinkedBlockingQueue<>();
         for (int i = 0; i < nProcessor; ++i) {
@@ -87,7 +88,7 @@ public class App {
             try {
                 q.put(line);
             } catch(Exception e) {
-                e.printStackTrace();
+                throw new RuntimeException(e);
             }
         });
         try {
@@ -95,9 +96,9 @@ public class App {
                 q.put(INTERRUPT_SIGNAL);
             }
         } catch(Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
         endPoint.await();
-        WoodLog.printCuts();
+        //WoodLog.printCuts();
     }
 }

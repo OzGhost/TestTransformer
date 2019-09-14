@@ -3,11 +3,21 @@ package worker;
 import meta.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.io.FileWriter;
 
 public class WoodLog {
 
     private static ThreadLocal<Cut> cCut = new ThreadLocal<>();
     private static Queue<Cut> cuts = new ConcurrentLinkedQueue<>();
+    private static FileWriter writer;
+
+    static {
+        try {
+            writer = new FileWriter("./wood.log");
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public static void reachClass(String className) {
         Cut c = new Cut();
@@ -40,8 +50,8 @@ public class WoodLog {
     }
 
     public static Cut attach(int level, String subject, String call, CallMeta callMeta, String message) {
-        Cut c = cCut.get();
         Cut cut = new Cut();
+        Cut c = cCut.get();
         cut.level = level;
         cut.classLevel = c.classLevel;
         cut.methodLevel = c.methodLevel;
@@ -49,7 +59,14 @@ public class WoodLog {
         cut.call = call;
         cut.callMeta = callMeta;
         cut.message = message;
-        cuts.offer(cut);
+        synchronized(WoodLog.class) {
+            try {
+                writer.write(cut.toString());
+            } catch(Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+        //cuts.offer(cut);
         return cut;
     }
 

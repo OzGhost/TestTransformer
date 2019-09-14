@@ -7,6 +7,8 @@ import com.github.javaparser.ast.body.*;
 import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
+import meta.CallGraph;
+import meta.CallDash;
 
 public class ClassWorker {
 
@@ -33,6 +35,7 @@ public class ClassWorker {
         }
 
         eliminatePrepareBlock(methods);
+        CallGraph callGraph = ClassScanner.scanCallGraph(methods);
 
         List<VariableDeclarator> mockedFields = new ArrayList<>();
         List<String> icNames = new ArrayList<>();
@@ -56,7 +59,7 @@ public class ClassWorker {
                 .transform();
         }
 
-        remapFuncCall(methods);
+        reConnect(callGraph);
     }
 
     private void eliminatePrepareBlock(List<MethodDeclaration> methods) {
@@ -106,15 +109,164 @@ public class ClassWorker {
         return "InvocationCounter".equals(t.asString());
     }
 
-    private void remapFuncCall(List<MethodDeclaration> methods) {
-    }
-
     public void addImportationIfAbsent(String im) {
         cUnitWorker.addImportationIfAbsent(im);
     }
 
     public String[] findType(String type) {
         return cUnitWorker.findType(type);
+    }
+
+    private void reConnect(CallGraph graph) {
+        Set<Integer> connected = new HashSet<>();
+        for (Deque<CallDash> callStack: toStacks(graph)) {
+            while(!callStack.isEmpty()) {
+                CallDash dash = callStack.pop();
+                Integer dashCode = System.identityHashCode(dash);
+                if ( ! connected.contains(dashCode)){
+                    reConnect(dash);
+                    connected.add(dashCode);
+                }
+            }
+        }
+    }
+
+    private List<Deque<CallDash>> toStacks(CallGraph graph) {
+        Set<String> stacked = new HashSet<>();
+        List<Deque<CallDash>> stacks = new LinkedList<>();
+        Map<String, CallDash> rawGraph = graph.getGraph();
+        for (String rCode: graph.getRoots()) {
+            Deque<CallDash> stackOfCurrentRoot = new LinkedList<>();
+            Queue<String> tails = new LinkedList<>();
+            tails.offer(rCode);
+            while (!tails.isEmpty()) {
+                String sig = tails.poll();
+                if (stacked.contains(sig)) {
+                    continue;
+                }
+                CallDash c = rawGraph.get(sig);
+                stackOfCurrentRoot.push(c);
+                for (String callSig: c.getCalleesSignatures()) {
+                    tails.offer(callSig);
+                }
+                stacked.add(sig);
+            }
+            stacks.add( stackOfCurrentRoot );
+        }
+        return stacks;
+    }
+
+    private void reConnect(CallDash dash) {
+        if (dash.getCallees().length == 0) {
+            return;
+        }
+        MethodDeclaration caller = dash.getCaller();
+        Map<String, List<String>> typeLeadMap = getMockedTypeLeadMap(caller);
+        List<String[]> requested = new LinkedList<>();
+        Set<String> takenNames = null;
+        int len = dash.getCallees().length;
+        for (int i = 0; i < len; ++i) {
+            MethodDeclaration callee = dash.getCallees()[i];
+            List<Parameter> mParams = getMockedParameters(callee);
+            if (mParams.isEmpty()) {
+                continue;
+            }
+            Set<String> used = new HashSet<>();
+            String[] newArgs = new String[mParams.size()];
+            int j = 0;
+            for (Parameter p: mParams) {
+                String type = p.getType().asString();
+                List<String> namesUnderType = typeLeadMap.get(type);
+                if (namesUnderType == null) {
+                    if (takenNames == null) {
+                        takenNames = loadTakenName(caller);
+                    }
+                    String newName = NameUtil.createTypeBasedName(type, takenNames);
+                    takenNames.add(newName);
+                    newArgs[j] = newName;
+                    requested.add(new String[]{type, newName});
+                    typeLeadMap.put(type, asList(newName));
+                    used.add(type+":"+newName);
+                } else {
+                    String usableName = "";
+                    for (String nut: namesUnderType) {
+                        if (!used.contains(type+":"+nut)) {
+                            usableName = nut;
+                            break;
+                        }
+                    }
+                    if (usableName.isEmpty()) {
+                        usableName = NameUtil.createTypeBasedName(type, takenNames);
+                        takenNames.add(usableName);
+                        requested.add(new String[]{type, usableName});
+                        namesUnderType.add(usableName);
+                    }
+                    newArgs[j] = usableName;
+                    used.add(type+":"+usableName);
+                }
+                j++;
+            }
+            appendNewArgs(dash.getConnectors()[i], newArgs);
+        }
+        appendNewMocked(caller, requested);
+    }
+
+    private Map<String, List<String>> getMockedTypeLeadMap(MethodDeclaration call) {
+        Map<String, List<String>> typeLeadMap = new HashMap<>();
+        for (Parameter p: getMockedParameters(call)) {
+            String type = p.getType().asString();
+            String name = p.getName().asString();
+            List<String> namesUnderType = typeLeadMap.get(type);
+            if (namesUnderType == null) {
+                namesUnderType = new LinkedList<>();
+                typeLeadMap.put(type, namesUnderType);
+            }
+            namesUnderType.add(name);
+        }
+        return typeLeadMap;
+    }
+
+    private List<Parameter> getMockedParameters(MethodDeclaration call) {
+        List<Parameter> output = new LinkedList<>();
+        for (Parameter p: call.getParameters()) {
+            for (AnnotationExpr a: p.getAnnotations()) {
+                if ("Mocked".equals(a.getName().asString())) {
+                    output.add(p);
+                }
+            }
+        }
+        return output;
+    }
+
+    private Set<String> loadTakenName(MethodDeclaration call) {
+        Set<String> output = new HashSet<>();
+        for (Name n: call.findAll(Name.class)) {
+            output.add(n.asString());
+        }
+        return output;
+    }
+
+    private List<String> asList(String a) {
+        List<String> l = new LinkedList<>();
+        l.add(a);
+        return l;
+    }
+
+    private void appendNewArgs(MethodCallExpr call, String[] newArgs) {
+        for (String arg: newArgs) {
+            call.getArguments().add(new NameExpr(arg));
+        }
+    }
+
+    private void appendNewMocked(MethodDeclaration mUnit, List<String[]> requested) {
+        for (String[] r: requested) {
+            Parameter p = new Parameter(
+                    new ClassOrInterfaceType(null, r[0]),
+                    r[1]
+                );
+            p.setAnnotations(new NodeList<>(new MarkerAnnotationExpr("Mocked")));
+            mUnit.getParameters().add(p);
+        }
     }
 }
 
