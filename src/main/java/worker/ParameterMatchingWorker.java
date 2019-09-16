@@ -60,7 +60,7 @@ public class ParameterMatchingWorker {
                     paramTypes = CodeBaseStorage.findType(subjectType, method, len);
                 }
                 if (paramTypes.length == 0 || paramTypes[i].length != 2) {
-                    output.add(new NameExpr("anyString"));
+                    output.add(new NameExpr("null"));
                     WoodLog.attach(ERROR, "Cannot find concrete type of "
                             + (subjectType.length == 2 ? subjectType[0] : subject)
                             + "::" + method + "::" + len);

@@ -1,5 +1,8 @@
 package worker;
 
+import static meta.Name.ERROR;
+import java.util.Map.Entry;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import com.github.javaparser.*;
 import com.github.javaparser.ast.*;
@@ -13,6 +16,7 @@ import meta.CallDash;
 public class ClassWorker {
 
     private CompilationUnitWorker cUnitWorker;
+    private Map<String, Set<String>> hijackedTypes;
 
     public ClassWorker setCompilationUnitWorker(CompilationUnitWorker cunit) {
         cUnitWorker = cunit;
@@ -22,8 +26,8 @@ public class ClassWorker {
     public void transform(ClassOrInterfaceDeclaration classUnit) {
         WoodLog.reachClass(classUnit.getName().asString());
 
-        List<FieldDeclaration> fields = new ArrayList<>();
-        List<MethodDeclaration> methods = new ArrayList<>();
+        List<FieldDeclaration> fields = new LinkedList<>();
+        List<MethodDeclaration> methods = new LinkedList<>();
 
         for (BodyDeclaration<?> declaration: classUnit.getMembers()) {
             if (declaration instanceof FieldDeclaration) {
@@ -33,9 +37,14 @@ public class ClassWorker {
             }
         }
 
-        eliminatePrepareBlock(methods);
-        CallGraph callGraph = ClassScanner.scanCallGraph(methods);
+        this.hijackedTypes = cookTheHijackedFields(fields);
+        Set<String> ics = removeIC(fields);
+        Set<String> takenNames = collectTakenNames(classUnit);
 
+        eliminatePrepareBlock(methods);
+        //CallGraph callGraph = ClassScanner.scanCallGraph(methods);
+
+        /*
         List<VariableDeclarator> mockedFields = new ArrayList<>();
         List<String> icNames = new ArrayList<>();
         for (FieldDeclaration fieldUnit: fields) {
@@ -49,21 +58,80 @@ public class ClassWorker {
                 fieldUnit.remove();
             }
         }
+        */
 
         for (MethodDeclaration methodUnit: methods) {
             new MethodWorker(methodUnit)
                 .setClassWorker(this)
-                .setRequiredFields(mockedFields)
-                .setICNames(icNames)
+                //.setRequiredFields(mockedFields)
+                .setTakenNames(takenNames)
+                .setICs(ics)
                 .transform();
         }
 
-        reConnect(callGraph);
-        cleanUp(methods);
+        //reConnect(callGraph);
+        //cleanUp(methods);
+        reHijack(classUnit);
     }
 
+    private Set<String> collectTakenNames(ClassOrInterfaceDeclaration classUnit) {
+        Set<String> names = new HashSet<>();
+        for (NameExpr n: classUnit.findAll(NameExpr.class)) {
+            names.add(n.getName().asString());
+        }
+        return names;
+    }
+
+    private Map<String, Set<String>> cookTheHijackedFields(List<FieldDeclaration> fields) {
+        Map<String, Set<String>> output = new HashMap<>();
+        List<Node> useless = new LinkedList<>();
+        for (FieldDeclaration f: fields) {
+            AnnotationExpr a = getHijackAnnotation(f);
+            if (a == null) continue;
+            //a.replace(new MarkerAnnotationExpr("Mocked"));
+
+            String type = "";
+            Set<String> names = new HashSet<>();
+            for (VariableDeclarator v: f.getVariables()) {
+                type = v.getType().asString();
+                names.add(v.getName().asString());
+            }
+            output.put(type, names);
+            useless.add(f);
+        }
+        for (Node n: useless) n.remove();
+        return output;
+    }
+
+    private AnnotationExpr getHijackAnnotation(FieldDeclaration f) {
+        for (AnnotationExpr a: f.getAnnotations()) {
+            String aName = a.getName().asString();
+            if ("Mock".equals(aName) || "InjectMocks".equals(aName)) {
+                return a;
+            }
+        }
+        return null;
+    }
+
+    private Set<String> removeIC(List<FieldDeclaration> fields) {
+        Set<String> icNames = new HashSet<>();
+        List<Node> useless = new LinkedList<>();
+        for (FieldDeclaration f: fields) {
+            String ftype = f.getVariables().get(0).getType().asString();
+            if ("InvocationCounter".equals(ftype) || "ch.axonivy.fintech.standard.core.mock.InvocationCounter".equals(ftype)) {
+                for (VariableDeclarator v: f.getVariables()) {
+                    icNames.add(v.getName().asString());
+                }
+                useless.add(f);
+            }
+        }
+        for (Node n: useless) n.remove();
+        return icNames;
+    }
+
+
     private void eliminatePrepareBlock(List<MethodDeclaration> methods) {
-        List<String> prepareFuncNames = new LinkedList<>();
+        List<Entry<String, List<ReferenceType>>> preFuncs = new LinkedList<>();
         List<MethodDeclaration> testBlocks = new LinkedList<>();
         List<Node> useless = new LinkedList<>();
         for (MethodDeclaration mUnit: methods) {
@@ -71,15 +139,19 @@ public class ClassWorker {
                 String annotationName = annotation.getName().asString();
                 if ("Before".equals(annotationName)) {
                     useless.add(annotation);
-                    prepareFuncNames.add(mUnit.getName().asString());
+                    String pFunName = mUnit.getName().asString();
+                    List<ReferenceType> exs = extractExs(mUnit);
+                    preFuncs.add(new SimpleEntry<>(pFunName, exs));
+                    break;
                 } else if ("Test".equals(annotationName)){
                     testBlocks.add(mUnit);
+                    break;
                 }
             }
         }
-        for (String prepareFuncName: prepareFuncNames) {
+        for (Entry<String, List<ReferenceType>> preFunc: preFuncs) {
             for (MethodDeclaration testBlock: testBlocks) {
-                recallPrepareFuncInTestBlock(testBlock, prepareFuncName);
+                recallPrepareFuncInTestBlock(testBlock, preFunc);
             }
         }
         for (Node u: useless) {
@@ -87,12 +159,29 @@ public class ClassWorker {
         }
     }
 
-    private void recallPrepareFuncInTestBlock(MethodDeclaration testBlocks, String prepareFuncName) {
+    private List<ReferenceType> extractExs(MethodDeclaration mUnit) {
+        List<ReferenceType> exs = new LinkedList<>();
+        for (ReferenceType e: mUnit.getThrownExceptions()) {
+            exs.add(e);
+        }
+        return exs;
+    }
+
+    private void recallPrepareFuncInTestBlock(MethodDeclaration testBlocks, Entry<String, List<ReferenceType>> preFunc) {
         NodeList<Statement> nextStms = new NodeList<>();
-        nextStms.add( new ExpressionStmt(new MethodCallExpr(prepareFuncName)) );
+        nextStms.add( new ExpressionStmt(new MethodCallExpr(preFunc.getKey())) );
         NodeList<Statement> currentStms = testBlocks.getBody().get().getStatements();
         nextStms.addAll(currentStms);
         testBlocks.getBody().get().setStatements(nextStms);
+        Set<String> thrown = new HashSet<>();
+        for (ReferenceType e: extractExs(testBlocks)) {
+            thrown.add(e.asString());
+        }
+        for (ReferenceType e: preFunc.getValue()) {
+            if ( ! thrown.contains(e.asString())) {
+                testBlocks.getThrownExceptions().add(e);
+            }
+        }
     }
 
     private boolean isMockField(FieldDeclaration f) {
@@ -295,6 +384,59 @@ public class ClassWorker {
             }
         }
         return false;
+    }
+
+    public String recordAsInstanceMocked(String type, String suggestName, Set<String> usedNames) {
+        Set<String> nameOfType = hijackedTypes.get(type);
+        if (nameOfType == null) {
+            hijackedTypes.put(type, asSet(suggestName));
+            return suggestName;
+        }
+        for (String name: nameOfType) {
+            if ( ! usedNames.contains(type+":"+name)) {
+                return name;
+            }
+        }
+        if ( ! nameOfType.add(suggestName)) {
+            WoodLog.attach(ERROR, "Duplicate mocked name");
+        }
+        return suggestName;
+    }
+
+    private Set<String> asSet(String e) {
+        Set<String> set = new HashSet<>();
+        set.add(e);
+        return set;
+    }
+
+    public boolean recordAsTypeMocked(String type, String suggestName) {
+        if ( ! hijackedTypes.containsKey(type)) {
+            hijackedTypes.put(type, asSet(suggestName));
+            return true;
+        }
+        return false;
+    }
+
+    private void reHijack(ClassOrInterfaceDeclaration classUnit) {
+        NodeList<BodyDeclaration<?>> newBody = new NodeList<>();
+        for (Entry<String, Set<String>> hijacked: hijackedTypes.entrySet()) {
+            String type = hijacked.getKey();
+            NodeList<VariableDeclarator> vars = new NodeList<>();
+            for (String name: hijacked.getValue()) {
+                vars.add(
+                        new VariableDeclarator(
+                            new ClassOrInterfaceType(null, type),
+                            name
+                        )
+                    );
+            }
+            FieldDeclaration f = new FieldDeclaration();
+            f.setVariables(vars);
+            f.setAnnotations(new NodeList<>( new MarkerAnnotationExpr("Mocked") ));
+            newBody.add(f);
+        }
+        newBody.addAll(classUnit.getMembers());
+        classUnit.setMembers(newBody);
     }
 }
 

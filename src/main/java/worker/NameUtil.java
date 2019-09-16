@@ -19,6 +19,7 @@ public class NameUtil {
                             .append(firstCharLowerCase)
                             .append(varType.substring(1))
                             .toString()
+                            .replaceAll("[<>]", "_") // eliminate generic type
                             .replaceAll("\\.", "_"); // eliminate dot in package included type
         String output = base;
         int version = 1;

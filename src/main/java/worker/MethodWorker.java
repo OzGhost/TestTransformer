@@ -3,6 +3,8 @@ package worker;
 import static meta.Name.*;
 import meta.*;
 import reader.*;
+import java.util.Map.Entry;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
 import java.util.regex.*;
 import java.util.stream.*;
@@ -38,8 +40,9 @@ public class MethodWorker {
     private VarPool cooked = new VarPool();
     private VarPool declared = new VarPool();
     private Set<String> takenNames = new HashSet<>();
-    private Set<String> icNames = new HashSet<>();
     private Set<String> partialMockVars = new HashSet<>();
+    private Set<String> ics = new HashSet<>();
+    private Set<String> usedNames = new HashSet<>();
 
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
@@ -51,83 +54,28 @@ public class MethodWorker {
         return this;
     }
 
-    public MethodWorker setRequiredFields(List<VariableDeclarator> rfs) {
-        for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
-            String name = vari.getName().asString();
-            String type = vari.getType().asString();
-            takenNames.add( name );
-            declared.addVar( name )
-                .underType( type )
-                .from(DECLARED_INSTANCE);
-        }
-        Set<String> calledName = new HashSet<>();
-        for (NameExpr ne: methodUnit.findAll(NameExpr.class)) {
-            calledName.add(ne.getName().asString());
-        }
-        for (VariableDeclarator vari: rfs) {
-            String name = vari.getName().asString();
-            if ( calledName.contains(name) && ! takenNames.contains(name)) {
-                String type = vari.getType().asString();
-                cooked.addVar(name).underType(type).from(CLASS_FIELD);
-                takenNames.add(name);
-            }
-        }
+    public MethodWorker setTakenNames(Set<String> tn) {
+        takenNames.addAll(tn);
         return this;
     }
 
-    public MethodWorker setICNames(List<String> icns) {
-        icNames.addAll(icns);
+    public MethodWorker setICs(Set<String> classLevelICs) {
+        ics.addAll(classLevelICs);
         List<Node> useless = new ArrayList<>();
         for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
             if ("InvocationCounter".equals(vari.getType().asString())) {
-                icNames.add(vari.getName().asString());
+                ics.add(vari.getName().asString());
                 useless.add(vari);
             }
         }
         for (Node u: useless) {
             u.remove();
         }
-        for (MethodCallExpr mce: methodUnit.findAll(MethodCallExpr.class)) {
-            if ("times".equals( mce.getName().asString() )) {
-                mce.getScope().ifPresent(callee -> {
-                    if (icNames.contains(callee.toString())) {
-                        Node stmNode = ReaderUtil.findClosestParent(mce, ExpressionStmt.class);
-                        String assertStm = stmNode.toString();
-                        int time = ReaderUtil.getICExpectedTimes(assertStm);
-                        if (time < 0) {
-                            WoodLog.attach(WARNING, "Cannot extract time from statement: " + assertStm);
-                        } else {
-                            Node blockNode = ReaderUtil.findClosestParent(stmNode, BlockStmt.class);
-                            List<Node> sibs = blockNode.getChildNodes();
-                            int i = sibs.size() - 1;
-                            while (i >= 0 && sibs.get(i) != stmNode) --i;
-                            boolean match = false;
-                            Node nameNode = null;
-                            while ( i > 0 && ! match) {
-                                --i;
-                                for (NameExpr name: sibs.get(i).findAll(NameExpr.class)) {
-                                    if (callee.toString().equals(name.getNameAsString())) {
-                                        nameNode = name;
-                                        match = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if ( i < 0) {
-                                WoodLog.attach(WARNING, "Found no ic instance setup for: " + assertStm);
-                            } else {
-                                nameNode.replace(new NameExpr("times("+time+")"));
-                                stmNode.remove();
-                            }
-                        }
-                    }
-                });
-            }
-        }
         return this;
     }
 
     public void transform() {
+        normalizeICs();
 
         replaceInstanceMockDeclaration(methodUnit);
         replaceStaticMockDeclaration(methodUnit);
@@ -180,12 +128,51 @@ public class MethodWorker {
                 baseStms[i].remove();
             }
         }
-        methodUnit.getParameters().addAll( createParameters() );
+        //methodUnit.getParameters().addAll( createParameters() );
+    }
+
+    private void normalizeICs() {
+        for (MethodCallExpr mce: methodUnit.findAll(MethodCallExpr.class)) {
+            if ("times".equals( mce.getName().asString() )) {
+                mce.getScope().ifPresent(callee -> {
+                    if (ics.contains(callee.toString())) {
+                        Node stmNode = ReaderUtil.findClosestParent(mce, ExpressionStmt.class);
+                        String assertStm = stmNode.toString();
+                        int time = ReaderUtil.getICExpectedTimes(assertStm);
+                        if (time < 0) {
+                            WoodLog.attach(WARNING, "Cannot extract time from statement: " + assertStm);
+                        } else {
+                            Node blockNode = ReaderUtil.findClosestParent(stmNode, BlockStmt.class);
+                            List<Node> sibs = blockNode.getChildNodes();
+                            int i = sibs.size() - 1;
+                            while (i >= 0 && sibs.get(i) != stmNode) --i;
+                            boolean match = false;
+                            Node nameNode = null;
+                            while ( i > 0 && ! match) {
+                                --i;
+                                for (NameExpr name: sibs.get(i).findAll(NameExpr.class)) {
+                                    if (callee.toString().equals(name.getNameAsString())) {
+                                        nameNode = name;
+                                        match = true;
+                                        break;
+                                    }
+                                }
+                            }
+                            if ( i < 0) {
+                                WoodLog.attach(WARNING, "Found no ic instance setup for: " + assertStm);
+                            } else {
+                                nameNode.replace(new NameExpr("times("+time+")"));
+                                stmNode.remove();
+                            }
+                        }
+                    }
+                });
+            }
+        }
     }
 
     private void replaceInstanceMockDeclaration(MethodDeclaration methodUnit) {
-        List<Node> ori = new ArrayList<>();
-        List<Node> repl = new ArrayList<>();
+        List<Entry<Node, Node>> replacementPair = new LinkedList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
                 Expression firstArgumentExp = call.getArguments().get(0);
@@ -193,19 +180,18 @@ public class MethodWorker {
                     WoodLog.attach(WARNING, "Found non-class argument for mock call: " + call.toString());
                     continue;
                 }
-                Type mockingType = ((ClassExpr)firstArgumentExp).getType();
-                String type = mockingType.asString();
-                String rname = NameUtil.createTypeBasedName(type, takenNames);
+                String type = ((ClassExpr)firstArgumentExp).getType().asString();
+                String suggestionName = NameUtil.createTypeBasedName(type, takenNames);
+                String replacementName = classWorker.recordAsInstanceMocked(type, suggestionName, usedNames);
 
-                ori.add(call);
-                repl.add(new NameExpr(rname));
-
-                cooked.addVar(rname).underType(type).from(MOCKED_INSTANCE);
-                takenNames.add(rname);
+                replacementPair.add(new SimpleEntry<>(call, new NameExpr(replacementName)));
+                takenNames.add(replacementName);
+                usedNames.add(type+":"+replacementName);
+                cooked.addVar(replacementName).underType(type).from(MOCKED_INSTANCE);
             }
         }
-        for (int i = 0; i < ori.size(); ++i) {
-            ori.get(i).replace(repl.get(i));
+        for (Entry<Node, Node> p: replacementPair) {
+            p.getKey().replace(p.getValue());
         }
     }
 
@@ -221,12 +207,13 @@ public class MethodWorker {
                             WoodLog.attach(WARNING, "Found non-class argument for mockStatic call: " + call.toString());
                             continue;
                         }
-                        Type argType = ((ClassExpr)ex).getType();
-                        String type = argType.asString();
+                        String type = ((ClassExpr)ex).getType().asString();
                         if ( ! isCookedType(type)) {
                             String name = NameUtil.createTypeBasedName(type, takenNames);
+                            if ( classWorker.recordAsTypeMocked(type, name) ) {
+                                takenNames.add(name);
+                            }
                             cooked.addVar(name).underType(type).from(STATIC_INVOCATION);
-                            takenNames.add(name);
                         }
                     }
                     useless.push(stmt);
@@ -337,7 +324,9 @@ public class MethodWorker {
         Set<String> requiredPM = new HashSet<>();
         for (String pmv: partialMockVars) {
             if ( records.containsSubject(pmv) ) {
-                String type = findType(pmv)[0];
+                String[] ti = findType(pmv);
+                if (ti.length != 2) continue;
+                String type = ti[0];
                 List<VarPiece> sameTypeCooked = cooked.findAllByType(type);
                 boolean accidentlyMocked = false;
                 List<VarPiece> uselessDish = new LinkedList<>();

@@ -16,6 +16,8 @@ public class App {
 
     public App() {
         NeutralSubject.doNoop();
+        NonStaticSubject.doNoop();
+        StaticSubject.doNoop();
     }
 
     public int getVal() {
@@ -67,7 +69,7 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean real = true;
+        boolean real = false;
         if ( ! real) {
             CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
             System.out.println(cUnit);

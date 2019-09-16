@@ -7,7 +7,7 @@ import java.util.regex.*;
 
 public class VoidMockReader extends MockingReader {
     
-    private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\((.+)\\)\\.([^\\(]+)\\((.*)\\)");
+    private static final Pattern VOID_MP = Pattern.compile("doNothing\\(\\)\\.when\\(([a-zA-Z0-9_$]+)\\)\\.([^\\(]+)\\((.*)\\)");
 
     @Override
     public StatementPiece read(String stm, Node node, Node belowNode) {

@@ -44,4 +44,8 @@ public class StaticSubject {
   private static void fn06_private() {
       throw new RuntimeException("interrupted");
   }
+
+  public static int doNoop() {
+      return 28;
+  }
 }

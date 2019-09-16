@@ -49,4 +49,8 @@ public class NonStaticSubject {
     public void reset() {
         throw new RuntimeException("No you");
     }
+
+    public static int doNoop() {
+        return 12;
+    }
 }
