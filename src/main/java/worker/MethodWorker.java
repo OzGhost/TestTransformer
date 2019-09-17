@@ -78,8 +78,9 @@ public class MethodWorker {
         normalizeICs();
 
         replaceInstanceMockDeclaration(methodUnit);
-        replaceStaticMockDeclaration(methodUnit);
-        replaceSpy();
+        Set<String> typeMockedAsStatic = removeStaticMockDeclaration(methodUnit);
+        Set<String> typeSpied = normalizeSpy();
+        recordMockForStaticHijacking(typeMockedAsStatic, typeSpied);
 
         Statement[] baseStms = getStms(methodUnit);
         int len = baseStms.length;
@@ -114,7 +115,7 @@ public class MethodWorker {
         }
 
         if ( ! records.isEmpty()) {
-            reduceUnnecessaryPartialMock();
+            //reduceUnnecessaryPartialMock();
             int lastMockStm = baseStms.length - 1;
             while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM)
                 lastMockStm--;
@@ -195,8 +196,8 @@ public class MethodWorker {
         }
     }
 
-    private void replaceStaticMockDeclaration(MethodDeclaration methodUnit) {
-        List<Type> staticMocks = new ArrayList<>();
+    private Set<String> removeStaticMockDeclaration(MethodDeclaration methodUnit) {
+        Set<String> staticMocked = new HashSet<>();
         LinkedList<Node> useless = new LinkedList<>();
         BlockStmt methodBody = methodUnit.getBody().get();
         for (Statement stmt: methodBody.getStatements()) {
@@ -209,11 +210,14 @@ public class MethodWorker {
                         }
                         String type = ((ClassExpr)ex).getType().asString();
                         if ( ! isCookedType(type)) {
+                            /*
                             String name = NameUtil.createTypeBasedName(type, takenNames);
                             if ( classWorker.recordAsTypeMocked(type, name) ) {
                                 takenNames.add(name);
                             }
                             cooked.addVar(name).underType(type).from(STATIC_INVOCATION);
+                            */
+                            staticMocked.add(type);
                         }
                     }
                     useless.push(stmt);
@@ -223,9 +227,10 @@ public class MethodWorker {
         while ( ! useless.isEmpty()) {
             methodBody.remove(useless.pop());
         }
+        return staticMocked;
     }
 
-    private void replaceSpy() {
+    private Set<String> normalizeSpy() {
         List<MethodCallExpr> spyCalls = new LinkedList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("spy".equals(call.getName().asString())) {
@@ -269,6 +274,24 @@ public class MethodWorker {
                 c.replace(spyInstance);
             }
         }
+        Set<String> spied = new HashSet<>();
+        for (String spyVar: partialMockVars) {
+            String[] type = findType(spyVar);
+            if (type.length != 2) continue;
+            spied.add(type[0]);
+        }
+        return spied;
+    }
+
+    private void recordMockForStaticHijacking(Set<String> staticMock, Set<String> spy) {
+        for (String type: staticMock) {
+            if ( ! spy.contains(type) ) {
+                String suggestName = NameUtil.createTypeBasedName(type, takenNames);
+                if ( classWorker.recordAsTypeMocked(type, suggestName) ) {
+                    takenNames.add(suggestName);
+                }
+            }
+        }
     }
 
     private static Statement[] getStms(MethodDeclaration methodUnit) {
@@ -291,15 +314,19 @@ public class MethodWorker {
                         .getByMethodName( craft.getMethodName() )
                         .add( craft.getCallMeta() );
                 }
-                String newMock = stmp.getRequestAsMock();
+                String newMockType = stmp.getRequestAsMock();
                 int rType = stmp.getRawType();
-                if (newMock != null && rType == NEW_INSTANT_INJECTION) {
-                    if ( ! cooked.typeInPool(newMock)) {
-                        //TODO: better handle for new instance injection (if possible)
-                        WoodLog.attach(WARNING, "The given type suppose to be mocked but not: " + newMock);
-                        String newMockVarName = NameUtil.createTypeBasedName(newMock, takenNames);
-                        cooked.addVar(newMockVarName).underType(newMock).from(NEW_OPERATION_INVOCATION);
+                if (newMockType != null && rType == NEW_INSTANT_INJECTION) {
+                    // TODO: better handle for whenNew injection
+                    /*
+                    String newSuggestName = NameUtil.createTypeBasedName(newMockType, takenNames);
+                    cooked.addVar(newSuggestName).underType(newMockType).from(NEW_OPERATION_INVOCATION);
+                    if ( classWorker.recordAsTypeMocked(newMockType, newSuggestName) ) {
+                        WoodLog.attach(WARNING, "The given type suppose to be mocked but not: " + newMockType);
+                        takenNames.add(newSuggestName);
+                        usedNames.add(newSuggestName);
                     }
+                    */
                 }
                 return stmType;
             }

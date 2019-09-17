@@ -69,7 +69,7 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        boolean real = false;
+        boolean real = true;
         if ( ! real) {
             CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
             System.out.println(cUnit);
