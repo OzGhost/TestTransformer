@@ -23,8 +23,7 @@ public class UnitWorker implements Runnable {
             try {
                 line = q.take();
             } catch(Exception e) {
-                l.countDown();
-                Thread.currentThread().interrupt();
+                break;
             }
             if (INTERRUPT_SIGNAL.equals(line)) {
                 break;
@@ -46,6 +45,7 @@ public class UnitWorker implements Runnable {
                 fw.flush();
             } catch(Exception e) {
                 e.printStackTrace();
+                break;
             }
         }
         l.countDown();

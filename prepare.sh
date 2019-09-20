@@ -26,3 +26,14 @@ else
     exit;
 fi;
 
+# scan utilImpl
+
+ubase='utilImpl'
+
+if [ -d $ubase ]; then
+    echo "" > uim;
+    for i in `find ./$ubase -type f`; do
+        echo $i >> uim
+    done;
+fi;
+

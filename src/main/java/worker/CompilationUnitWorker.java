@@ -1,5 +1,6 @@
 package worker;
 
+import storage.LibraryImplLoader;
 import java.io.*;
 import java.util.*;
 import java.util.stream.*;
@@ -26,6 +27,9 @@ public class CompilationUnitWorker {
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
         mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.standard.core.mock.InvocationCounter") || mocked;
+        for (String libImp: LibraryImplLoader.getLibImportations()) {
+            mocked = removeImportStartsWith(cUnit, libImp) || mocked;
+        }
         if ( ! mocked) {
             return cUnit;
         }

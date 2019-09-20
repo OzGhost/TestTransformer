@@ -1,6 +1,8 @@
 package worker;
 
 import static meta.Name.ERROR;
+import static meta.Name.WARNING;
+import storage.LibraryImplLoader;
 import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.*;
@@ -15,6 +17,10 @@ import meta.CallDash;
 
 public class ClassWorker {
 
+    private static final Node WHITEBOX_REPLACEMENT_NODE = new NameExpr("ch.axonivy.fintech.standard.core.mock.Whitebox");
+    private static final String RESULT_VAR_REPLACEMENT_NAME = "resultOfExecution";
+    private static final Node RESULT_VAR_REPLACEMENT_NODE = new NameExpr(RESULT_VAR_REPLACEMENT_NAME);
+
     private CompilationUnitWorker cUnitWorker;
     private Map<String, Set<String>> hijackedTypes;
 
@@ -25,9 +31,13 @@ public class ClassWorker {
 
     public void transform(ClassOrInterfaceDeclaration classUnit) {
         WoodLog.reachClass(classUnit.getName().asString());
+        String className = classUnit.getName().asString();
 
         List<FieldDeclaration> fields = new LinkedList<>();
         List<MethodDeclaration> methods = new LinkedList<>();
+        
+        loadLibraryImpl(classUnit);
+        //replaceResultVar(classUnit);
 
         for (BodyDeclaration<?> declaration: classUnit.getMembers()) {
             if (declaration instanceof FieldDeclaration) {
@@ -72,6 +82,45 @@ public class ClassWorker {
         //reConnect(callGraph);
         //cleanUp(methods);
         reHijack(classUnit);
+        
+        doAfterTransformReplacement(classUnit);
+    }
+
+    private void loadLibraryImpl(ClassOrInterfaceDeclaration classUnit) {
+        Set<String> uCall = new HashSet<>();
+        List<Entry<String, String>> libCall = new LinkedList<>();
+        List<Node> useless = new LinkedList<>();
+        for (MethodCallExpr call: classUnit.findAll(MethodCallExpr.class)) {
+            String methodSig = SignatureService.extractSignature(call);
+            if ( ! LibraryImplLoader.isSupportedMethod(methodSig)) continue;
+            Optional<Expression> scopeOp = call.getScope();
+            if ( ! scopeOp.isPresent()) continue;
+            Expression scope = scopeOp.get();
+            String className = scope.toString();
+            if ( ! LibraryImplLoader.isSupportedLib(className)) continue;
+            useless.add(scope);
+            String callSig = className+":"+methodSig;
+            if (uCall.contains(callSig)) continue;
+            libCall.add(new SimpleEntry<>(className, methodSig));
+            uCall.add(callSig);
+        }
+        for (Node n: useless) n.remove();
+        Set<String> usedLib = new HashSet<>();
+        for (Entry<String, String> lc: libCall) {
+            MethodDeclaration replacementCall = LibraryImplLoader.find(lc.getKey(), lc.getValue());
+            if (replacementCall == null) {
+                WoodLog.attach(WARNING, "The call's replacement not found: " + lc.getKey()+":"+lc.getValue());
+                continue;
+            }
+            classUnit.getMembers().add(replacementCall.clone());
+            usedLib.add(lc.getKey());
+        }
+        for (String lib: usedLib) {
+            List<String> ims = LibraryImplLoader.getIms(lib);
+            for (String im: ims) {
+                cUnitWorker.addImportationIfAbsent(im);
+            }
+        }
     }
 
     private Set<String> collectTakenNames(ClassOrInterfaceDeclaration classUnit) {
@@ -96,7 +145,12 @@ public class ClassWorker {
                 type = v.getType().asString();
                 names.add(v.getName().asString());
             }
-            output.put(type, names);
+            Set<String> namesUnderType = output.get(type);
+            if (namesUnderType == null) {
+                output.put(type, names);
+            } else {
+                namesUnderType.addAll(names);
+            }
             useless.add(f);
         }
         for (Node n: useless) n.remove();
@@ -437,6 +491,33 @@ public class ClassWorker {
         }
         newBody.addAll(classUnit.getMembers());
         classUnit.setMembers(newBody);
+    }
+
+    private void doAfterTransformReplacement(ClassOrInterfaceDeclaration classUnit) {
+        replaceWhitebox(classUnit);
+    }
+
+    private void replaceWhitebox(ClassOrInterfaceDeclaration classUnit) {
+        List<Node> whiteboxNodes = new LinkedList<>();
+        for (MethodCallExpr call: classUnit.findAll(MethodCallExpr.class)) {
+            Optional<Expression> scopeOp = call.getScope();
+            if ( ! scopeOp.isPresent()) continue;
+            Expression scope = scopeOp.get();
+            if (scope.toString().endsWith("Whitebox")) {
+                whiteboxNodes.add(scope);
+            }
+        }
+        for (Node rNode: whiteboxNodes) {
+            rNode.replace(WHITEBOX_REPLACEMENT_NODE);
+        }
+    }
+
+    private void replaceResultVar(ClassOrInterfaceDeclaration classUnit) {
+        for (Name vari: classUnit.findAll(Name.class)) {
+            if ("result".equals(vari.toString())) {
+                vari.replace(new Name(null, "fUp"));
+            }
+        }
     }
 }
 

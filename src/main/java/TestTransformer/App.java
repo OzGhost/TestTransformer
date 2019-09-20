@@ -5,6 +5,7 @@ import java.io.*;
 import subject.*;
 import worker.*;
 import storage.LineLoader;
+import storage.LibraryImplLoader;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -69,11 +70,17 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
+        LibraryImplLoader.load();
         boolean real = true;
         if ( ! real) {
-            CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
-            System.out.println(cUnit);
-            //WoodLog.printCuts();
+            //CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
+            CompilationUnit cUnit = new CompilationUnitWorker().transform("/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/debtcollection/helper/CrdhwayDebtCollectionOrderHelperTest.java");
+            try (FileWriter fw = new FileWriter(new File("/tmp/jout"))) {
+                fw.write(cUnit.toString().toCharArray());
+                fw.flush();
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
             return;
         }
         int nProcessor = Runtime.getRuntime().availableProcessors();
@@ -101,6 +108,5 @@ public class App {
             throw new RuntimeException(e);
         }
         endPoint.await();
-        //WoodLog.printCuts();
     }
 }
