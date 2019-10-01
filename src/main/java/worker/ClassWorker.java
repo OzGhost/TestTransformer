@@ -29,7 +29,11 @@ public class ClassWorker {
         return this;
     }
 
-    public void transform(ClassOrInterfaceDeclaration classUnit) {
+    public void transform(ClassOrInterfaceDeclaration rawClass) {
+
+        ClassOrInterfaceDeclaration classUnit = Normalizer.normalize(rawClass);
+        if (true) return;
+
         WoodLog.reachClass(classUnit.getName().asString());
         String className = classUnit.getName().asString();
 
@@ -289,7 +293,7 @@ public class ClassWorker {
                 }
                 CallDash c = rawGraph.get(sig);
                 stackOfCurrentRoot.push(c);
-                for (String callSig: c.getCalleesSignatures()) {
+                for (String callSig: c.getCalleeSignatures()) {
                     tails.offer(callSig);
                 }
                 stacked.add(sig);

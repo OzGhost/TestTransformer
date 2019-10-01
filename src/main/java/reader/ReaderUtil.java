@@ -57,6 +57,7 @@ public class ReaderUtil {
         Optional<Node> on = currentNode.getParentNode();
         while (on.isPresent()) {
             target = on.get();
+            //System.out.println(target.getClass());
             if (target.getClass() == parentType) break;
             on = target.getParentNode();
         }

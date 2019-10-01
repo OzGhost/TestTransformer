@@ -28,44 +28,45 @@ public class MockTest {
     @Before
     public void prepare() {
         mockStatic(NeutralSubject.class);
-        when(NeutralSubject.doNoop()).thenReturn(33);
-        doA();
+        when(NeutralSubject.doNoop()).thenReturn(1);
+        int doar = doA();
         doB();
-        doA(0);
+        doA(doar);
     }
 
-    private void doA() {
+    private int doA() {
         mockStatic(NonStaticSubject.class);
-        when(NonStaticSubject.doNoop()).thenReturn(33);
+        when(NonStaticSubject.doNoop()).thenReturn(2);
         doD();
+        return 0;
     }
 
     private void doB() {
         mockStatic(StaticSubject.class);
-        when(StaticSubject.doNoop()).thenReturn(33);
+        when(StaticSubject.doNoop()).thenReturn(3);
         doC();
     }
 
     private void doC() {
         mockStatic(NonStaticSubject.class);
-        when(NonStaticSubject.doNoop()).thenReturn(33);
+        when(NonStaticSubject.doNoop()).thenReturn(4);
         doD();
     }
 
     private void doD() {
         mockStatic(StaticSubject.class);
-        when(StaticSubject.doNoop()).thenReturn(33);
+        when(StaticSubject.doNoop()).thenReturn(5);
     }
 
     private void doA(int x) {
         mockStatic(NonStaticSubject.class);
-        when(NonStaticSubject.doNoop()).thenReturn(33);
+        when(NonStaticSubject.doNoop()).thenReturn(x);
         doE();
     }
 
     private void doE() {
         mockStatic(NeutralSubject.class);
-        when(NeutralSubject.doNoop()).thenReturn(33);
+        when(NeutralSubject.doNoop()).thenReturn(7);
     }
 
     /*

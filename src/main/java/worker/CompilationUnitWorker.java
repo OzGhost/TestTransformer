@@ -24,6 +24,7 @@ public class CompilationUnitWorker {
         //Printer.print(cUnit);
         //if (true) return cUnit;
 
+        /*
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
         mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.standard.core.mock.InvocationCounter") || mocked;
@@ -39,13 +40,12 @@ public class CompilationUnitWorker {
         }
 
         cUnit.addImport(new ImportDeclaration("mockit", false, true));
+        */
 
         for (ClassOrInterfaceDeclaration classUnit: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
             new ClassWorker().setCompilationUnitWorker(this).transform(classUnit);
         }
 
-        //System.out.println(cUnit);
-        //Printer.print(cUnit);
         return cUnit;
     }
 

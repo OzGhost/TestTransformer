@@ -71,10 +71,12 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         LibraryImplLoader.load();
-        boolean real = true;
+        boolean real = false;
         if ( ! real) {
-            //CompilationUnit cUnit = new CompilationUnitWorker().transform("./src/test/java/TestTransformer/MockTest.java");
-            CompilationUnit cUnit = new CompilationUnitWorker().transform("/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/debtcollection/helper/CrdhwayDebtCollectionOrderHelperTest.java");
+            //CompilationUnit cUnit = new CompilationUnitWorker().transform("");
+            //String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/mockutil/CrdhwayTestPrepareUtil.java";
+            String targetFile = "./src/test/java/TestTransformer/MockTest.java";
+            CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
             try (FileWriter fw = new FileWriter(new File("/tmp/jout"))) {
                 fw.write(cUnit.toString().toCharArray());
                 fw.flush();

@@ -27,7 +27,7 @@ public class ClassScanner {
                 WoodLog.attach(ERROR, "Hit same method signature: " + mSig);
                 continue;
             }
-            graph.put(mSig, new CallDash(mUnit));
+            graph.put(mSig, new CallDash(mUnit, mSig));
             if ( isRoot(mUnit) ) {
                 rootCodes.add( mSig );
             } else {
@@ -51,7 +51,7 @@ public class ClassScanner {
             int len = callees.size();
             dash.setCallees(callees.toArray(new MethodDeclaration[len]));
             dash.setConnectors(connectors.toArray(new MethodCallExpr[len]));
-            dash.setCalleesSignatures(calleesSignatures.toArray(new String[len]));
+            dash.setCalleeSignatures(calleesSignatures.toArray(new String[len]));
         }
         return new CallGraph(graph, rootCodes);
     }
