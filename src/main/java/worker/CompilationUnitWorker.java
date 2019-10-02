@@ -18,13 +18,11 @@ public class CompilationUnitWorker {
 
     public CompilationUnit transform(String filePath) throws Exception {
         cUnit = StaticJavaParser.parse(new File(filePath));
-        //cUnit = StaticJavaParser.parse(new File("/zk/p/crdhway/unittest/ch/axonivy/fintech/crdhway/financingproposal/service/FinancingProposalGenerationServiceTest.java"));
         //cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
-        //CompilationUnit cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
+        //cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
         //Printer.print(cUnit);
         //if (true) return cUnit;
 
-        /*
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
         mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.standard.core.mock.InvocationCounter") || mocked;
@@ -40,7 +38,6 @@ public class CompilationUnitWorker {
         }
 
         cUnit.addImport(new ImportDeclaration("mockit", false, true));
-        */
 
         for (ClassOrInterfaceDeclaration classUnit: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
             new ClassWorker().setCompilationUnitWorker(this).transform(classUnit);

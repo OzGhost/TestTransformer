@@ -31,8 +31,9 @@ public class ClassWorker {
 
     public void transform(ClassOrInterfaceDeclaration rawClass) {
 
-        ClassOrInterfaceDeclaration classUnit = Normalizer.normalize(rawClass);
-        if (true) return;
+        ClassOrInterfaceDeclaration classUnit = rawClass;
+        //ClassOrInterfaceDeclaration classUnit = Normalizer.normalize(rawClass);
+        //if (true) return;
 
         WoodLog.reachClass(classUnit.getName().asString());
         String className = classUnit.getName().asString();
@@ -56,6 +57,7 @@ public class ClassWorker {
         Set<String> takenNames = collectTakenNames(classUnit);
 
         eliminatePrepareBlock(methods);
+        classUnit = Normalizer.normalize(classUnit);
         //CallGraph callGraph = ClassScanner.scanCallGraph(methods);
 
         /*
@@ -193,6 +195,7 @@ public class ClassWorker {
         List<MethodDeclaration> testBlocks = new LinkedList<>();
         List<Node> useless = new LinkedList<>();
         for (MethodDeclaration mUnit: methods) {
+            boolean isPrepareBlock = false;
             for (AnnotationExpr annotation: mUnit.getAnnotations()) {
                 String annotationName = annotation.getName().asString();
                 if ("Before".equals(annotationName)) {
@@ -200,12 +203,15 @@ public class ClassWorker {
                     String pFunName = mUnit.getName().asString();
                     List<ReferenceType> exs = extractExs(mUnit);
                     preFuncs.add(new SimpleEntry<>(pFunName, exs));
+                    isPrepareBlock = true;
                     break;
                 } else if ("Test".equals(annotationName)){
                     testBlocks.add(mUnit);
                     break;
                 }
             }
+            if ( ! isPrepareBlock) continue;
+            mUnit.getModifiers().add( new Modifier(Modifier.Keyword.PRIVATE) );
         }
         for (Entry<String, List<ReferenceType>> preFunc: preFuncs) {
             for (MethodDeclaration testBlock: testBlocks) {

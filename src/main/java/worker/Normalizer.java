@@ -20,12 +20,18 @@ import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.VariableDeclarationExpr;
+import com.github.javaparser.ast.type.Type;
 import com.github.javaparser.ast.type.VoidType;
 import com.github.javaparser.ast.stmt.Statement;
+import com.github.javaparser.ast.stmt.ReturnStmt;
 import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.BlockStmt;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.Modifier;
 
 public class Normalizer {
 
@@ -73,6 +79,26 @@ public class Normalizer {
                     }
                 }
             }
+            // return pre-cut
+            if (method.getType() instanceof VoidType) continue;
+            List<ReturnStmt> currentReturnStms = method.findAll(ReturnStmt.class);
+            if (currentReturnStms.size() < 2) continue;
+            List<ReturnStmt> returnStms = new LinkedList<>();
+            for (ReturnStmt rstm: currentReturnStms) {
+                returnStms.add(rstm);
+            }
+            String outputName = "_output_o"+PARAM_INDEX.incrementAndGet();
+            NameExpr outputVar = new NameExpr(outputName);
+            for (ReturnStmt rstm: returnStms) {
+                AssignExpr replacement = new AssignExpr(outputVar, rstm.getExpression().get(), AssignExpr.Operator.ASSIGN);
+                rstm.replace(new ExpressionStmt(replacement));
+            }
+            BlockStmt methodBody = method.getBody().get();
+            NodeList<Statement> newMethodBody = new NodeList<>();
+            newMethodBody.add( createVariableCreationStmt(method.getType(), new SimpleName(outputName), null) );
+            newMethodBody.addAll( methodBody.getStatements() );
+            newMethodBody.add( new ReturnStmt( outputVar ) );
+            methodBody.setStatements(newMethodBody);
         }
 
         System.out.println(":: ::");
@@ -115,17 +141,14 @@ public class Normalizer {
                     MethodCallExpr connector = d.getConnectors()[j];
                     if (callee.getType() instanceof VoidType) {
                         List<Statement> calleeBody = new LinkedList<>();
-                        //param mapping
                         Iterator<Expression> args = connector.getArguments().iterator();
                         for (Parameter p: callee.getParameters()) {
-                            VariableDeclarator vard = new VariableDeclarator(p.getType(), p.getName(), args.next());
-                            VariableDeclarationExpr vare = new VariableDeclarationExpr(vard);
-                            calleeBody.add( new ExpressionStmt(vare) );
+                            calleeBody.add( createVariableCreationStmt(p.getType(), p.getName(), args.next()) );
                         }
                         calleeBody.addAll(callee.getBody().get().getStatements());
                         ExpressionStmt connectorStm = ReaderUtil.findClosestParent(connector, ExpressionStmt.class);
                         NodeList<Statement> newCallerBody = new NodeList<>();
-                        for (Statement stm: caller.getBody().get().getStatements()) {
+                        for (Statement stm: callerBody.getStatements()) {
                             if (stm == connectorStm) {
                                 newCallerBody.addAll(calleeBody);
                             } else {
@@ -134,19 +157,67 @@ public class Normalizer {
                         }
                         callerBody.setStatements(newCallerBody);
                     } else {
+                        List<Statement> newCalleeBody = new LinkedList<>();
+                        Iterator<Expression> args = connector.getArguments().iterator();
+                        for (Parameter p: callee.getParameters()) {
+                            newCalleeBody.add( createVariableCreationStmt(p.getType(), p.getName(), args.next()) );
+                        }
+                        NodeList<Statement> calleeStms = callee.getBody().get().getStatements();
+                        int lastStmIndex = calleeStms.size() - 1;
+                        int counter = 0;
+                        for (Statement calleeStm: calleeStms) {
+                            if (counter != lastStmIndex) { // assume return statement is the last one
+                                newCalleeBody.add(calleeStm);
+                            }
+                            ++counter;
+                        }
+                        ExpressionStmt connectorStm = ReaderUtil.findClosestParent(connector, ExpressionStmt.class);
+                        NodeList<Statement> newCallerBody = new NodeList<>();
+                        for (Statement stm: callerBody.getStatements()) {
+                            if (stm == connectorStm) {
+                                newCallerBody.addAll( newCalleeBody );
+                            }
+                            newCallerBody.add(stm);
+                        }
+                        callerBody.setStatements(newCallerBody);
+                        Expression connectorReplacement = callee.findFirst(ReturnStmt.class).get().getExpression().get();
+                        connector.replace(connectorReplacement);
                     }
                 }
             }
         }
+        removePrivateFunction(rawClass);
         return rawClass;
     }
 
-    public static String pre(int l) {
+    private static String pre(int l) {
         StringBuilder sb = new StringBuilder(l*4);
         for (int i = 0; i < l; i++) {
             sb.append("___ ");
         }
         return sb.toString();
+    }
+
+    private static Statement createVariableCreationStmt(Type type, SimpleName name, Expression init) {
+        VariableDeclarator vard = new VariableDeclarator(type, name, init);
+        VariableDeclarationExpr vare = new VariableDeclarationExpr(vard);
+        return new ExpressionStmt(vare);
+    }
+
+    private static void removePrivateFunction(ClassOrInterfaceDeclaration rawClass) {
+        List<Node> useless = new LinkedList<>();
+        for (BodyDeclaration<?> mem: rawClass.getMembers()) {
+            if (mem instanceof MethodDeclaration) {
+                MethodDeclaration method = (MethodDeclaration) mem;
+                for (Modifier mod: method.getModifiers()) {
+                    if (mod.getKeyword() == Modifier.Keyword.PRIVATE) {
+                        useless.add(mem);
+                        break;
+                    }
+                }
+            }
+        }
+        for (Node n: useless) n.remove();
     }
 }
 
