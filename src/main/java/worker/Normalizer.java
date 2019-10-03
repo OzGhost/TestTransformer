@@ -35,7 +35,7 @@ import com.github.javaparser.ast.Modifier;
 
 public class Normalizer {
 
-    private static final AtomicInteger PARAM_INDEX = new AtomicInteger();
+    private static final AtomicInteger INDEXER = new AtomicInteger();
     
     public static ClassOrInterfaceDeclaration normalize(ClassOrInterfaceDeclaration rawClass) {
         Map<String, CallDash> graph = new HashMap<>();
@@ -64,21 +64,6 @@ public class Normalizer {
             dash.setConnectors(connectors);
             dash.setCalleeSignatures(callSigs);
 
-            // parameter rename
-            List<String> params = new LinkedList<>();
-            for (Parameter p: method.getParameters()) {
-                String pname = p.getName().asString();
-                params.add(pname);
-            }
-            for (String p: params) {
-                int index = PARAM_INDEX.incrementAndGet();
-                String newName = "_"+p+"_p"+index;
-                for (SimpleName n: method.findAll(SimpleName.class)) {
-                    if (p.equals(n.asString())) {
-                        n.replace(new SimpleName(newName));
-                    }
-                }
-            }
             // return pre-cut
             if (method.getType() instanceof VoidType) continue;
             List<ReturnStmt> currentReturnStms = method.findAll(ReturnStmt.class);
@@ -87,7 +72,7 @@ public class Normalizer {
             for (ReturnStmt rstm: currentReturnStms) {
                 returnStms.add(rstm);
             }
-            String outputName = "_output_o"+PARAM_INDEX.incrementAndGet();
+            String outputName = "_output_o"+INDEXER.incrementAndGet();
             NameExpr outputVar = new NameExpr(outputName);
             for (ReturnStmt rstm: returnStms) {
                 AssignExpr replacement = new AssignExpr(outputVar, rstm.getExpression().get(), AssignExpr.Operator.ASSIGN);
@@ -100,14 +85,6 @@ public class Normalizer {
             newMethodBody.add( new ReturnStmt( outputVar ) );
             methodBody.setStatements(newMethodBody);
         }
-
-        /*
-        System.out.println(":: ::");
-        for (CallDash dash: graph.values()) {
-            if ( ! dash.isEndDash())
-                System.out.println(dash);
-        }
-        */
 
         Queue<CallDash> dashQueue = new LinkedList<>();
         Deque<CallDash> callStack = new LinkedList<>();
@@ -123,23 +100,19 @@ public class Normalizer {
                     dashQueue.offer(calleeDash);
                 }
             }
-            //System.out.println("########################################");
             int i = callStack.size() + 1;
             while ( ! callStack.isEmpty()) {
                 --i;
                 CallDash d = callStack.pop();
-                //System.out.println("shift: " + pre(i) + d);
                 String dSig = d.getCallerSignature();
-                if (shifted.contains(dSig)) {
-                    //System.out.println("ignored!");
-                    continue;
-                }
+                if (shifted.contains(dSig)) continue;
                 shifted.add(dSig);
                 MethodDeclaration caller = d.getCaller();
                 BlockStmt callerBody = caller.getBody().get();
                 int len = d.getCallees().length;
                 for (int j = 0; j < len; j++) {
-                    MethodDeclaration callee = d.getCallees()[j];
+                    MethodDeclaration callee = d.getCallees()[j].clone();
+                    callee = rename(callee);
                     MethodCallExpr connector = d.getConnectors()[j];
                     if (callee.getType() instanceof VoidType) {
                         List<Statement> calleeBody = new LinkedList<>();
@@ -177,33 +150,32 @@ public class Normalizer {
                             ++counter;
                         }
                         ExpressionStmt connectorStm = ReaderUtil.findClosestParent(connector, ExpressionStmt.class);
+                        Node parentOfConnector = connector.getParentNode().get();
+                        boolean isLonelyCall = false;
+                        if (parentOfConnector == connectorStm) {
+                            isLonelyCall = true;
+                        }
                         NodeList<Statement> newCallerBody = new NodeList<>();
                         for (Statement stm: callerBody.getStatements()) {
                             if (stm == connectorStm) {
-                                //newCallerBody.addAll( newCalleeBody );
                                 for (Statement cstm: newCalleeBody) {
                                     newCallerBody.add(cstm.clone());
                                 }
+                                if (isLonelyCall) continue;
                             }
                             newCallerBody.add(stm);
                         }
                         callerBody.setStatements(newCallerBody);
-                        Expression connectorReplacement = callee.findFirst(ReturnStmt.class).get().getExpression().get();
-                        connector.replace(connectorReplacement);
+                        if ( ! isLonelyCall) {
+                            Expression connectorReplacement = callee.findFirst(ReturnStmt.class).get().getExpression().get();
+                            connector.replace(connectorReplacement);
+                        }
                     }
                 }
             }
         }
         removePrivateFunction(rawClass);
         return rawClass;
-    }
-
-    private static String pre(int l) {
-        StringBuilder sb = new StringBuilder(l*4);
-        for (int i = 0; i < l; i++) {
-            sb.append("___ ");
-        }
-        return sb.toString();
     }
 
     private static Statement createVariableCreationStmt(Type type, SimpleName name, Expression init) {
@@ -226,6 +198,29 @@ public class Normalizer {
             }
         }
         for (Node n: useless) n.remove();
+    }
+
+    private static MethodDeclaration rename(MethodDeclaration inmethod) {
+        Set<String> candi = new HashSet<>();
+        for (VariableDeclarator vari: inmethod.findAll(VariableDeclarator.class)) {
+            candi.add( vari.getName().asString() );
+        }
+        for (Parameter p: inmethod.findAll(Parameter.class)) {
+            candi.add( p.getName().asString() );
+        }
+        List<SimpleName> targets = new LinkedList<>();
+        for (SimpleName n: inmethod.findAll(SimpleName.class)) {
+            if ( n.getParentNode().get() instanceof MethodCallExpr ) continue;
+            if ( ! candi.contains( n.asString() ) ) continue;
+            targets.add( n );
+        }
+        int ci = INDEXER.incrementAndGet();
+        for (SimpleName n: targets) {
+            String name = n.asString();
+            String newName = name + "_v" + ci;
+            n.replace(new SimpleName(newName));
+        }
+        return inmethod;
     }
 }
 

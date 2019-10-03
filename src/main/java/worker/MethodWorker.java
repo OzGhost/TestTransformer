@@ -49,12 +49,12 @@ public class MethodWorker {
         WoodLog.reachMethod(methodUnit.getName().asString());
         /*
         System.out.println(mu);
-        */
         System.out.println();
         System.out.println("-=--=--=--=--=--=--=--=--=--=--=--=--=-    "
                 +mu.getName().asString()
                 +"    -=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=-");
         System.out.println();
+        */
     }
 
     public MethodWorker setClassWorker(ClassWorker cl) {
@@ -112,10 +112,12 @@ public class MethodWorker {
                 stmTypes[i] = nType;
             }
         }
+        /*
         for (int i = 0; i < len; i++) {
             Node n = baseStms[i];
             System.out.println(":: ## :: " + n + " -> " + stmTypes[i]);
         }
+        */
         if ( ! rechecks.isEmpty()) {
             int lastVerifyStm = baseStms.length - 1;
             while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM)
