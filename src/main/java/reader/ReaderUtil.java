@@ -2,11 +2,16 @@ package reader;
 
 import static meta.Name.*;
 import worker.WoodLog;
+
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
+import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
@@ -64,5 +69,21 @@ public class ReaderUtil {
         if (target.getClass() == parentType) return parentType.cast(target);
         return null;
     }
+
+    public static boolean removeImportStartsWith(CompilationUnit cUnit, String importPrefix) {
+        NodeList<ImportDeclaration> imports = cUnit.getImports();
+        ArrayList<ImportDeclaration> useless = new ArrayList<>(imports.size());
+        for (ImportDeclaration imp: imports) {
+            String name = imp.getName().asString();
+            if (name.startsWith(importPrefix)) {
+                useless.add(imp);
+            }
+        }
+        for (ImportDeclaration imp: useless) {
+            imports.remove(imp);
+        }
+        return !useless.isEmpty();
+    }
+
 }
 

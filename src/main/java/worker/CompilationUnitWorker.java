@@ -11,6 +11,8 @@ import com.github.javaparser.ast.type.*;
 import com.github.javaparser.ast.expr.*;
 import com.github.javaparser.ast.stmt.*;
 
+import static reader.ReaderUtil.removeImportStartsWith;
+
 public class CompilationUnitWorker {
 
     private Map<String, String> typeToPkgMap;
@@ -44,21 +46,6 @@ public class CompilationUnitWorker {
         }
 
         return cUnit;
-    }
-
-    private boolean removeImportStartsWith(CompilationUnit cUnit, String importPrefix) {
-        NodeList<ImportDeclaration> imports = cUnit.getImports();
-        ArrayList<ImportDeclaration> useless = new ArrayList<>(imports.size());
-        for (ImportDeclaration imp: imports) {
-            String name = imp.getName().asString();
-            if (name.startsWith(importPrefix)) {
-                useless.add(imp);
-            }
-        }
-        for (ImportDeclaration imp: useless) {
-            imports.remove(imp);
-        }
-        return !useless.isEmpty();
     }
 
     private boolean removePowerMockRunner(CompilationUnit cUnit) {

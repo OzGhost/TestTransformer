@@ -19,6 +19,8 @@ import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 
+import static reader.ReaderUtil.removeImportStartsWith;
+
 public class LibraryImplLoader {
 
     private static final Map<String, Lib> libMap = new HashMap<>();
@@ -69,6 +71,10 @@ public class LibraryImplLoader {
             WoodLog.attach(WARNING, "Cannot read the lib: " + fileName);
             return;
         }
+        // remove mockito importation
+        removeImportStartsWith(cUnit, "org.mockito");
+        removeImportStartsWith(cUnit, "org.powermock");
+        
         String pkg = cUnit.getPackageDeclaration().get().getName().asString();
         List<String> ims = new LinkedList<>();
         for (ImportDeclaration im: cUnit.getImports()) {
