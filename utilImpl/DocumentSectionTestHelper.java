@@ -16,6 +16,8 @@ import javax.inject.Provider;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 
 import ch.axonivy.fintech.standard.document.DefaultDocumentSection;
 import ch.axonivy.fintech.standard.document.Document;
@@ -25,8 +27,13 @@ import ch.axonivy.fintech.standard.document.service.DocumentViewerPageService;
 import ch.axonivy.fintech.standard.log.BaseLogOrigin;
 import ch.axonivy.fintech.standard.log.LogOrigin;
 import ch.axonivy.fintech.standard.log.LoggerFactory;
+import ch.ivyteam.ivy.environment.Ivy;
+//import ch.ivyteam.log.Logger;
 
 public final class DocumentSectionTestHelper {
+
+	private static ch.axonivy.fintech.standard.log.Logger stdLogger;
+	private static ch.ivyteam.log.Logger ivyLogger;
 
 	private DocumentSectionTestHelper() {
 	}
@@ -43,7 +50,7 @@ public final class DocumentSectionTestHelper {
 	 * @throws IllegalAccessException thrown if arguments is invalid
 	 * @throws InvocationTargetException thrown if invoking method error
 	 */
-	public Object invokeInstanceMethod(
+	public static Object invokeInstanceMethod(
 			Object instance, String methodName, Class<?>[] argumentTypes, Object[] arguments)
 			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		Method method = null;
@@ -61,34 +68,16 @@ public final class DocumentSectionTestHelper {
 					.collect(Collectors.toList());
 			if (CollectionUtils.isNotEmpty(matchedMethods) && ArrayUtils.isNotEmpty(argumentTypes)) {
 				method = matchedMethods.stream()
-                    .filter(med -> {
-                        boolean matched = true;
-                        Class<?>[] parameterTypes = med.getParameterTypes();
-                        if (ArrayUtils.isNotEmpty(parameterTypes)) {
-                            for(int i = 0; i < parameterTypes.length; i++) {
-                                Class<?> parameterType = parameterTypes[ i ];
-                                Class<?> argumentType = argumentTypes[ i ];
-                                if (!parameterType.isAssignableFrom(argumentType)) {
-                                    matched = false;
-                                    break;
-                                }
-                            }
-                        }
-                        return matched;
-                    })
-					.findFirst().orElse(null);
+						.filter(med -> matchMethodParameters(med, argumentTypes))
+						.findFirst().orElse(null);
 			} else if (CollectionUtils.isNotEmpty(matchedMethods)) {
 				method = matchedMethods.stream().findFirst().orElse(null);
 			}
 			instanceClass = instanceClass.getSuperclass();
 		}
-		boolean accessible = method.isAccessible();
-		method.setAccessible(true);
-		Object result = method.invoke(instance, arguments);
-		method.setAccessible(accessible);
-		return result;
+		return invokeInstanceMethod(instance, method, arguments);
 	}
-	private boolean matchMethodParameters(final Method method, Class<?>[] argumentTypes) {
+	private static boolean matchMethodParameters(final Method method, Class<?>[] argumentTypes) {
 		boolean matched = true;
 		Class<?>[] parameterTypes = method.getParameterTypes();
 		if (ArrayUtils.isNotEmpty(parameterTypes)) {
@@ -103,7 +92,7 @@ public final class DocumentSectionTestHelper {
 		}
 		return matched;
 	}
-	private Object invokeInstanceMethod(Object instance, Method method, Object[] arguments)
+	private static Object invokeInstanceMethod(Object instance, Method method, Object[] arguments)
 			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
 		boolean accessible = method.isAccessible();
 		method.setAccessible(true);
@@ -112,53 +101,13 @@ public final class DocumentSectionTestHelper {
 		return result;
 	}
 
-	public <T extends DocumentSectionHandler> Object invokeSectionHandlerMethod(
+	public static <T extends DocumentSectionHandler> Object invokeSectionHandlerMethod(
 			T handlerInstance, String methodName, Class<?>[] argumentTypes, Object[] arguments)
 			throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-		Method method = null;
-		Class<?> instanceClass = handlerInstance.getClass();
-		while(Objects.isNull(method) && Objects.nonNull(instanceClass)) {
-			List<Method> methodsList = new ArrayList<>();
-			methodsList.addAll(Arrays.asList(instanceClass.getDeclaredMethods()));
-			methodsList.addAll(Arrays.asList(instanceClass.getMethods()));
-
-			List<Method> matchedMethods = methodsList
-					.stream()
-					.filter(med -> StringUtils.equalsAnyIgnoreCase(methodName, med.getName())
-							&& ((med.getParameterCount() == 0 && ArrayUtils.isEmpty(argumentTypes))
-									|| (ArrayUtils.isNotEmpty(argumentTypes) && med.getParameterCount() == argumentTypes.length)))
-					.collect(Collectors.toList());
-			if (CollectionUtils.isNotEmpty(matchedMethods) && ArrayUtils.isNotEmpty(argumentTypes)) {
-				method = matchedMethods.stream()
-                    .filter(med -> {
-                        boolean matched = true;
-                        Class<?>[] parameterTypes = med.getParameterTypes();
-                        if (ArrayUtils.isNotEmpty(parameterTypes)) {
-                            for(int i = 0; i < parameterTypes.length; i++) {
-                                Class<?> parameterType = parameterTypes[ i ];
-                                Class<?> argumentType = argumentTypes[ i ];
-                                if (!parameterType.isAssignableFrom(argumentType)) {
-                                    matched = false;
-                                    break;
-                                }
-                            }
-                        }
-                        return matched;
-                    })
-					.findFirst().orElse(null);
-			} else if (CollectionUtils.isNotEmpty(matchedMethods)) {
-				method = matchedMethods.stream().findFirst().orElse(null);
-			}
-			instanceClass = instanceClass.getSuperclass();
-		}
-		boolean accessible = method.isAccessible();
-		method.setAccessible(true);
-		Object result = method.invoke(handlerInstance, arguments);
-		method.setAccessible(accessible);
-		return result;
+		return invokeInstanceMethod(handlerInstance, methodName, argumentTypes, arguments);
 	}
 
-	public Document createDocumentWithContent(boolean initContent) {
+	public static Document createDocumentWithContent(boolean initContent) {
 		Document document = new Document();
 		document.setId("DOCUMENT_ID");
 		document.setTitle("DOCUMENT_TITLE");
@@ -170,25 +119,18 @@ public final class DocumentSectionTestHelper {
 		return document;
 	}
 
-	public Document createDocumentWithContentAndSection(DocumentSection section) {
-		Document document = new Document();
-		document.setId("DOCUMENT_ID");
-		document.setTitle("DOCUMENT_TITLE");
-		if (true) {
-			document.setContent(new DocumentContent());
-			document.getContent().setFileName("DOCUMENT_FILE_NAME");
-			document.getContent().setPath("DOCUMENT_PATH_FILE");
-		}
+	public static Document createDocumentWithContentAndSection(DocumentSection section) {
+		Document document = createDocumentWithContent(Boolean.TRUE);
 		document.setDocumentSection(section);
 		return document;
 	}
 
-	public void mockIgnoreLogger() {
-		ch.ivyteam.log.Logger ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class, invocation -> null);
+	public static void mockIgnoreLogger() {
+		ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class, invocation -> null);
 		PowerMockito.mockStatic(Ivy.class);
 		PowerMockito.when(Ivy.log()).thenReturn(ivyLogger);
 
-		ch.axonivy.fintech.standard.log.Logger stdLogger = Mockito.mock(ch.axonivy.fintech.standard.log.Logger.class, invocation -> null);
+		stdLogger = Mockito.mock(ch.axonivy.fintech.standard.log.Logger.class, invocation -> null);
 		PowerMockito.mockStatic(LoggerFactory.class);
 		
 		Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(stdLogger);
@@ -208,59 +150,21 @@ public final class DocumentSectionTestHelper {
 		PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(), Mockito.anyString())).thenReturn(stdLogger);
 	}
 
-    public ch.ivyteam.log.Logger getMockIvyLogger() {
-        ch.ivyteam.log.Logger ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class, invocation -> null);
-        PowerMockito.mockStatic(Ivy.class);
-        PowerMockito.when(Ivy.log()).thenReturn(ivyLogger);
+	public static ch.ivyteam.log.Logger getMockIvyLogger() {
+		if (Objects.isNull(ivyLogger)) {
+			mockIgnoreLogger();
+		}
+		return ivyLogger;
+	}
 
-        ch.axonivy.fintech.standard.log.Logger stdLogger = Mockito.mock(ch.axonivy.fintech.standard.log.Logger.class, invocation -> null);
-        PowerMockito.mockStatic(LoggerFactory.class);
+	public static ch.axonivy.fintech.standard.log.Logger getMockStandardLogger() {
+		if (Objects.isNull(stdLogger)) {
+			mockIgnoreLogger();
+		}
+		return stdLogger;
+	}
 
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class))).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any())).thenReturn(stdLogger);
-
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class))).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any())).thenReturn(stdLogger);
-
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(), Mockito.anyString())).thenReturn(stdLogger);
-
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(), Mockito.anyString())).thenReturn(stdLogger);
-        return ivyLogger;
-    }
-
-    public ch.axonivy.fintech.standard.log.Logger getMockStandardLogger() {
-        ch.ivyteam.log.Logger ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class, invocation -> null);
-        PowerMockito.mockStatic(Ivy.class);
-        PowerMockito.when(Ivy.log()).thenReturn(ivyLogger);
-
-        ch.axonivy.fintech.standard.log.Logger stdLogger = Mockito.mock(ch.axonivy.fintech.standard.log.Logger.class, invocation -> null);
-        PowerMockito.mockStatic(LoggerFactory.class);
-
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class))).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any())).thenReturn(stdLogger);
-
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class))).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any())).thenReturn(stdLogger);
-
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        Mockito.when(LoggerFactory.getLoggerFor(Mockito.any(), Mockito.anyString())).thenReturn(stdLogger);
-
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(BaseLogOrigin.class), Mockito.anyString())).thenReturn(stdLogger);
-        PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(), Mockito.anyString())).thenReturn(stdLogger);
-        return stdLogger;
-    }
-
-	public DocumentViewerPageService mockIgnoreViewerPage() throws IOException {
+	public static DocumentViewerPageService mockIgnoreViewerPage() throws IOException {
 		PowerMockito.mockStatic(DocumentViewerPageService.class);
 		DocumentViewerPageService viewerPageService = PowerMockito.mock(DocumentViewerPageService.class);
 		PowerMockito.when(DocumentViewerPageService.createInstance(Mockito.any(File.class))).thenReturn(viewerPageService);
@@ -270,30 +174,20 @@ public final class DocumentSectionTestHelper {
 		return viewerPageService;
 	}
 
-	public List<Document> createFullDocumentBySections() {
+	public static List<Document> createFullDocumentBySections() {
 		List<Document> documents = new ArrayList<>();
-        DefaultDocumentSection[] sections = new DefaultDocumentSection[]{
-            DefaultDocumentSection.GENERAL_OBLIGATION_INFORMATION,
-                DefaultDocumentSection.OPTIONAL_DOCUMENTS,
-                DefaultDocumentSection.REQUIRED_VERIFICATIONS,
-                DefaultDocumentSection.SIGNING_DOCUMENTS
-        };
-        for (DefaultDocumentSection s: sections) {
-            Document document = new Document();
-            document.setId("DOCUMENT_ID");
-            document.setTitle("DOCUMENT_TITLE");
-            if (true) {
-                document.setContent(new DocumentContent());
-                document.getContent().setFileName("DOCUMENT_FILE_NAME");
-                document.getContent().setPath("DOCUMENT_PATH_FILE");
-            }
-            document.setDocumentSection(s);
-            documents.add(document);
-        }
+		documents.add(DocumentSectionTestHelper.createDocumentWithContentAndSection(
+				DefaultDocumentSection.GENERAL_OBLIGATION_INFORMATION));
+		documents.add(DocumentSectionTestHelper.createDocumentWithContentAndSection(
+				DefaultDocumentSection.OPTIONAL_DOCUMENTS));
+		documents.add(DocumentSectionTestHelper.createDocumentWithContentAndSection(
+				DefaultDocumentSection.REQUIRED_VERIFICATIONS));
+		documents.add(DocumentSectionTestHelper.createDocumentWithContentAndSection(
+				DefaultDocumentSection.SIGNING_DOCUMENTS));
 		return documents;
 	}
 
-	public Provider<DocumentSectionConfig> createSectionConfigProvider(final DocumentSectionConfig sectionConfig) {
+	public static Provider<DocumentSectionConfig> createSectionConfigProvider(final DocumentSectionConfig sectionConfig) {
 		return new Provider<DocumentSectionConfig>() {
 			@Override
 			public DocumentSectionConfig get() {
@@ -302,7 +196,7 @@ public final class DocumentSectionTestHelper {
 		};
 	}
 	
-	public Provider<DocumentSectionHandler> createSectionHandlerProvider(final DocumentSectionHandler sectionHandler) {
+	public static Provider<DocumentSectionHandler> createSectionHandlerProvider(final DocumentSectionHandler sectionHandler) {
 		return new Provider<DocumentSectionHandler>() {
 			@Override
 			public DocumentSectionHandler get() {
@@ -311,7 +205,7 @@ public final class DocumentSectionTestHelper {
 		};
 	}
 
-	private Field findObjectFieldByName(Object instance, final String fieldName)
+	private static Field findObjectFieldByName(Object instance, final String fieldName)
 			throws IllegalArgumentException, IllegalAccessException {
 		Field field = null;
 		Class<?> instanceClass = instance.getClass();
@@ -339,30 +233,12 @@ public final class DocumentSectionTestHelper {
 	 * @throws IllegalAccessException thrown if could not access field
 	 * @throws IllegalArgumentException  thrown if invalid arguments
 	 */
-	public Object invokeGetFieldValue(Object instance, final String fieldName)
+	public static Object invokeGetFieldValue(Object instance, final String fieldName)
 			throws IllegalArgumentException, IllegalAccessException {
-		Field field = null;
-		Class<?> instanceClass = instance.getClass();
-		while(Objects.isNull(field) && Objects.nonNull(instanceClass)) {
-			List<Field> fieldsList = new ArrayList<>();
-			fieldsList.addAll(Arrays.asList(instanceClass.getDeclaredFields()));
-			fieldsList.addAll(Arrays.asList(instanceClass.getFields()));
-
-			field = fieldsList
-					.stream()
-					.filter(fld -> StringUtils.equalsIgnoreCase(fld.getName(), fieldName))
-					.findFirst()
-					.orElse(null);
-			instanceClass = instanceClass.getSuperclass();
-		}
-
-		boolean accessible = field.isAccessible();
-		field.setAccessible(true);
-		Object result = field.get(instance);
-		field.setAccessible(accessible);
-		return result;
+		Field field = findObjectFieldByName(instance, fieldName);
+		return getFieldValue(instance, field);
 	}
-	private Object getFieldValue(Object instance, Field field)
+	private static Object getFieldValue(Object instance, Field field)
 			throws IllegalArgumentException, IllegalAccessException {
 		boolean accessible = field.isAccessible();
 		field.setAccessible(true);
@@ -381,29 +257,12 @@ public final class DocumentSectionTestHelper {
 	 * @throws IllegalAccessException thrown if could not access field
 	 * @throws IllegalArgumentException  thrown if invalid arguments
 	 */
-	public void invokeSetFieldValue(Object instance, final String fieldName, Object fieldValue)
+	public static void invokeSetFieldValue(Object instance, final String fieldName, Object fieldValue)
 			throws IllegalArgumentException, IllegalAccessException {
-		Field field = null;
-		Class<?> instanceClass = instance.getClass();
-		while(Objects.isNull(field) && Objects.nonNull(instanceClass)) {
-			List<Field> fieldsList = new ArrayList<>();
-			fieldsList.addAll(Arrays.asList(instanceClass.getDeclaredFields()));
-			fieldsList.addAll(Arrays.asList(instanceClass.getFields()));
-
-			field = fieldsList
-					.stream()
-					.filter(fld -> StringUtils.equalsIgnoreCase(fld.getName(), fieldName))
-					.findFirst()
-					.orElse(null);
-			instanceClass = instanceClass.getSuperclass();
-		}
-
-		boolean accessible = field.isAccessible();
-		field.setAccessible(true);
-		field.set(instance, fieldValue);
-		field.setAccessible(accessible);
+		Field field = findObjectFieldByName(instance, fieldName);
+		setFieldValue(instance, field, fieldValue);
 	}
-	private void setFieldValue(Object instance, Field field, Object fieldValue)
+	private static void setFieldValue(Object instance, Field field, Object fieldValue)
 			throws IllegalArgumentException, IllegalAccessException {
 		boolean accessible = field.isAccessible();
 		field.setAccessible(true);

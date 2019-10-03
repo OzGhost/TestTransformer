@@ -75,7 +75,7 @@ public class App {
         if ( ! real) {
             //CompilationUnit cUnit = new CompilationUnitWorker().transform("");
             //String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/mockutil/CrdhwayTestPrepareUtil.java";
-            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/cob/propertytab/easementstab/helper/BarebonePersonManagementHelperTest.java";
+            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/business/decision/AlertBusinessDecisionRegisterTest.java";
             //String targetFile = "./src/test/java/TestTransformer/MockTest.java";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
             try (FileWriter fw = new FileWriter(new File("/tmp/jout"))) {

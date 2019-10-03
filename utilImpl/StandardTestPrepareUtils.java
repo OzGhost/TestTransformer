@@ -1,5 +1,8 @@
 package ch.axonivy.fintech.standard.core.mock;
 
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
+
 import ch.axonivy.fintech.guiframework.mock.SecurityManagerMock;
 import ch.axonivy.fintech.standard.log.BaseLogOrigin;
 import ch.axonivy.fintech.standard.log.LogOrigin;
@@ -14,26 +17,27 @@ import ch.ivyteam.ivy.security.ISecurityManager;
 import ch.ivyteam.ivy.security.SecurityManagerFactory;
 import ch.ivyteam.ivy.workflow.IWorkflowContext;
 import ch.ivyteam.ivy.workflow.IWorkflowSession;
+//import ch.ivyteam.log.Logger;
 
 public final class StandardTestPrepareUtils {
 
 	private StandardTestPrepareUtils() {}
 	
-	public void prepareIvy(){
+	public static void prepareIvy(){
 		PowerMockito.mockStatic(Ivy.class);
 	}
 	
-	public void prepareGlobalVar(){
+	public static void prepareGlobalVar(){
 		IGlobalVariableContext globalVariableContext = Mockito.mock(IGlobalVariableContext.class);
 		PowerMockito.when(Ivy.var()).thenReturn(globalVariableContext);
 	}
 	
-	public void prepareIvyLogger(){
+	public static void prepareIvyLogger(){
 		ch.ivyteam.log.Logger ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class);
 		PowerMockito.when(Ivy.log()).thenReturn(ivyLogger);
 	}
 	
-	public ch.axonivy.fintech.standard.log.Logger prepareMockStandardLoggerFactory() {
+	public static ch.axonivy.fintech.standard.log.Logger prepareMockStandardLoggerFactory() {
 		ch.axonivy.fintech.standard.log.Logger logger = Mockito.mock(ch.axonivy.fintech.standard.log.Logger.class);
 		PowerMockito.mockStatic(LoggerFactory.class);
 		PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(logger);
@@ -48,22 +52,22 @@ public final class StandardTestPrepareUtils {
 		return logger;
 	}
 	
-	public void prepareIvyCms(){
+	public static void prepareIvyCms(){
 		IContentManagementSystem cms = Mockito.mock(IContentManagementSystem.class);
 		PowerMockito.when(Ivy.cms()).thenReturn(cms);
 	}
 	
-	public void prepareIvyRestService(){
+	public static void prepareIvyRestService(){
 		IRestClientContext restClient = Mockito.mock(IRestClientContext.class);
 		PowerMockito.when(Ivy.rest()).thenReturn(restClient);
 	}
 	
-	public void prepareIvySession(){
+	public static void prepareIvySession(){
 		IWorkflowSession workflowSession = Mockito.mock(IWorkflowSession.class);
 		PowerMockito.when(Ivy.session()).thenReturn(workflowSession);
 	}
 	
-	public IEnvironment mockIvyEnvironment() {
+	public static IEnvironment mockIvyEnvironment() {
 		IWorkflowContext workflowContext = Mockito.mock(IWorkflowContext.class);
 		PowerMockito.when(Ivy.wf()).thenReturn(workflowContext);
 		
@@ -76,7 +80,7 @@ public final class StandardTestPrepareUtils {
 		return environment; 
 	}
 	
-	public ISecurityManager mockSecurityManager() {
+	public static ISecurityManager mockSecurityManager() {
 		PowerMockito.mockStatic(SecurityManagerFactory.class);
 		SecurityManagerMock securityManagerMock = new SecurityManagerMock();
 		PowerMockito.when(SecurityManagerFactory.getSecurityManager()).thenReturn(securityManagerMock);

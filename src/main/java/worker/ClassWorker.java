@@ -76,7 +76,7 @@ public class ClassWorker {
         }
         */
 
-        for (MethodDeclaration methodUnit: methods) {
+        for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
             new MethodWorker(methodUnit)
                 .setClassWorker(this)
                 //.setRequiredFields(mockedFields)

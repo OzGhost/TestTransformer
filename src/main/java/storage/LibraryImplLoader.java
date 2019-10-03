@@ -1,5 +1,6 @@
 package storage;
 
+import worker.Normalizer;
 import static meta.Name.WARNING;
 import worker.WoodLog;
 import worker.SignatureService;
@@ -13,6 +14,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Modifier;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -77,7 +79,8 @@ public class LibraryImplLoader {
         }
     }
 
-    private static void loadClass(ClassOrInterfaceDeclaration classUnit, String pkg, List<String> ims) {
+    private static void loadClass(ClassOrInterfaceDeclaration rawClass, String pkg, List<String> ims) {
+        ClassOrInterfaceDeclaration classUnit = Normalizer.normalize(rawClass);
         String className = classUnit.getName().asString();
         if (libMap.containsKey(className)) {
             WoodLog.attach(WARNING, "Duplicate lib class: " + className);
@@ -85,9 +88,10 @@ public class LibraryImplLoader {
         }
         Map<String, MethodDeclaration> methodMap = new HashMap<>();
         for (MethodDeclaration mUnit: classUnit.findAll(MethodDeclaration.class)) {
+            mUnit.getModifiers().add( new Modifier(Modifier.Keyword.PRIVATE) );
             String methodSig = SignatureService.extractSignature(mUnit);
             if (methodMap.containsKey(methodSig)) {
-                System.out.println("Duplicate lib funciton: " + className+":"+methodSig);
+                //System.out.println("Duplicate lib funciton: " + className+":"+methodSig);
                 //WoodLog.attach(WARNING, "Duplicate lib funciton: " + className+":"+methodSig);
                 continue;
             }

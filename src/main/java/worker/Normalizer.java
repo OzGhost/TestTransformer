@@ -101,11 +101,13 @@ public class Normalizer {
             methodBody.setStatements(newMethodBody);
         }
 
+        /*
         System.out.println(":: ::");
         for (CallDash dash: graph.values()) {
             if ( ! dash.isEndDash())
                 System.out.println(dash);
         }
+        */
 
         Queue<CallDash> dashQueue = new LinkedList<>();
         Deque<CallDash> callStack = new LinkedList<>();
@@ -121,15 +123,15 @@ public class Normalizer {
                     dashQueue.offer(calleeDash);
                 }
             }
-            System.out.println("########################################");
+            //System.out.println("########################################");
             int i = callStack.size() + 1;
             while ( ! callStack.isEmpty()) {
                 --i;
                 CallDash d = callStack.pop();
-                System.out.println("shift: " + pre(i) + d);
+                //System.out.println("shift: " + pre(i) + d);
                 String dSig = d.getCallerSignature();
                 if (shifted.contains(dSig)) {
-                    System.out.println("ignored!");
+                    //System.out.println("ignored!");
                     continue;
                 }
                 shifted.add(dSig);
@@ -150,7 +152,10 @@ public class Normalizer {
                         NodeList<Statement> newCallerBody = new NodeList<>();
                         for (Statement stm: callerBody.getStatements()) {
                             if (stm == connectorStm) {
-                                newCallerBody.addAll(calleeBody);
+                                //newCallerBody.addAll(calleeBody);
+                                for (Statement cstm: calleeBody) {
+                                    newCallerBody.add(cstm.clone());
+                                }
                             } else {
                                 newCallerBody.add(stm);
                             }
@@ -175,7 +180,10 @@ public class Normalizer {
                         NodeList<Statement> newCallerBody = new NodeList<>();
                         for (Statement stm: callerBody.getStatements()) {
                             if (stm == connectorStm) {
-                                newCallerBody.addAll( newCalleeBody );
+                                //newCallerBody.addAll( newCalleeBody );
+                                for (Statement cstm: newCalleeBody) {
+                                    newCallerBody.add(cstm.clone());
+                                }
                             }
                             newCallerBody.add(stm);
                         }

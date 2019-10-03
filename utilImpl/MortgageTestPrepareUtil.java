@@ -1,5 +1,9 @@
 package ch.axonivy.fintech.mortgage.mockutil;
 
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,6 +20,9 @@ import javax.ws.rs.client.WebTarget;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.rules.TemporaryFolder;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.powermock.api.mockito.PowerMockito;
 import org.primefaces.context.RequestContext;
 
 import ch.axonivy.fintech.guiframework.base.DialogContextHolder;
@@ -56,50 +63,34 @@ import ch.ivyteam.ivy.security.IUser;
 import ch.ivyteam.ivy.security.SecurityManagerFactory;
 import ch.ivyteam.ivy.workflow.IWorkflowContext;
 import ch.ivyteam.ivy.workflow.IWorkflowSession;
+//import ch.ivyteam.log.Logger;
 
 public final class MortgageTestPrepareUtil {
 
+	public static final String SESSION_USER_NAME = "admin";
+
 	private MortgageTestPrepareUtil() {}
 	
-	public IContentManagementSystem prepareMockIvyCms() {
-		IContentManagementSystem cms = Mockito.mock(IContentManagementSystem.class);
-		Mockito.when(Ivy.cms()).thenReturn(cms);
-		Mockito.when(cms.co(Mockito.any(String.class))).thenReturn("");
-		return cms;
+	public static IContentManagementSystem prepareMockIvyCms() {
+		return prepareMockIvyCmsWithContent(StringUtils.EMPTY);
 	}
 
-	public IContentManagementSystem prepareMockIvyCmsWithContent(String content) {
+	public static IContentManagementSystem prepareMockIvyCmsWithContent(String content) {
 		IContentManagementSystem cms = Mockito.mock(IContentManagementSystem.class);
 		Mockito.when(Ivy.cms()).thenReturn(cms);
 		Mockito.when(cms.co(Mockito.any(String.class))).thenReturn(content);
 		return cms;
 	}
 	
-	public void prepareMockStaticIvy() {
+	public static void prepareMockStaticIvy() {
 		PowerMockito.mockStatic(Ivy.class);
 	}
 	
-	public IWorkflowSession prepareMockIvySession() {
-		IWorkflowSession session = Mockito.mock(IWorkflowSession.class);
-		Mockito.when(Ivy.session()).thenReturn(session);
-		Mockito.when(session.getSessionUserName()).thenReturn("admin");
-		
-		when(session.getContentLocale()).thenReturn(Locale.ENGLISH);
-		IWorkflowContext iWorkflowContext = Mockito.mock(IWorkflowContext.class);
-		when(session.getWorkflowContext()).thenReturn(iWorkflowContext);
-		ISecurityContext iSecurityContext = Mockito.mock(ISecurityContext.class);
-		when(iWorkflowContext.getSecurityContext()).thenReturn(iSecurityContext);
-		when(session.getSecurityContext()).thenReturn(iSecurityContext);
-		ArrayList<IUser> arrayList = new ArrayList<>();
-		IUser user = Mockito.mock(IUser.class);
-		when(session.getSessionUser()).thenReturn(user);
-		when(user.getName()).thenReturn("admin");
-		arrayList.add(user);
-		when(iSecurityContext.getUsers()).thenReturn(arrayList);
-		return session;
+	public static IWorkflowSession prepareMockIvySession() {
+		return prepareMockIvySession(SESSION_USER_NAME);
 	}
 	
-	public IWorkflowSession prepareMockIvySession(String username) {
+	public static IWorkflowSession prepareMockIvySession(String username) {
 		IWorkflowSession session = Mockito.mock(IWorkflowSession.class);
 		Mockito.when(Ivy.session()).thenReturn(session);
 		Mockito.when(session.getSessionUserName()).thenReturn(username);
@@ -113,20 +104,20 @@ public final class MortgageTestPrepareUtil {
 		ArrayList<IUser> arrayList = new ArrayList<>();
 		IUser user = Mockito.mock(IUser.class);
 		when(session.getSessionUser()).thenReturn(user);
-		when(user.getName()).thenReturn("admin");
+		when(user.getName()).thenReturn(SESSION_USER_NAME);
 		arrayList.add(user);
 		when(iSecurityContext.getUsers()).thenReturn(arrayList);
 		return session;
 	}
 	
-	public IWorkflowSession mockLocale(String countryCode) {
+	public static IWorkflowSession mockLocale(String countryCode) {
 		IWorkflowSession session = Mockito.mock(IWorkflowSession.class);
 		Mockito.when(Ivy.session()).thenReturn(session);
 		Mockito.when(session.getContentLocale()).thenReturn(new Locale(countryCode));
 		return session;
 	}
 	
-	public ch.ivyteam.log.Logger prepareMockIvyLog() {
+	public static ch.ivyteam.log.Logger prepareMockIvyLog() {
 		ch.ivyteam.log.Logger logger = Mockito.mock(ch.ivyteam.log.Logger.class);
 		PowerMockito.when(Ivy.log()).thenReturn(logger);
 		Mockito.doNothing().when(logger).debug(Mockito.anyString());
@@ -135,7 +126,7 @@ public final class MortgageTestPrepareUtil {
 		return logger;
 	}
 	
-	public ch.axonivy.fintech.standard.log.Logger prepareMockStandardLoggerFactory() {
+	public static ch.axonivy.fintech.standard.log.Logger prepareMockStandardLoggerFactory() {
 		ch.axonivy.fintech.standard.log.Logger logger = Mockito.mock(ch.axonivy.fintech.standard.log.Logger.class);
 		PowerMockito.mockStatic(LoggerFactory.class);
 		PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(LogOrigin.class))).thenReturn(logger);
@@ -150,7 +141,7 @@ public final class MortgageTestPrepareUtil {
 		return logger;
 	}
 	
-	public BpmPublicErrorBuilder mockBpmPublicErrorBuilder() {
+	public static BpmPublicErrorBuilder mockBpmPublicErrorBuilder() {
 		PowerMockito.mockStatic(BpmError.class);
 		BpmError bpmError = Mockito.mock(BpmError.class);
 		BpmPublicErrorBuilder bpmPublicErrorBuilder = Mockito.mock(BpmPublicErrorBuilder.class);
@@ -162,31 +153,30 @@ public final class MortgageTestPrepareUtil {
 		return bpmPublicErrorBuilder;
 	}
 	
-	public GuiFrameworkManagedBean prepareGuiFrameworkManagedBean() {
+	public static GuiFrameworkManagedBean prepareGuiFrameworkManagedBean() {
 		GuiFrameworkManagedBean gfManagedBean = Mockito.mock(GuiFrameworkManagedBean.class);
 		Mockito.when(GuiFrameworkUtil.getGuiFrameworkManagedBean()).thenReturn(gfManagedBean);
 		return gfManagedBean;
 	}
 
-	public PageContext preparePageContext() {
-		GuiFrameworkManagedBean gfManagedBean = Mockito.mock(GuiFrameworkManagedBean.class);
-		Mockito.when(GuiFrameworkUtil.getGuiFrameworkManagedBean()).thenReturn(gfManagedBean);
+	public static PageContext preparePageContext() {
+		GuiFrameworkManagedBean gfManagedBean = prepareGuiFrameworkManagedBean();
 		PageContext pageContext = Mockito.mock(PageContext.class);
 		Mockito.when(gfManagedBean.getPageContext()).thenReturn(pageContext);
 		return pageContext;
 	}
 	
-	public void prepareMockGuiFrameworkUtil() {
+	public static void prepareMockGuiFrameworkUtil() {
 		PowerMockito.mockStatic(GuiFrameworkUtil.class);
 	}
 	
-	public IGlobalVariableContext prepareMockIvyGlobalVariable() {
+	public static IGlobalVariableContext prepareMockIvyGlobalVariable() {
 		IGlobalVariableContext globalVariable = Mockito.mock(IGlobalVariableContext.class);
 		Mockito.when(Ivy.var()).thenReturn(globalVariable);
 		return globalVariable;
 	}
 
-	public IDataCache prepareIvyDataCache() {
+	public static IDataCache prepareIvyDataCache() {
 		IDataCacheContext dataCacheContext = Mockito.mock(IDataCacheContext.class);
 		Mockito.when(Ivy.datacache()).thenReturn(dataCacheContext);
 		IDataCache dataCache = Mockito.mock(IDataCache.class);
@@ -194,7 +184,7 @@ public final class MortgageTestPrepareUtil {
 		return dataCache;
 	}
 
-	public WebTarget prepareIvyRestClientContext(String path) {
+	public static WebTarget prepareIvyRestClientContext(String path) {
 		IRestClientContext restContext = Mockito.mock(IRestClientContext.class);
 		WebTarget webTarget = Mockito.mock(WebTarget.class);
 		Mockito.when(Ivy.rest()).thenReturn(restContext);
@@ -202,13 +192,8 @@ public final class MortgageTestPrepareUtil {
 		return webTarget;
 	}
 	
-	public CommonDialogBean mockDialog() {
-		mockStatic(Ivy.class);
-		IContentManagementSystem cms = mock(IContentManagementSystem.class);
-		when(Ivy.cms()).thenReturn(cms);
-		when(cms.co(ArgumentMatchers.anyString())).thenReturn("");
-		mockStatic(GuiFrameworkUtil.class);
-		CommonDialogBean dialog = mock(CommonDialogBean.class);
+	public static CommonDialogBean mockDialog() {
+		CommonDialogBean dialog = mockPureDialog();
 		when(GuiFrameworkUtil.getCommonDialog(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(dialog);
 		CommandButton btn = mock(CommandButton.class);
 		when(dialog.getYesButton()).thenReturn(btn);
@@ -223,16 +208,13 @@ public final class MortgageTestPrepareUtil {
 		return dialog;
 	}
 	
-	public CommonDialogBean mockPureDialog() {
-		mockStatic(Ivy.class);
-		IContentManagementSystem cms = mock(IContentManagementSystem.class);
-		when(Ivy.cms()).thenReturn(cms);
-		when(cms.co(ArgumentMatchers.anyString())).thenReturn("");
+	public static CommonDialogBean mockPureDialog() {
+		mockCms("");
 		mockStatic(GuiFrameworkUtil.class);
 		return mock(CommonDialogBean.class);
 	}
 	
-	public IContentManagementSystem mockCms(String content) {
+	public static IContentManagementSystem mockCms(String content) {
 		mockStatic(Ivy.class);
 		IContentManagementSystem cms = mock(IContentManagementSystem.class);
 		when(Ivy.cms()).thenReturn(cms);
@@ -241,46 +223,42 @@ public final class MortgageTestPrepareUtil {
 	}
 	
 
-	public void mockManagedBeanUtil(String beanName, Object mockService) throws GuiFrameworkException, BusinessException {
+	public static void mockManagedBeanUtil(String beanName, Object mockService) throws GuiFrameworkException, BusinessException {
 		PowerMockito.mockStatic(ManagedBeanUtil.class);
 		Mockito.when(ManagedBeanUtil.getSessionManagedBean(Mockito.any(), Mockito.eq(beanName))).thenReturn(mockService);
 	}
 	
-	public <T> void mockManagedBeanUtil(Class<T> clazz, T mockService) {
+	public static <T> void mockManagedBeanUtil(Class<T> clazz, T mockService) {
 		PowerMockito.mockStatic(ManagedBeanUtil.class);
 		Mockito.when(ManagedBeanUtil.getServiceFromPool(clazz)).thenReturn(mockService);
 	}
 	
-	public RequestContext mockRequestContext(){
+	public static RequestContext mockRequestContext(){
 		RequestContextMock requestMock = PowerMockito.spy(new RequestContextMock());
 		PowerMockito.mockStatic(RequestContext.class);
 		Mockito.when(RequestContext.getCurrentInstance()).thenReturn(requestMock);
 		return requestMock;
 	}
 	
-	public RequestContext doNothing_requestContext_update(){
-		RequestContextMock requestMock = PowerMockito.spy(new RequestContextMock());
-		PowerMockito.mockStatic(RequestContext.class);
-		Mockito.when(RequestContext.getCurrentInstance()).thenReturn(requestMock);
-
-		RequestContext requestContext = requestMock;
+	public static RequestContext doNothing_requestContext_update(){
+		RequestContext requestContext = mockRequestContext();
 		PowerMockito.doNothing().when(requestContext).update(Mockito.anyString());
 		return requestContext;
 	}
 	
-	public void mockUIComponentUtil_findComponentOnRootView(UIComponent mockComponent){
+	public static void mockUIComponentUtil_findComponentOnRootView(UIComponent mockComponent){
 		mockStatic(UIComponentUtil.class);
 		when(UIComponentUtil.findComponentOnRootView(ArgumentMatchers.any(), ArgumentMatchers.anyString())).thenReturn(mockComponent);
 	}
 	
-	public FacesContext mockFacesContext(){
+	public static FacesContext mockFacesContext(){
 		mockStatic(FacesContext.class);
 		FacesContextMock fc = Mockito.spy(new FacesContextMock());
 		when(FacesContext.getCurrentInstance()).thenReturn(fc);
 		return fc;
 	}
 	
-	public FacesContextMock mockFacesContext_getViewRoot(){
+	public static FacesContextMock mockFacesContext_getViewRoot(){
 		mockStatic(FacesContext.class);
 		UIViewRootMock viewRoot = new UIViewRootMock();
 		List<UIComponent> nodes = new ArrayList<>();
@@ -294,8 +272,14 @@ public final class MortgageTestPrepareUtil {
 		when(FacesContext.getCurrentInstance()).thenReturn(fcm);
 		return fcm;
 	}
+	/**
+	 * Note: this functions is used to mock cms only one time. When you want to mock for other cms uri . Do not call this function twice. Please use return IContentManagementSystem from this mock for next uri. <br/> 
+	 * Ex: <br/>
+	 * <code>IContentManagementSystem mockCms = MortgageTestPrepareUtil.mockCms("first_uri", "value 1"); <br/>
+		when(mockCms.co("second_uri")).thenReturn("value 2");</code>
 
-	public IContentManagementSystem mockCms(String uri, String content) {
+	 */
+	public static IContentManagementSystem mockCms(String uri, String content) {
 		mockStatic(Ivy.class);
 		IContentManagementSystem cms = mock(IContentManagementSystem.class);
 		when(Ivy.cms()).thenReturn(cms);
@@ -303,39 +287,35 @@ public final class MortgageTestPrepareUtil {
 		return cms;
 	}
 
-	public <T extends CompositeObject> GuiFrameworkControllerConfig<T> mockGuiFrameworkControllerConfig() {
+	public static <T extends CompositeObject> GuiFrameworkControllerConfig<T> mockGuiFrameworkControllerConfig() {
         @SuppressWarnings("unchecked")
         GuiFrameworkControllerConfig<T> guiConfig = Mockito.mock(GuiFrameworkControllerConfig.class);
 		Mockito.when(guiConfig.getLevel()).thenReturn(GuiLevel.MIDDLE_LEVEL);
-		Map<GuiArgument, Supplier<Object>> argumentGetters = new HashMap<>();
-		argumentGetters.put(GuiArgument.COMPONENT_CONTEXT, ComponentContext::new);
-		Mockito.when(guiConfig.getGuiArgumentGetters()).thenReturn(argumentGetters);
-		Map<GuiArgument, Consumer<Object>> argumentSetters = new HashMap<>();
-		argumentSetters.put(GuiArgument.DATAMODEL, dataModel -> dataModel.toString());
-		Mockito.when(guiConfig.getGuiArgumentSetters()).thenReturn(argumentSetters);
+		Mockito.when(guiConfig.getGuiArgumentGetters()).thenReturn(createMockedArgumentGetters());
+		Mockito.when(guiConfig.getGuiArgumentSetters()).thenReturn(createMockedArgumentSetters());
 		return guiConfig;
 	}
 	
-	private Map<GuiArgument, Supplier<Object>> createMockedArgumentGetters() {
+	private static Map<GuiArgument, Supplier<Object>> createMockedArgumentGetters() {
 		Map<GuiArgument, Supplier<Object>> argumentGetters = new HashMap<>();
 		argumentGetters.put(GuiArgument.COMPONENT_CONTEXT, ComponentContext::new);
 		return argumentGetters;
 	}
 	
-	private Map<GuiArgument, Consumer<Object>> createMockedArgumentSetters() {
+	private static Map<GuiArgument, Consumer<Object>> createMockedArgumentSetters() {
 		Map<GuiArgument, Consumer<Object>> argumentSetters = new HashMap<>();
 		argumentSetters.put(GuiArgument.DATAMODEL, dataModel -> dataModel.toString());
 		return argumentSetters;
 	}
 	
-	public ISecurityManager mockSecurityManager() {
+	public static ISecurityManager mockSecurityManager() {
 		ISecurityManager securityManager = new SecurityManagerMock();
 		PowerMockito.mockStatic(SecurityManagerFactory.class);
 		PowerMockito.when(SecurityManagerFactory.getSecurityManager()).thenReturn(securityManager);
 		return securityManager;
 	}
 	
-	public BaseGuiWorkflow mockBaseGuiWorkflow() {
+	public static BaseGuiWorkflow mockBaseGuiWorkflow() {
 		BaseGuiWorkflow baseGuiWorkflow = Mockito.mock(BaseGuiWorkflow.class);
 		PowerMockito.mockStatic(BaseGuiWorkflow.class);
 		PowerMockito.when(BaseGuiWorkflow.getInstance()).thenReturn(baseGuiWorkflow);
@@ -343,14 +323,23 @@ public final class MortgageTestPrepareUtil {
 	}
 	
 	
-	public void mockReturnWorkflowFromDialogContextHolder(BaseGuiWorkflow mockedBaseGuiWorkflow, Class<?> dialogDataClass) {
+	public static void mockReturnWorkflowFromDialogContextHolder(BaseGuiWorkflow mockedBaseGuiWorkflow, Class<?> dialogDataClass) {
 		PowerMockito.mockStatic(DialogContextHolder.class);
 		DialogContextHolder dialogContextHolder = Mockito.mock(DialogContextHolder.class);
 		Mockito.when(DialogContextHolder.getInstance()).thenReturn(dialogContextHolder);
 		Mockito.when(dialogContextHolder.getWorkflow(Mockito.any(dialogDataClass))).thenReturn(mockedBaseGuiWorkflow);
 	}
 	
-	public ch.ivyteam.ivy.scripting.objects.File mockIvyFile(TemporaryFolder tmpFolder, String fileName) throws Exception {
+	/**
+	 * Mock Ivy file
+	 * should add following code in your test class
+	 * @Rule
+	 * public TemporaryFolder tmpFolder = new TemporaryFolder();
+	 * @param tmpFolder
+	 * @param fileName
+	 * @throws Exception
+	 */
+	public static ch.ivyteam.ivy.scripting.objects.File mockIvyFile(TemporaryFolder tmpFolder, String fileName) throws Exception {
 		PowerMockito.mockStatic(ch.ivyteam.ivy.scripting.objects.File.class);
         ch.ivyteam.ivy.scripting.objects.File file = Mockito.mock(ch.ivyteam.ivy.scripting.objects.File.class);
         PowerMockito.whenNew(ch.ivyteam.ivy.scripting.objects.File.class).withAnyArguments().thenReturn(file);

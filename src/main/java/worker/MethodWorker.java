@@ -47,6 +47,14 @@ public class MethodWorker {
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
         WoodLog.reachMethod(methodUnit.getName().asString());
+        /*
+        System.out.println(mu);
+        */
+        System.out.println();
+        System.out.println("-=--=--=--=--=--=--=--=--=--=--=--=--=-    "
+                +mu.getName().asString()
+                +"    -=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=-");
+        System.out.println();
     }
 
     public MethodWorker setClassWorker(ClassWorker cl) {
@@ -104,6 +112,10 @@ public class MethodWorker {
                 stmTypes[i] = nType;
             }
         }
+        for (int i = 0; i < len; i++) {
+            Node n = baseStms[i];
+            System.out.println(":: ## :: " + n + " -> " + stmTypes[i]);
+        }
         if ( ! rechecks.isEmpty()) {
             int lastVerifyStm = baseStms.length - 1;
             while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM)
@@ -124,6 +136,7 @@ public class MethodWorker {
                 baseStms[lastMockStm].replace(expectations);
             }
         }
+
         for (int i = 0; i < len; ++i) {
             if (stmTypes[i] != NORMAL_STM) {
                 baseStms[i].remove();
@@ -295,9 +308,14 @@ public class MethodWorker {
     }
 
     private static Statement[] getStms(MethodDeclaration methodUnit) {
-        ArrayList<Statement> stms = new ArrayList<>();
-        for(Statement stm: methodUnit.findAll(ExpressionStmt.class)) {
-            stms.add(stm);
+        List<Statement> stms = new LinkedList<>();
+        for(Statement stm: methodUnit.getBody().get().getStatements()) {
+            List<ExpressionStmt> child = stm.findAll(ExpressionStmt.class);
+            if (child.isEmpty()) {
+                stms.add(stm);
+            } else {
+                stms.addAll(child);
+            }
         }
         return stms.toArray(new Statement[stms.size()]);
     }
