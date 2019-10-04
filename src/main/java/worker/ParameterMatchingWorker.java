@@ -20,15 +20,19 @@ public class ParameterMatchingWorker {
         "anyString()",
         "anyList()",
         "anyBoolean()",
-        "any()"
+        "any()",
+        "anyMap()",
+        "anyIterable()"
     };
     private static final String[] JMOCKIT_SIMPLE_MATCHERS = new String[]{
         "anyInt",
         "anyLong",
         "anyString",
-        "(List)any",
+        "(java.util.List)any",
         "anyBoolean",
-        "null"
+        "null",
+        "(java.util.Map)any",
+        "(Iterable)any"
     };
 
     private MethodWorker methodWorker;
@@ -104,9 +108,11 @@ public class ParameterMatchingWorker {
     private Expression trySimpleTranslate(String el) {
         for (int i = 0; i < MOCKITO_SIMPLE_MATCHER_SUFFIX.length; ++i) {
             if (el.endsWith(MOCKITO_SIMPLE_MATCHER_SUFFIX[i])) {
+                /*
                 if (i == 3) { // reach anyList
                     methodWorker.addImportationIfAbsent("java.util.List");
                 }
+                */
                 return new NameExpr(JMOCKIT_SIMPLE_MATCHERS[i]);
             }
         }

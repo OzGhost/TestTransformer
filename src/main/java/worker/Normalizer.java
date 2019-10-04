@@ -38,6 +38,16 @@ public class Normalizer {
     private static final AtomicInteger INDEXER = new AtomicInteger();
     
     public static ClassOrInterfaceDeclaration normalize(ClassOrInterfaceDeclaration rawClass) {
+        List<SimpleName> conflictedName = new LinkedList<>();
+        for (SimpleName n: rawClass.findAll(SimpleName.class)) {
+            String nname = n.asString();
+            if (nname.equals("result")) {
+                conflictedName.add(n);
+            }
+        }
+        for (SimpleName n: conflictedName) {
+            n.replace( new SimpleName("resultOf") );
+        }
         Map<String, CallDash> graph = new HashMap<>();
         for (BodyDeclaration<?> mem: rawClass.getMembers()) {
             if ( ! (mem instanceof MethodDeclaration) ) continue;
@@ -210,7 +220,9 @@ public class Normalizer {
         }
         List<SimpleName> targets = new LinkedList<>();
         for (SimpleName n: inmethod.findAll(SimpleName.class)) {
-            if ( n.getParentNode().get() instanceof MethodCallExpr ) continue;
+            Node parent = n.getParentNode().get();
+            if ( parent instanceof MethodCallExpr ) continue;
+            if ( parent instanceof NameExpr && parent.getParentNode().get() instanceof AssignExpr ) continue;
             if ( ! candi.contains( n.asString() ) ) continue;
             targets.add( n );
         }

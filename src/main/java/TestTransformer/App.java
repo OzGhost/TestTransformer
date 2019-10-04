@@ -71,11 +71,16 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         LibraryImplLoader.load();
-        boolean real = true;
+        boolean real = false;
         if ( ! real) {
             //CompilationUnit cUnit = new CompilationUnitWorker().transform("");
             //String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/mockutil/CrdhwayTestPrepareUtil.java";
-            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/rsn/mapper/RsnCalculateRatingMapperTest.java";
+            /*
+	new file:   unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookManagementInitServiceTest.java
+	new file:   unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookPersistenceServiceTest.java
+	new file:   unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookRuleBaseFactoryTest.java
+             */
+            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookManagementInitServiceTest.java";
             //String targetFile = "./src/test/java/TestTransformer/MockTest.java";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
             try (FileWriter fw = new FileWriter(new File("/tmp/jout"))) {
