@@ -1,5 +1,7 @@
 package TestTransformer;
 
+import worker.DumpWorker;
+
 import static meta.Name.INTERRUPT_SIGNAL;
 import java.io.*;
 import subject.*;
@@ -70,6 +72,8 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
+        DumpWorker.dump();
+        if (true) return;
         LibraryImplLoader.load();
         boolean real = false;
         if ( ! real) {
