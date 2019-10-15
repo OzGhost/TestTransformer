@@ -32,15 +32,16 @@ public class DumpWorker implements Runnable {
     }
 
     public static void dump() throws Exception {
-        int x = 10;
+        int x = 50;
         for (String tf: LineLoader.loadFile("the_input_tests")) {
             CompilationUnit cUnit = StaticJavaParser.parse(new File(tf));
             ClassOrInterfaceDeclaration clazz = cUnit.findFirst(ClassOrInterfaceDeclaration.class).get();
             String originClass = clazz.getName().asString();
-            String originFile = tf.substring(0, tf.length() - 5);
+            originClass = originClass.substring(0, originClass.length() - 4);
+            String originFile = tf.substring(0, tf.length() - 9);
             for (int i = 0; i < x; ++i) {
-                String newFile = originFile + "_v" + i + ".java";
-                String newClass = originClass + "_v" + i;
+                String newFile = originFile + "_v" + i + "_Test.java";
+                String newClass = originClass + "_v" + i + "_Test";
                 clazz.setName(new SimpleName(newClass));
 
                 try (FileWriter fw = new FileWriter(new File( newFile ))) {
