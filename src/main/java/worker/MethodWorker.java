@@ -25,6 +25,7 @@ public class MethodWorker {
             new FunctionThrowMockReader(),
             new NewInstanceMockReader(),
             new PrivateStaticVoidMockReader(),
+
             new PrivateStaticReturnMockReader(),
             new PrivateReturnMockReader()
             );

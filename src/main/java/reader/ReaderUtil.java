@@ -32,8 +32,12 @@ public class ReaderUtil {
         throw new UnsupportedOperationException();
     }
 
-    public static Expression getReturnExpression(Node inputNode) {
+    public static Expression getThenReturnExpr(Node inputNode) {
         return getFirstArgumentExpr(inputNode, "thenReturn");
+    }
+
+    public static Expression getDoReturnExpr(Node inputNode) {
+        return getFirstArgumentExpr(inputNode, "doReturn");
     }
 
     private static Expression getFirstArgumentExpr(Node inputNode, String methodName) {
@@ -49,7 +53,7 @@ public class ReaderUtil {
         return null;
     }
 
-    public static Expression getThrowExpression(Node inputNode) {
+    public static Expression getThenThrowExpr(Node inputNode) {
         return getFirstArgumentExpr(inputNode, "thenThrow");
     }
 

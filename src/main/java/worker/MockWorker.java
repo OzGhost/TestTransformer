@@ -22,9 +22,9 @@ public class MockWorker {
         return new MockWorker(mlw);
     }
 
-    public Statement transform(MockingMeta mockingMeta, Set<String> pmv) {
+    public Statement transform(List<Craft> crafts, Set<String> pmv) {
         NodeList<Statement> mockStms = new NodeList<>();
-        for (Craft craft: mockingMeta.toCrafts()) {
+        for (Craft craft: crafts) {
             Statement[] stms = processMockingCraft(craft, pmv);
             if (stms == null) continue;
             mockStms.add(stms[0]);

@@ -22,6 +22,7 @@ public class CallMeta {
 
     public CallMeta() {
         _void = true;
+        input = "";
     }
 
     public CallMeta(String param, String out, boolean isRaise, boolean isVoid) {

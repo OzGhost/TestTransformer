@@ -21,16 +21,7 @@ public class ReturnMockReader extends MockingReader {
         String param = returnMp.group(3);
         String out = returnMp.group(4);
 
-        Expression outExpr = null;
-        try {
-            outExpr = node.findFirst(MethodCallExpr.class)
-                                    .get()
-                                    .getArguments()
-                                    .get(0);
-        } catch(Exception e) {
-            System.out.println("re: " + node);
-            throw new RuntimeException(e);
-        }
+        Expression outExpr = ReaderUtil.getThenReturnExpr(node);
 
         Craft craft = new Craft();
         craft.setSubjectName(subject);
