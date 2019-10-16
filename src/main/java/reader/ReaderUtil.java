@@ -4,7 +4,11 @@ import static meta.Name.*;
 import worker.WoodLog;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.LinkedList;
 import java.util.Optional;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 
@@ -12,7 +16,11 @@ import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
+import com.github.javaparser.ast.type.ClassOrInterfaceType;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.SimpleName;
+import com.github.javaparser.ast.expr.NameExpr;
+import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 
 public class ReaderUtil {
@@ -85,5 +93,73 @@ public class ReaderUtil {
         return !useless.isEmpty();
     }
 
+    public static void eliminateImportation(CompilationUnit cUnit) {
+        removeImportStartsWith(cUnit, "org.mockito");
+        removeImportStartsWith(cUnit, "org.powermock");
+
+        Map<String, ImportRemovalPack> typeLeadMap = new HashMap<>();
+
+        List<ImportDeclaration> useless = new LinkedList<>();
+        for (ImportDeclaration im: cUnit.getImports()) {
+            useless.add(im);
+            String pkg = im.getName().asString();
+            String type = pkg.substring(pkg.lastIndexOf('.')+1);
+            typeLeadMap.put(type, new ImportRemovalPack(pkg));
+        }
+        for (ImportDeclaration u: useless) u.remove();
+        for (ClassOrInterfaceType c: cUnit.findAll(ClassOrInterfaceType.class)) {
+            if (c.getScope().isPresent()) continue;
+            String typeAsString = c.getName().asString();
+            ImportRemovalPack irp = typeLeadMap.get(typeAsString);
+            if (irp != null) {
+                irp.fellow.add(c);
+            }
+        }
+        for (ImportRemovalPack irp: typeLeadMap.values()) {
+            SimpleName repName = new SimpleName(irp.pkg);
+            for (Node f: irp.fellow) {
+                ClassOrInterfaceType t = (ClassOrInterfaceType) f;
+                t.setName(repName);
+            }
+            irp.fellow = new LinkedList<>();
+        }
+        for (MethodCallExpr call: cUnit.findAll(MethodCallExpr.class)) {
+            Optional<Expression> scopeOp = call.getScope();
+            if ( ! scopeOp.isPresent()) continue;
+            Expression scope = scopeOp.get();
+            if ( ! (scope instanceof NameExpr)) continue;
+            NameExpr caller = (NameExpr)scope;
+            String callerAsString = caller.getName().asString();
+            ImportRemovalPack irp = typeLeadMap.get(callerAsString);
+            if (irp != null) {
+                irp.fellow.add(caller);
+            }
+        }
+        for (FieldAccessExpr fa: cUnit.findAll(FieldAccessExpr.class)) {
+            Expression scope = fa.getScope();
+            if ( ! (scope instanceof NameExpr)) continue;
+            NameExpr caller = (NameExpr) scope;
+            String callerAsString = caller.getName().asString();
+            ImportRemovalPack irp = typeLeadMap.get(callerAsString);
+            if (irp != null) {
+                irp.fellow.add(caller);
+            }
+        }
+        for (ImportRemovalPack irp: typeLeadMap.values()) {
+            SimpleName rep = new SimpleName(irp.pkg);
+            for (Node f: irp.fellow) {
+                ((NameExpr)f).setName(rep);
+            }
+            irp.fellow = new LinkedList<>();
+        }
+    }
+
+    private static class ImportRemovalPack {
+        String pkg;
+        List<Node> fellow = new LinkedList<>();
+        ImportRemovalPack(String p) {
+            pkg = p;
+        }
+    }
 }
 

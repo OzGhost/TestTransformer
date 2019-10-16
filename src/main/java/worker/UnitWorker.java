@@ -18,7 +18,7 @@ public class UnitWorker implements Runnable {
 
     @Override
     public void run() {
-        while (true) {
+        while ( ! Thread.currentThread().isInterrupted()) {
             String line = null;
             try {
                 line = q.take();
@@ -29,6 +29,7 @@ public class UnitWorker implements Runnable {
                 break;
             }
             //System.out.println("["+Thread.currentThread().getId()+"] Processing: " + line);
+            long start = System.currentTimeMillis();
 
             String of = toOutputPath(line);
             if (of.isEmpty()) continue;
@@ -47,7 +48,10 @@ public class UnitWorker implements Runnable {
                 e.printStackTrace();
                 break;
             }
+            long end = System.currentTimeMillis();
+            //System.out.println("Thread: " + Thread.currentThread().getId() + " take: " + (end - start));
         }
+        System.out.println("Thread: " + Thread.currentThread().getId() + " go down!");
         l.countDown();
     }
 

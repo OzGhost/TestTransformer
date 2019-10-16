@@ -63,6 +63,7 @@ public class Normalizer {
             List<MethodCallExpr> connectors = new LinkedList<>();
             List<String> callSigs = new LinkedList<>();
             for (MethodCallExpr call: method.findAll(MethodCallExpr.class)) {
+                if ( call.getScope().isPresent() ) continue;
                 String callSig = SignatureService.extractSignature(call);
                 CallDash calleeDash = graph.get(callSig);
                 if (calleeDash == null) continue;
@@ -215,14 +216,14 @@ public class Normalizer {
         for (VariableDeclarator vari: inmethod.findAll(VariableDeclarator.class)) {
             candi.add( vari.getName().asString() );
         }
-        for (Parameter p: inmethod.findAll(Parameter.class)) {
+        for (Parameter p: inmethod.getParameters()) {
             candi.add( p.getName().asString() );
         }
         List<SimpleName> targets = new LinkedList<>();
         for (SimpleName n: inmethod.findAll(SimpleName.class)) {
             Node parent = n.getParentNode().get();
             if ( parent instanceof MethodCallExpr ) continue;
-            if ( parent instanceof NameExpr && parent.getParentNode().get() instanceof AssignExpr ) continue;
+            //if ( parent instanceof NameExpr && parent.getParentNode().get() instanceof AssignExpr ) continue;
             if ( ! candi.contains( n.asString() ) ) continue;
             targets.add( n );
         }

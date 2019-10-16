@@ -2,6 +2,7 @@ package worker;
 
 import static meta.Name.ERROR;
 import static meta.Name.WARNING;
+
 import storage.LibraryImplLoader;
 import java.util.Map.Entry;
 import java.util.AbstractMap.SimpleEntry;
@@ -17,12 +18,13 @@ import meta.CallDash;
 
 public class ClassWorker {
 
-    private static final Node WHITEBOX_REPLACEMENT_NODE = new NameExpr("ch.axonivy.fintech.standard.core.mock.Whitebox");
+    private static final String WHITEBOX_REP= "ch.axonivy.fintech.standard.core.mock.Whitebox";
     private static final String RESULT_VAR_REPLACEMENT_NAME = "resultOfExecution";
     private static final Node RESULT_VAR_REPLACEMENT_NODE = new NameExpr(RESULT_VAR_REPLACEMENT_NAME);
 
     private CompilationUnitWorker cUnitWorker;
     private Map<String, Set<String>> hijackedTypes;
+    private Map<String, String> spiedVars;
 
     public ClassWorker setCompilationUnitWorker(CompilationUnitWorker cunit) {
         cUnitWorker = cunit;
@@ -32,17 +34,14 @@ public class ClassWorker {
     public void transform(ClassOrInterfaceDeclaration rawClass) {
 
         ClassOrInterfaceDeclaration classUnit = rawClass;
-        //ClassOrInterfaceDeclaration classUnit = Normalizer.normalize(rawClass);
-        //if (true) return;
 
-        WoodLog.reachClass(classUnit.getName().asString());
         String className = classUnit.getName().asString();
+        WoodLog.reachClass(className);
 
         List<FieldDeclaration> fields = new LinkedList<>();
         List<MethodDeclaration> methods = new LinkedList<>();
         
         loadLibraryImpl(classUnit);
-        //replaceResultVar(classUnit);
 
         for (BodyDeclaration<?> declaration: classUnit.getMembers()) {
             if (declaration instanceof FieldDeclaration) {
@@ -52,6 +51,7 @@ public class ClassWorker {
             }
         }
 
+        this.spiedVars = removeSpiedVariables(fields);
         this.hijackedTypes = cookTheHijackedFields(fields);
         Set<String> ics = removeIC(fields);
         Set<String> takenNames = collectTakenNames(classUnit);
@@ -129,12 +129,32 @@ public class ClassWorker {
         }
     }
 
-    private Set<String> collectTakenNames(ClassOrInterfaceDeclaration classUnit) {
-        Set<String> names = new HashSet<>();
-        for (NameExpr n: classUnit.findAll(NameExpr.class)) {
-            names.add(n.getName().asString());
+    private Map<String, String> removeSpiedVariables(List<FieldDeclaration> fields) {
+        Map<String, String> spiedVars = new HashMap<>();
+        for (FieldDeclaration f: fields) {
+            if ( removeSpyAnno(f) ) {
+                for (VariableDeclarator vari: f.getVariables()) {
+                    String name = vari.getName().asString();
+                    String type = vari.getType().asString();
+                    spiedVars.put(name, type);
+                    System.out.println("Found: " + name + " : " + type);
+                }
+            }
         }
-        return names;
+        return spiedVars;
+    }
+
+    private boolean removeSpyAnno(FieldDeclaration f) {
+        AnnotationExpr target = null;
+        for (AnnotationExpr a: f.getAnnotations()) {
+            if ( "Spy".equals(a.getName().asString()) ) {
+                target = a;
+                break;
+            }
+        }
+        if (target == null) return false;
+        target.remove();
+        return true;
     }
 
     private Map<String, Set<String>> cookTheHijackedFields(List<FieldDeclaration> fields) {
@@ -143,7 +163,6 @@ public class ClassWorker {
         for (FieldDeclaration f: fields) {
             AnnotationExpr a = getHijackAnnotation(f);
             if (a == null) continue;
-            //a.replace(new MarkerAnnotationExpr("Mocked"));
 
             String type = "";
             Set<String> names = new HashSet<>();
@@ -189,6 +208,13 @@ public class ClassWorker {
         return icNames;
     }
 
+    private Set<String> collectTakenNames(ClassOrInterfaceDeclaration classUnit) {
+        Set<String> names = new HashSet<>();
+        for (NameExpr n: classUnit.findAll(NameExpr.class)) {
+            names.add(n.getName().asString());
+        }
+        return names;
+    }
 
     private void eliminatePrepareBlock(List<MethodDeclaration> methods) {
         List<Entry<String, List<ReferenceType>>> preFuncs = new LinkedList<>();
@@ -198,7 +224,7 @@ public class ClassWorker {
             boolean isPrepareBlock = false;
             for (AnnotationExpr annotation: mUnit.getAnnotations()) {
                 String annotationName = annotation.getName().asString();
-                if ("Before".equals(annotationName)) {
+                if ("Before".equals(annotationName) || "BeforeClass".equals(annotationName)) {
                     useless.add(annotation);
                     String pFunName = mUnit.getName().asString();
                     List<ReferenceType> exs = extractExs(mUnit);
@@ -509,24 +535,27 @@ public class ClassWorker {
 
     private void replaceWhitebox(ClassOrInterfaceDeclaration classUnit) {
         List<Node> whiteboxNodes = new LinkedList<>();
+        List<String> repNames = new LinkedList<>();
         for (MethodCallExpr call: classUnit.findAll(MethodCallExpr.class)) {
             Optional<Expression> scopeOp = call.getScope();
             if ( ! scopeOp.isPresent()) continue;
             Expression scope = scopeOp.get();
             if (scope.toString().endsWith("Whitebox")) {
+                Node parent = call.getParentNode().get();
+                if (parent instanceof VariableDeclarator) {
+                    VariableDeclarator vari = (VariableDeclarator) parent;
+                    String outputType = vari.getType().asString();
+                    repNames.add("(" + outputType + ")" + WHITEBOX_REP);
+                } else {
+                    repNames.add(WHITEBOX_REP);
+                }
                 whiteboxNodes.add(scope);
             }
         }
+        Iterator<String> repNameIte = repNames.iterator();
         for (Node rNode: whiteboxNodes) {
-            rNode.replace(WHITEBOX_REPLACEMENT_NODE);
-        }
-    }
-
-    private void replaceResultVar(ClassOrInterfaceDeclaration classUnit) {
-        for (Name vari: classUnit.findAll(Name.class)) {
-            if ("result".equals(vari.toString())) {
-                vari.replace(new Name(null, "fUp"));
-            }
+            String coName = repNameIte.next();
+            rNode.replace(new NameExpr(coName));
         }
     }
 }

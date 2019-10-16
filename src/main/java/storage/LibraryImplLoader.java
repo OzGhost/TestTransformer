@@ -4,6 +4,8 @@ import worker.Normalizer;
 import static meta.Name.WARNING;
 import worker.WoodLog;
 import worker.SignatureService;
+import reader.ReaderUtil;
+
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -71,15 +73,13 @@ public class LibraryImplLoader {
             WoodLog.attach(WARNING, "Cannot read the lib: " + fileName);
             return;
         }
-        // remove mockito importation
-        removeImportStartsWith(cUnit, "org.mockito");
-        removeImportStartsWith(cUnit, "org.powermock");
+        ReaderUtil.eliminateImportation(cUnit);
         
         String pkg = cUnit.getPackageDeclaration().get().getName().asString();
         List<String> ims = new LinkedList<>();
-        for (ImportDeclaration im: cUnit.getImports()) {
-            ims.add(im.getName().asString());
-        }
+        //for (ImportDeclaration im: cUnit.getImports()) {
+            //ims.add(im.getName().asString());
+        //}
         for (ClassOrInterfaceDeclaration classUnit: cUnit.findAll(ClassOrInterfaceDeclaration.class)) {
             loadClass(classUnit, pkg, ims);
         }

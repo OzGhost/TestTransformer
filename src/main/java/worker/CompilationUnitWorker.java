@@ -1,6 +1,7 @@
 package worker;
 
 import storage.LibraryImplLoader;
+import reader.ReaderUtil;
 import java.io.*;
 import java.util.*;
 import java.util.stream.*;
@@ -20,10 +21,7 @@ public class CompilationUnitWorker {
 
     public CompilationUnit transform(String filePath) throws Exception {
         cUnit = StaticJavaParser.parse(new File(filePath));
-        //cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/MockTest.java"));
-        //cUnit = StaticJavaParser.parse(new File("./src/test/java/TestTransformer/AlterTest.java"));
-        //Printer.print(cUnit);
-        //if (true) return cUnit;
+
 
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
@@ -34,6 +32,7 @@ public class CompilationUnitWorker {
         if ( ! mocked) {
             return cUnit;
         }
+        removeImportStartsWith(cUnit, "org.junit.Before");
 
         if (removePowerMockRunner(cUnit)) {
             removeImportStartsWith(cUnit, "org.junit.runner");
@@ -58,7 +57,7 @@ public class CompilationUnitWorker {
                     String identifier = acn.getName().getIdentifier();
                     if ("RunWith".equals(identifier)) {
                         String mv = acn.getMemberValue().toString();
-                        if ("PowerMockRunner.class".equals(mv)) {
+                        if (mv.endsWith("PowerMockRunner.class")) {
                             output = true;
                             useless.add(cn);
                         }

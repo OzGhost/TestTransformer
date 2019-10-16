@@ -72,22 +72,13 @@ public class App {
     }
 
     public static void main(String[] args) throws Exception {
-        DumpWorker.dump();
-        if (true) return;
         LibraryImplLoader.load();
         boolean real = false;
         if ( ! real) {
-            //CompilationUnit cUnit = new CompilationUnitWorker().transform("");
-            //String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/mockutil/CrdhwayTestPrepareUtil.java";
-            /*
-	new file:   unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookManagementInitServiceTest.java
-	new file:   unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookPersistenceServiceTest.java
-	new file:   unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookRuleBaseFactoryTest.java
-             */
-            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookManagementInitServiceTest.java";
-            //String targetFile = "./src/test/java/TestTransformer/MockTest.java";
+            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/changeobserver/ConsentingSpouseIsDebtorChangeListenerTest.java";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
-            try (FileWriter fw = new FileWriter(new File("/tmp/jout"))) {
+            String of = targetFile.substring(0, targetFile.length() - 5) + "Sub.java";
+            try (FileWriter fw = new FileWriter(new File(of))) {
                 fw.write(cUnit.toString().toCharArray());
                 fw.flush();
             } catch(Exception e) {
@@ -96,9 +87,6 @@ public class App {
             return;
         }
         int nProcessor = Runtime.getRuntime().availableProcessors();
-        if (nProcessor > 1) {
-            --nProcessor;
-        }
         //nProcessor = 1;
         CountDownLatch endPoint = new CountDownLatch(nProcessor);
         BlockingQueue<String> q = new LinkedBlockingQueue<>();

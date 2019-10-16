@@ -47,14 +47,6 @@ public class MethodWorker {
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
         WoodLog.reachMethod(methodUnit.getName().asString());
-        /*
-        System.out.println(mu);
-        System.out.println();
-        System.out.println("-=--=--=--=--=--=--=--=--=--=--=--=--=-    "
-                +mu.getName().asString()
-                +"    -=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=--=-");
-        System.out.println();
-        */
     }
 
     public MethodWorker setClassWorker(ClassWorker cl) {
