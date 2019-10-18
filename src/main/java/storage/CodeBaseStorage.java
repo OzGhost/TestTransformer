@@ -60,21 +60,16 @@ public class CodeBaseStorage {
             ims.add(im.getName().asString());
         }
         Map<String, String> imMap = NameUtil.decompileImports(ims);
+        ClassOrInterfaceDeclaration classDecl = rtype.findFirst(ClassOrInterfaceDeclaration.class).get();
 
-        for (ClassOrInterfaceDeclaration classDecl: rtype.findAll(ClassOrInterfaceDeclaration.class)) {
-            if ( ! classDecl.getName().asString().equals(type)) {
-                continue;
-            }
-            for (MethodDeclaration methodDecl: classDecl.findAll(MethodDeclaration.class)) {
-                String methodName = methodDecl.getName().asString();
-                int parameterCount = methodDecl.getParameters().size();
+        for (MethodDeclaration methodDecl: classDecl.findAll(MethodDeclaration.class)) {
+            String methodName = methodDecl.getName().asString();
+            int parameterCount = methodDecl.getParameters().size();
 
-                methodPieces
-                    .findByMethod(methodName)
-                    .findByParameterCount(parameterCount)
-                    .setPack( loadPack(methodDecl.getParameters(), imMap) );
-            }
-            break;
+            methodPieces
+                .findByMethod(methodName)
+                .findByParameterCount(parameterCount)
+                .setPack( loadPack(methodDecl.getParameters(), imMap) );
         }
         return methodPieces;
     }

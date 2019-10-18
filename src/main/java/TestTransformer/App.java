@@ -75,7 +75,7 @@ public class App {
         LibraryImplLoader.load();
         boolean real = false;
         if ( ! real) {
-            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/changeobserver/ConsentingSpouseIsDebtorChangeListenerTest.java";
+            String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/changeobserver/IaziNotifyChangeListenerTest.java";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
             String of = targetFile.substring(0, targetFile.length() - 5) + "Sub.java";
             try (FileWriter fw = new FileWriter(new File(of))) {

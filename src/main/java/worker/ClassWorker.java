@@ -57,7 +57,7 @@ public class ClassWorker {
         Set<String> takenNames = collectTakenNames(classUnit);
 
         eliminatePrepareBlock(methods);
-        classUnit = Normalizer.normalize(classUnit);
+        classUnit = new Normalizer().normalize(classUnit);
         //CallGraph callGraph = ClassScanner.scanCallGraph(methods);
 
         /*
@@ -77,6 +77,7 @@ public class ClassWorker {
         */
 
         for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
+            //if (true)break;
             new MethodWorker(methodUnit)
                 .setClassWorker(this)
                 //.setRequiredFields(mockedFields)

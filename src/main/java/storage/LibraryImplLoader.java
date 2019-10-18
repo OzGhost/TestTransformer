@@ -86,7 +86,7 @@ public class LibraryImplLoader {
     }
 
     private static void loadClass(ClassOrInterfaceDeclaration rawClass, String pkg, List<String> ims) {
-        ClassOrInterfaceDeclaration classUnit = Normalizer.normalize(rawClass);
+        ClassOrInterfaceDeclaration classUnit = new Normalizer().normalize(rawClass);
         String className = classUnit.getName().asString();
         if (libMap.containsKey(className)) {
             WoodLog.attach(WARNING, "Duplicate lib class: " + className);

@@ -10,6 +10,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 import meta.CallDash;
 import reader.ReaderUtil;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
@@ -35,9 +37,10 @@ import com.github.javaparser.ast.Modifier;
 
 public class Normalizer {
 
-    private static final AtomicInteger INDEXER = new AtomicInteger();
+    private static final Pattern VERSIONED_NAME = Pattern.compile("_v[0-9]+$");
+    private int index = 1;
     
-    public static ClassOrInterfaceDeclaration normalize(ClassOrInterfaceDeclaration rawClass) {
+    public ClassOrInterfaceDeclaration normalize(ClassOrInterfaceDeclaration rawClass) {
         List<SimpleName> conflictedName = new LinkedList<>();
         for (SimpleName n: rawClass.findAll(SimpleName.class)) {
             String nname = n.asString();
@@ -83,7 +86,7 @@ public class Normalizer {
             for (ReturnStmt rstm: currentReturnStms) {
                 returnStms.add(rstm);
             }
-            String outputName = "_output_o"+INDEXER.incrementAndGet();
+            String outputName = "_output_o"+ index++;
             NameExpr outputVar = new NameExpr(outputName);
             for (ReturnStmt rstm: returnStms) {
                 AssignExpr replacement = new AssignExpr(outputVar, rstm.getExpression().get(), AssignExpr.Operator.ASSIGN);
@@ -104,6 +107,7 @@ public class Normalizer {
             dashQueue.offer(dash);
             while ( ! dashQueue.isEmpty()) {
                 CallDash d = dashQueue.poll();
+                //System.out.println("in " + d.getCallerSignature() + " vs: " + rawClass.getName().asString());
                 if (d.isEndDash()) continue;
                 callStack.push(d);
                 for (String sig: d.getCalleeSignatures()) {
@@ -119,12 +123,13 @@ public class Normalizer {
                 if (shifted.contains(dSig)) continue;
                 shifted.add(dSig);
                 MethodDeclaration caller = d.getCaller();
-                BlockStmt callerBody = caller.getBody().get();
+                //BlockStmt callerBody = caller.getBody().get();
                 int len = d.getCallees().length;
                 for (int j = 0; j < len; j++) {
                     MethodDeclaration callee = d.getCallees()[j].clone();
                     callee = rename(callee);
                     MethodCallExpr connector = d.getConnectors()[j];
+                    BlockStmt callerBlock = ReaderUtil.findClosestParent(connector, BlockStmt.class);
                     if (callee.getType() instanceof VoidType) {
                         List<Statement> calleeBody = new LinkedList<>();
                         Iterator<Expression> args = connector.getArguments().iterator();
@@ -134,9 +139,8 @@ public class Normalizer {
                         calleeBody.addAll(callee.getBody().get().getStatements());
                         ExpressionStmt connectorStm = ReaderUtil.findClosestParent(connector, ExpressionStmt.class);
                         NodeList<Statement> newCallerBody = new NodeList<>();
-                        for (Statement stm: callerBody.getStatements()) {
+                        for (Statement stm: callerBlock.getStatements()) {
                             if (stm == connectorStm) {
-                                //newCallerBody.addAll(calleeBody);
                                 for (Statement cstm: calleeBody) {
                                     newCallerBody.add(cstm.clone());
                                 }
@@ -144,7 +148,7 @@ public class Normalizer {
                                 newCallerBody.add(stm);
                             }
                         }
-                        callerBody.setStatements(newCallerBody);
+                        callerBlock.setStatements(newCallerBody);
                     } else {
                         List<Statement> newCalleeBody = new LinkedList<>();
                         Iterator<Expression> args = connector.getArguments().iterator();
@@ -167,7 +171,7 @@ public class Normalizer {
                             isLonelyCall = true;
                         }
                         NodeList<Statement> newCallerBody = new NodeList<>();
-                        for (Statement stm: callerBody.getStatements()) {
+                        for (Statement stm: callerBlock.getStatements()) {
                             if (stm == connectorStm) {
                                 for (Statement cstm: newCalleeBody) {
                                     newCallerBody.add(cstm.clone());
@@ -176,7 +180,7 @@ public class Normalizer {
                             }
                             newCallerBody.add(stm);
                         }
-                        callerBody.setStatements(newCallerBody);
+                        callerBlock.setStatements(newCallerBody);
                         if ( ! isLonelyCall) {
                             Expression connectorReplacement = callee.findFirst(ReturnStmt.class).get().getExpression().get();
                             connector.replace(connectorReplacement);
@@ -189,13 +193,13 @@ public class Normalizer {
         return rawClass;
     }
 
-    private static Statement createVariableCreationStmt(Type type, SimpleName name, Expression init) {
+    private Statement createVariableCreationStmt(Type type, SimpleName name, Expression init) {
         VariableDeclarator vard = new VariableDeclarator(type, name, init);
         VariableDeclarationExpr vare = new VariableDeclarationExpr(vard);
         return new ExpressionStmt(vare);
     }
 
-    private static void removePrivateFunction(ClassOrInterfaceDeclaration rawClass) {
+    private void removePrivateFunction(ClassOrInterfaceDeclaration rawClass) {
         List<Node> useless = new LinkedList<>();
         for (BodyDeclaration<?> mem: rawClass.getMembers()) {
             if (mem instanceof MethodDeclaration) {
@@ -211,7 +215,7 @@ public class Normalizer {
         for (Node n: useless) n.remove();
     }
 
-    private static MethodDeclaration rename(MethodDeclaration inmethod) {
+    private MethodDeclaration rename(MethodDeclaration inmethod) {
         Set<String> candi = new HashSet<>();
         for (VariableDeclarator vari: inmethod.findAll(VariableDeclarator.class)) {
             candi.add( vari.getName().asString() );
@@ -223,13 +227,16 @@ public class Normalizer {
         for (SimpleName n: inmethod.findAll(SimpleName.class)) {
             Node parent = n.getParentNode().get();
             if ( parent instanceof MethodCallExpr ) continue;
-            //if ( parent instanceof NameExpr && parent.getParentNode().get() instanceof AssignExpr ) continue;
             if ( ! candi.contains( n.asString() ) ) continue;
             targets.add( n );
         }
-        int ci = INDEXER.incrementAndGet();
+        int ci = index++;
         for (SimpleName n: targets) {
             String name = n.asString();
+            if (VERSIONED_NAME.matcher(name).find()) {
+                name = name.substring(0, name.lastIndexOf("_"));
+            } else {
+            }
             String newName = name + "_v" + ci;
             n.replace(new SimpleName(newName));
         }

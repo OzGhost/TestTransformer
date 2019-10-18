@@ -182,6 +182,7 @@ public class MethodWorker {
 
     private void replaceInstanceMockDeclaration(MethodDeclaration methodUnit) {
         List<Entry<Node, Node>> replacementPair = new LinkedList<>();
+        List<Node> useless = new LinkedList<>();
         for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
             if ("mock".equals(call.getName().asString())) {
                 Expression firstArgumentExp = call.getArguments().get(0);
@@ -193,7 +194,32 @@ public class MethodWorker {
                 String suggestionName = NameUtil.createTypeBasedName(type, takenNames);
                 String replacementName = classWorker.recordAsInstanceMocked(type, suggestionName, usedNames);
 
-                replacementPair.add(new SimpleEntry<>(call, new NameExpr(replacementName)));
+                Node parent = call.getParentNode().get();
+                if (parent instanceof VariableDeclarator || parent instanceof AssignExpr) {
+                    String oriName = "";
+                    if (parent instanceof VariableDeclarator) {
+                        oriName = ((VariableDeclarator)parent).getName().asString();
+                    } else {
+                        oriName = ((NameExpr)((AssignExpr)parent).getTarget()).getName().asString();
+                    }
+
+                    Statement callStm = ReaderUtil.findClosestParent(parent, ExpressionStmt.class);
+                    BlockStmt callBlock = ReaderUtil.findClosestParent(parent, BlockStmt.class);
+                    Iterator<Statement> line = callBlock.getStatements().iterator();
+                    while (line.next() != callStm) {}
+                    while (line.hasNext()) {
+                        Statement currentLine = line.next();
+                        for (SimpleName fellowName: currentLine.findAll(SimpleName.class)) {
+                            if ((fellowName.getParentNode().get() instanceof NameExpr) && fellowName.asString().equals( oriName )) {
+                                replacementPair.add(new SimpleEntry<>(fellowName, new SimpleName(replacementName)));
+                            }
+                        }
+                    }
+                    useless.add(callStm);
+                } else {
+                    replacementPair.add(new SimpleEntry<>(call, new NameExpr(replacementName)));
+                }
+
                 takenNames.add(replacementName);
                 usedNames.add(type+":"+replacementName);
                 cooked.addVar(replacementName).underType(type).from(MOCKED_INSTANCE);
@@ -202,6 +228,7 @@ public class MethodWorker {
         for (Entry<Node, Node> p: replacementPair) {
             p.getKey().replace(p.getValue());
         }
+        for (Node u: useless) u.remove();
     }
 
     private Set<String> removeStaticMockDeclaration(MethodDeclaration methodUnit) {

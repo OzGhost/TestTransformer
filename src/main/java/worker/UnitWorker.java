@@ -35,8 +35,10 @@ public class UnitWorker implements Runnable {
             if (of.isEmpty()) continue;
             CompilationUnit cUnit = null;
             try {
+                //System.out.println("In: " + Thread.currentThread().getId());
                 cUnit = new CompilationUnitWorker().transform(line); 
-            } catch(Exception e) {
+            } catch(Throwable e) {
+                System.out.println("At line: " + line);
                 e.printStackTrace();
                 break;
             }
