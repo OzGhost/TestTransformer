@@ -41,6 +41,28 @@ public class Normalizer {
     private int index = 1;
     
     public ClassOrInterfaceDeclaration normalize(ClassOrInterfaceDeclaration rawClass) {
+        for (MethodDeclaration m: rawClass.findAll(MethodDeclaration.class)) {
+            List<SimpleName> rname = new LinkedList<>();
+            for (VariableDeclarator n: m.findAll(VariableDeclarator.class)) {
+                String nname = n.getName().asString();
+                if (nname.equals("result")) {
+                    ExpressionStmt parent = ReaderUtil.findClosestParent(n, ExpressionStmt.class);
+                    BlockStmt block = ReaderUtil.findClosestParent(parent, BlockStmt.class);
+                    Iterator<Statement> blockIte = block.getStatements().iterator();
+                    while(blockIte.next() != parent) {}
+                    while (blockIte.hasNext()) {
+                        for (SimpleName rp: blockIte.next().findAll(SimpleName.class)) {
+                            if (rp.asString().equals("result"))
+                                rname.add(rp);
+                        }
+                    }
+                    rname.add(n.getName());
+                }
+            }
+            for (SimpleName n: rname) {
+                n.replace( new SimpleName("mlresult") );
+            }
+        }
         List<SimpleName> conflictedName = new LinkedList<>();
         for (SimpleName n: rawClass.findAll(SimpleName.class)) {
             String nname = n.asString();
@@ -49,7 +71,7 @@ public class Normalizer {
             }
         }
         for (SimpleName n: conflictedName) {
-            n.replace( new SimpleName("resultOf") );
+            n.replace( new SimpleName("clresult") );
         }
         Map<String, CallDash> graph = new HashMap<>();
         for (BodyDeclaration<?> mem: rawClass.getMembers()) {
@@ -233,11 +255,11 @@ public class Normalizer {
         int ci = index++;
         for (SimpleName n: targets) {
             String name = n.asString();
-            if (VERSIONED_NAME.matcher(name).find()) {
-                name = name.substring(0, name.lastIndexOf("_"));
-            } else {
-            }
             String newName = name + "_v" + ci;
+            if (VERSIONED_NAME.matcher(name).find()) {
+                //name = name.substring(0, name.lastIndexOf("_"));
+                newName = name+ci;
+            } 
             n.replace(new SimpleName(newName));
         }
         return inmethod;
