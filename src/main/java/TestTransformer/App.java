@@ -73,7 +73,7 @@ public class App {
 
     public static void main(String[] args) throws Exception {
         LibraryImplLoader.load();
-        boolean real = false;
+        boolean real = true;
         if ( ! real) {
             String targetFile = "/zk/pMortgage/crdhway/unittest/ch/axonivy/fintech/crdhway/rulebook/service/RulebookManagementInitServiceTest.java";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
