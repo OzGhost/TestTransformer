@@ -2,6 +2,8 @@ package worker;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Set;
+import java.util.HashSet;
 
 import meta.Craft;
 import meta.MockingMeta;
@@ -19,21 +21,34 @@ public class Caster {
         return new Caster(mw);
     }
 
-    public Statement replay(MockingMeta records) {
-        List<Craft> mockingCrafts = new LinkedList<>();
-        List<Craft> fakingCrafts = new LinkedList<>();
+    public Statement[] replay(MockingMeta records) {
+        Set<String> fakingSubjects = new HashSet<>();
         for (Craft c: records.toCrafts()) {
             if (c.getCallMeta().isPrivate()) {
-                fakingCrafts.add(c);
-            } else {
-                mockingCrafts.add(c);
+                fakingSubjects.add(c.getSubjectName());
             }
         }
-        if ( ! fakingCrafts.isEmpty()) {
-            System.out.println("Faking required!");
+        if ( ! fakingSubjects.isEmpty() ) {
+            System.out.println("--=--");
+            for (String subject: fakingSubjects) {
+                String type = null;
+                char firstChar = subject.charAt(0);
+                if (firstChar < 'A' || 'Z' < firstChar) {
+                    type = worker.findTypeWithoutPackage(subject);
+                } else {
+                    type = subject;
+                }
+                
+                if (type == null) {
+                    //WoodLog.attach("Type of ["+subject+"] not found");
+                }
+                if ( ! subject.equals(type)) {
+                    System.out.println(subject + " : " + type);
+                }
+            }
         }
-        Statement mockingReplayed = MockWorker.forWorker(worker).transform(mockingCrafts, worker.getPMV());
-        return mockingReplayed;
+        Statement mockingReplayed = MockWorker.forWorker(worker).transform(records.toCrafts(), worker.getPMV());
+        return new Statement[]{mockingReplayed};
     }
 }
 

@@ -17,11 +17,13 @@ import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.ImportDeclaration;
 import com.github.javaparser.ast.type.ClassOrInterfaceType;
+import com.github.javaparser.ast.body.BodyDeclaration;
 import com.github.javaparser.ast.expr.Expression;
 import com.github.javaparser.ast.expr.SimpleName;
 import com.github.javaparser.ast.expr.NameExpr;
 import com.github.javaparser.ast.expr.FieldAccessExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
+import com.github.javaparser.ast.expr.AnnotationExpr;
 
 public class ReaderUtil {
 
@@ -164,6 +166,15 @@ public class ReaderUtil {
         ImportRemovalPack(String p) {
             pkg = p;
         }
+    }
+
+    public static boolean haveAnnotation(BodyDeclaration<?> subject, String annotationName) {
+        for (AnnotationExpr ann: subject.getAnnotations()) {
+            if (ann.getName().asString().equals(annotationName)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

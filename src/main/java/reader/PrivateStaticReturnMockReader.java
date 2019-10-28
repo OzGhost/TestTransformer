@@ -1,9 +1,11 @@
 package reader;
 
 import static meta.Name.*;
-import java.util.regex.*;
+import reader.ReaderUtil;
 import meta.*;
 import worker.WoodLog;
+
+import java.util.regex.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.expr.*;
 
@@ -17,16 +19,13 @@ public class PrivateStaticReturnMockReader extends MockingReader {
         if ( ! mp.find()) {
             return new StatementPiece(UNKNOW_STM);
         }
-        WoodLog.attach(ERROR, "Found forbidden mocking: private static return mock");
-        return new StatementPiece(UNKNOW_STM);
-        /*
         String subject = mp.group(1);
         String methodName = mp.group(2);
         String param = mp.group(3);
         param = param == null ? "" : param;
         String out = mp.group(4);
 
-        Expression outExpr = ReaderUtil.getReturnExpression(node);
+        Expression outExpr = ReaderUtil.getThenReturnExpr(node);
 
         Craft craft = new Craft();
         craft.setSubjectName(subject);
@@ -34,7 +33,6 @@ public class PrivateStaticReturnMockReader extends MockingReader {
         CallMeta meta = new CallMeta(param, out, outExpr, false, false).asPrivateCall();
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
-        */
     }
 }
 

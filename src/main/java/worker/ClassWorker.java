@@ -25,6 +25,7 @@ public class ClassWorker {
     private CompilationUnitWorker cUnitWorker;
     private Map<String, Set<String>> hijackedTypes;
     private Map<String, String> spiedVars;
+    private Map<String, String> vars = new HashMap<>();
 
     public ClassWorker setCompilationUnitWorker(CompilationUnitWorker cunit) {
         cUnitWorker = cunit;
@@ -45,7 +46,11 @@ public class ClassWorker {
 
         for (BodyDeclaration<?> declaration: classUnit.getMembers()) {
             if (declaration instanceof FieldDeclaration) {
-                fields.add( (FieldDeclaration) declaration);
+                FieldDeclaration f = (FieldDeclaration) declaration;
+                for (VariableDeclarator vari: f.getVariables()) {
+                    vars.put(vari.getName().asString(), vari.getType().asString());
+                }
+                fields.add(f);
             } else if (declaration instanceof MethodDeclaration){
                 methods.add( (MethodDeclaration) declaration);
             }
@@ -138,7 +143,7 @@ public class ClassWorker {
                     String name = vari.getName().asString();
                     String type = vari.getType().asString();
                     spiedVars.put(name, type);
-                    System.out.println("Found: " + name + " : " + type);
+                    //System.out.println("Found: " + name + " : " + type);
                 }
             }
         }
@@ -542,6 +547,7 @@ public class ClassWorker {
             if ( ! scopeOp.isPresent()) continue;
             Expression scope = scopeOp.get();
             if (scope.toString().endsWith("Whitebox")) {
+                /*
                 Node parent = call.getParentNode().get();
                 if (parent instanceof VariableDeclarator) {
                     VariableDeclarator vari = (VariableDeclarator) parent;
@@ -550,6 +556,8 @@ public class ClassWorker {
                 } else {
                     repNames.add(WHITEBOX_REP);
                 }
+                */
+                repNames.add(WHITEBOX_REP);
                 whiteboxNodes.add(scope);
             }
         }
@@ -558,6 +566,10 @@ public class ClassWorker {
             String coName = repNameIte.next();
             rNode.replace(new NameExpr(coName));
         }
+    }
+
+    public String findTypeWithoutPackage(String subject) {
+        return vars.get(subject);
     }
 }
 

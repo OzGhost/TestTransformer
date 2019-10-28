@@ -1,6 +1,8 @@
 package worker;
 
 import meta.*;
+import static meta.Name.*;
+
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.io.FileWriter;
@@ -33,6 +35,10 @@ public class WoodLog {
         cCut.get().subjectLevel = subjectName;
     }
 
+    public static Cut attach(String msg) {
+        return attach(ERROR, cCut.get().subjectLevel, "", CallMeta.NIL, msg);
+    }
+
     public static Cut attach(int level, String msg) {
         return attach(level, cCut.get().subjectLevel, "", CallMeta.NIL, msg);
     }
@@ -61,7 +67,8 @@ public class WoodLog {
         cut.message = message;
         synchronized(WoodLog.class) {
             try {
-                writer.write(cut.toString());
+                //writer.write(cut.toString());
+                System.out.println(cut.toString());
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }

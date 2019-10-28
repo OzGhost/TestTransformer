@@ -8,7 +8,7 @@ import com.github.javaparser.ast.expr.*;
 
 public class ReturnMockReader extends MockingReader {
 
-    private static final Pattern RETURNABLE_MP = Pattern.compile("when\\(([^\\.]+)\\.([^\\(]+)\\((.*)\\)\\)\\.thenReturn\\((.+)\\)");
+    private static final Pattern RETURNABLE_MP = Pattern.compile("when\\(([\\._$a-zA-Z0-9]+(?:\\.[_$a-zA-Z0-9]+\\(\\))*)\\.([_$a-zA-Z0-9]+)\\((.*)\\)\\)\\.thenReturn\\((.+)\\)");
 
     @Override
     public StatementPiece read(String stm, Node node, Node belowNode) {

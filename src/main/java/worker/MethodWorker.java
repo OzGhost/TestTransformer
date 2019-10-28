@@ -24,8 +24,8 @@ public class MethodWorker {
             new StaticVoidMockReader(),
             new FunctionThrowMockReader(),
             new NewInstanceMockReader(),
-            new PrivateStaticVoidMockReader(),
 
+            new PrivateStaticVoidMockReader(),
             new PrivateStaticReturnMockReader(),
             new PrivateReturnMockReader()
             );
@@ -39,15 +39,19 @@ public class MethodWorker {
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
     private VarPool cooked = new VarPool();
-    private VarPool declared = new VarPool();
+    //private VarPool declared = new VarPool();
     private Set<String> takenNames = new HashSet<>();
     private Set<String> partialMockVars = new HashSet<>();
     private Set<String> ics = new HashSet<>();
     private Set<String> usedNames = new HashSet<>();
+    private Map<String, String> vars = new HashMap<>();
 
     public MethodWorker(MethodDeclaration mu) {
         methodUnit = mu;
         WoodLog.reachMethod(methodUnit.getName().asString());
+        for (VariableDeclarator vari: methodUnit.findAll(VariableDeclarator.class)) {
+            vars.putIfAbsent(vari.getName().asString(), vari.getType().asString());
+        }
     }
 
     public MethodWorker setClassWorker(ClassWorker cl) {
@@ -127,13 +131,33 @@ public class MethodWorker {
             while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM)
                 lastMockStm--;
             if (lastMockStm >= 0) {
-                Statement expectations = Caster.forWorker(this).replay(records);
-                baseStms[lastMockStm].replace(expectations);
+                Statement[] expectations = Caster.forWorker(this).replay(records);
+                Statement pointOfRep = baseStms[lastMockStm];
+                BlockStmt block = ReaderUtil.findClosestParent(pointOfRep, BlockStmt.class);
+                Iterator<Statement> lineIte = block.getStatements().iterator();
+                NodeList<Statement> newBlockStmts = new NodeList<>();
+                Statement line = null;
+                while(lineIte.hasNext()) {
+                    line = lineIte.next();
+                    if (line == pointOfRep) break;
+                    newBlockStmts.add(line);
+                }
+                if (line == null) {
+                    System.out.println("Found no replacement point");
+                } else {
+                    for(Statement expectation: expectations) {
+                        newBlockStmts.add(expectation);
+                    }
+                }
+                while(lineIte.hasNext()) {
+                    newBlockStmts.add(lineIte.next());
+                }
+                block.setStatements(newBlockStmts);
             }
         }
 
         for (int i = 0; i < len; ++i) {
-            if (stmTypes[i] != NORMAL_STM) {
+            if (stmTypes[i] != NORMAL_STM && stmTypes[i] != UNKNOW_STM) {
                 baseStms[i].remove();
             }
         }
@@ -311,9 +335,8 @@ public class MethodWorker {
         }
         Set<String> spied = new HashSet<>();
         for (String spyVar: partialMockVars) {
-            String[] type = findType(spyVar);
-            if (type.length != 2) continue;
-            spied.add(type[0]);
+            String type = findTypeWithoutPackage(spyVar);
+            spied.add(type);
         }
         return spied;
     }
@@ -387,6 +410,7 @@ public class MethodWorker {
         return NORMAL_STM;
     }
 
+    // unused
     private void reduceUnnecessaryPartialMock() {
         Set<String> requiredPM = new HashSet<>();
         for (String pmv: partialMockVars) {
@@ -418,6 +442,7 @@ public class MethodWorker {
         partialMockVars = requiredPM;
     }
 
+    // unused
     private NodeList<Parameter> createParameters() {
         NodeList<Parameter> output = new NodeList<>();
         for (VarPiece v: cooked) {
@@ -436,8 +461,8 @@ public class MethodWorker {
 
     public String[] findType(String subject) {
         VarPiece v = cooked.find(subject);
-        if (v == null)
-            v = declared.find(subject);
+        //if (v == null)
+            //v = declared.find(subject);
         if (v == null) {
             char fc = subject.charAt(0);
             if ('A' <= fc && fc <= 'Z') {
@@ -446,8 +471,24 @@ public class MethodWorker {
         } else {
             return classWorker.findType(v.getType());
         }
-        WoodLog.attach(ERROR, "Cannot find type of <" + subject + "> !");
+        WoodLog.attach(ERROR, "Cannot find type with package of [" + subject + "] !");
+        try {
+            throw new Exception("no you");
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
         return new String[0];
+    }
+
+    public String findTypeWithoutPackage(String subject) {
+        String type = vars.get(subject); // method scope search
+        if (type == null) {
+            type = classWorker.findTypeWithoutPackage(subject); // class scope search
+        }
+        if (type == null) {
+            WoodLog.attach("Found no type of ["+subject+"] !");
+        }
+        return type;
     }
 
     public void addImportationIfAbsent(String im) {

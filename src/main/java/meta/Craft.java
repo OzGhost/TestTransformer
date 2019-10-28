@@ -36,4 +36,11 @@ public class Craft {
         c.callMeta = callMeta;
         return c;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(subjectName).append(" : ").append(methodName).append(" : ").append(callMeta.toString());
+        return sb.toString();
+    }
 }

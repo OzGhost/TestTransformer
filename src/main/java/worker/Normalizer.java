@@ -39,6 +39,7 @@ public class Normalizer {
 
     private static final Pattern VERSIONED_NAME = Pattern.compile("_v[0-9]+$");
     private int index = 1;
+    private Set<Integer> touched = new HashSet<>();
     
     public ClassOrInterfaceDeclaration normalize(ClassOrInterfaceDeclaration rawClass) {
         for (MethodDeclaration m: rawClass.findAll(MethodDeclaration.class)) {
@@ -77,6 +78,9 @@ public class Normalizer {
         for (BodyDeclaration<?> mem: rawClass.getMembers()) {
             if ( ! (mem instanceof MethodDeclaration) ) continue;
             MethodDeclaration method = (MethodDeclaration) mem;
+            //if ( isNeutralFunction(method) ) continue;
+            if ( isVarArgedFunction(method) ) continue;
+            touched.add(System.identityHashCode(mem));
             String methodSig = SignatureService.extractSignature(method);
             CallDash dash = new CallDash(method, methodSig);
             graph.putIfAbsent(methodSig, dash);
@@ -147,7 +151,7 @@ public class Normalizer {
                 MethodDeclaration caller = d.getCaller();
                 //BlockStmt callerBody = caller.getBody().get();
                 int len = d.getCallees().length;
-                for (int j = 0; j < len; j++) {
+                for (int j = len-1; j >= 0; --j) {
                     MethodDeclaration callee = d.getCallees()[j].clone();
                     callee = rename(callee);
                     MethodCallExpr connector = d.getConnectors()[j];
@@ -215,6 +219,22 @@ public class Normalizer {
         return rawClass;
     }
 
+    private boolean isNeutralFunction(MethodDeclaration method) {
+        String asString = method.toString();
+        if (asString.contains("when(")) return false;
+        if (asString.contains("whenNew(")) return false;
+        if (asString.contains("mockStatic(")) return false;
+        if (ReaderUtil.haveAnnotation(method, "Test")) return false;
+        return true;
+    }
+
+    private boolean isVarArgedFunction(MethodDeclaration method) {
+        for (Parameter p: method.getParameters()) {
+            if (p.isVarArgs()) return true;
+        }
+        return false;
+    }
+
     private Statement createVariableCreationStmt(Type type, SimpleName name, Expression init) {
         VariableDeclarator vard = new VariableDeclarator(type, name, init);
         VariableDeclarationExpr vare = new VariableDeclarationExpr(vard);
@@ -224,6 +244,7 @@ public class Normalizer {
     private void removePrivateFunction(ClassOrInterfaceDeclaration rawClass) {
         List<Node> useless = new LinkedList<>();
         for (BodyDeclaration<?> mem: rawClass.getMembers()) {
+            if ( ! touched.contains( System.identityHashCode(mem) )) continue;
             if (mem instanceof MethodDeclaration) {
                 MethodDeclaration method = (MethodDeclaration) mem;
                 for (Modifier mod: method.getModifiers()) {
