@@ -168,7 +168,7 @@ public class ReaderUtil {
         }
     }
 
-    public static boolean haveAnnotation(BodyDeclaration<?> subject, String annotationName) {
+    public static boolean hasAnnotation(BodyDeclaration<?> subject, String annotationName) {
         for (AnnotationExpr ann: subject.getAnnotations()) {
             if (ann.getName().asString().equals(annotationName)) {
                 return true;

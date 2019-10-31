@@ -39,9 +39,7 @@ public class MethodWorker {
     private MockingMeta records = new MockingMeta();
     private MockingMeta rechecks = new MockingMeta();
     private VarPool cooked = new VarPool();
-    //private VarPool declared = new VarPool();
     private Set<String> takenNames = new HashSet<>();
-    private Set<String> partialMockVars = new HashSet<>();
     private Set<String> ics = new HashSet<>();
     private Set<String> usedNames = new HashSet<>();
     private Map<String, String> vars = new HashMap<>();
@@ -84,8 +82,7 @@ public class MethodWorker {
 
         replaceInstanceMockDeclaration(methodUnit);
         Set<String> typeMockedAsStatic = removeStaticMockDeclaration(methodUnit);
-        Set<String> typeSpied = normalizeSpy();
-        recordMockForStaticHijacking(typeMockedAsStatic, typeSpied);
+        recordMockForStaticHijacking(typeMockedAsStatic);
 
         Statement[] baseStms = getStms(methodUnit);
         int len = baseStms.length;
@@ -109,12 +106,6 @@ public class MethodWorker {
                 stmTypes[i] = nType;
             }
         }
-        /*
-        for (int i = 0; i < len; i++) {
-            Node n = baseStms[i];
-            System.out.println(":: ## :: " + n + " -> " + stmTypes[i]);
-        }
-        */
         if ( ! rechecks.isEmpty()) {
             int lastVerifyStm = baseStms.length - 1;
             while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM)
@@ -126,7 +117,6 @@ public class MethodWorker {
         }
 
         if ( ! records.isEmpty()) {
-            //reduceUnnecessaryPartialMock();
             int lastMockStm = baseStms.length - 1;
             while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM)
                 lastMockStm--;
@@ -161,7 +151,6 @@ public class MethodWorker {
                 baseStms[i].remove();
             }
         }
-        //methodUnit.getParameters().addAll( createParameters() );
     }
 
     private void normalizeICs() {
@@ -289,65 +278,11 @@ public class MethodWorker {
         return staticMocked;
     }
 
-    private Set<String> normalizeSpy() {
-        List<MethodCallExpr> spyCalls = new LinkedList<>();
-        for (MethodCallExpr call: methodUnit.findAll(MethodCallExpr.class)) {
-            if ("spy".equals(call.getName().asString())) {
-                Optional<Node> parentNodeOp = call.getParentNode();
-                if ( ! parentNodeOp.isPresent()) {
-                    WoodLog.attach(ERROR, "Find spy call out-of-context");
-                    continue;
-                }
-                Node parentNode = parentNodeOp.get();
-                String spyVar = "";
-                if (parentNode instanceof VariableDeclarator) {
-                    spyVar = ((VariableDeclarator)parentNode).getName().asString();
-                } else if (parentNode instanceof AssignExpr) {
-                    Expression tExpr = ((AssignExpr)parentNode).getTarget();
-                    if (tExpr instanceof NameExpr) {
-                        spyVar = ((NameExpr)tExpr).getName().asString();
-                    } else {
-                        WoodLog.attach(ERROR, "Find spy assign to sth not variable");
-                        continue;
-                    }
-                } else {
-                    WoodLog.attach(ERROR, "Find spy in unsupported context: " + parentNode.getClass().getCanonicalName());
-                    continue;
-                }
-                spyCalls.add(call);
-                partialMockVars.add(spyVar);
-            }
-        }
-        for (MethodCallExpr c: spyCalls) {
-            NodeList<Expression> args = c.getArguments();
-            if (args.size() != 1) {
-                WoodLog.attach(ERROR, "Found non-supported number of spy call's args: expected 1 but was " + args.size());
-                continue;
-            }
-            Expression spyInstance = args.get(0);
-            if (spyInstance instanceof ClassExpr) {
-                WoodLog.attach(WARNING, "Spy a class");
-                ClassExpr spyClass = (ClassExpr) spyInstance;
-                c.replace( new NameExpr("new "+spyClass.getType().asString()+"()") );
-            } else {
-                c.replace(spyInstance);
-            }
-        }
-        Set<String> spied = new HashSet<>();
-        for (String spyVar: partialMockVars) {
-            String type = findTypeWithoutPackage(spyVar);
-            spied.add(type);
-        }
-        return spied;
-    }
-
-    private void recordMockForStaticHijacking(Set<String> staticMock, Set<String> spy) {
+    private void recordMockForStaticHijacking(Set<String> staticMock) {
         for (String type: staticMock) {
-            if ( ! spy.contains(type) ) {
-                String suggestName = NameUtil.createTypeBasedName(type, takenNames);
-                if ( classWorker.recordAsTypeMocked(type, suggestName) ) {
-                    takenNames.add(suggestName);
-                }
+            String suggestName = NameUtil.createTypeBasedName(type, takenNames);
+            if ( classWorker.recordAsTypeMocked(type, suggestName) ) {
+                takenNames.add(suggestName);
             }
         }
     }
@@ -381,15 +316,6 @@ public class MethodWorker {
                 int rType = stmp.getRawType();
                 if (newMockType != null && rType == NEW_INSTANT_INJECTION) {
                     // TODO: better handle for whenNew injection
-                    /*
-                    String newSuggestName = NameUtil.createTypeBasedName(newMockType, takenNames);
-                    cooked.addVar(newSuggestName).underType(newMockType).from(NEW_OPERATION_INVOCATION);
-                    if ( classWorker.recordAsTypeMocked(newMockType, newSuggestName) ) {
-                        WoodLog.attach(WARNING, "The given type suppose to be mocked but not: " + newMockType);
-                        takenNames.add(newSuggestName);
-                        usedNames.add(newSuggestName);
-                    }
-                    */
                 }
                 return stmType;
             }
@@ -408,51 +334,6 @@ public class MethodWorker {
             }
         }
         return NORMAL_STM;
-    }
-
-    // unused
-    private void reduceUnnecessaryPartialMock() {
-        Set<String> requiredPM = new HashSet<>();
-        for (String pmv: partialMockVars) {
-            if ( records.containsSubject(pmv) ) {
-                String[] ti = findType(pmv);
-                if (ti.length != 2) continue;
-                String type = ti[0];
-                List<VarPiece> sameTypeCooked = cooked.findAllByType(type);
-                boolean accidentlyMocked = false;
-                List<VarPiece> uselessDish = new LinkedList<>();
-                for (VarPiece v: sameTypeCooked) {
-                    if (v.getSource() == STATIC_INVOCATION) {
-                        uselessDish.add(v);
-                    } else {
-                        accidentlyMocked = true;
-                        break;
-                    }
-                }
-                if (accidentlyMocked) {
-                    WoodLog.attach(ERROR, "Suppose to be mock partialy but fully mocked: " + type);
-                } else {
-                    for (VarPiece u: uselessDish) {
-                        cooked.remove(u);
-                    }
-                    requiredPM.add(pmv);
-                }
-            }
-        }
-        partialMockVars = requiredPM;
-    }
-
-    // unused
-    private NodeList<Parameter> createParameters() {
-        NodeList<Parameter> output = new NodeList<>();
-        for (VarPiece v: cooked) {
-            String type = v.getType();
-            String name = v.getName();
-            Parameter param = new Parameter(new ClassOrInterfaceType(null, type), name);
-            param.setAnnotations(new NodeList<>(new MarkerAnnotationExpr("Mocked")));
-            output.add(param);
-        }
-        return output;
     }
 
     private boolean isCookedType(String type) {
@@ -483,19 +364,13 @@ public class MethodWorker {
     public String findTypeWithoutPackage(String subject) {
         String type = vars.get(subject); // method scope search
         if (type == null) {
+            //WoodLog.attach("Found no funtion level type of ["+subject+"] !");
             type = classWorker.findTypeWithoutPackage(subject); // class scope search
-        }
-        if (type == null) {
-            WoodLog.attach("Found no type of ["+subject+"] !");
         }
         return type;
     }
 
     public void addImportationIfAbsent(String im) {
         classWorker.addImportationIfAbsent(im);
-    }
-
-    public Set<String> getPMV() {
-        return partialMockVars;
     }
 }

@@ -1,8 +1,9 @@
 package meta;
 
 import java.util.*;
+import java.util.Map.Entry;
 
-public class MockingMeta {
+public class MockingMeta implements Iterable<Entry<String, SubjectMeta>> {
     private Map<String, SubjectMeta> subjectMetas = new LinkedHashMap<>();
 
     public Map<String, SubjectMeta> getSubjectMetas() {
@@ -24,6 +25,24 @@ public class MockingMeta {
 
     public boolean isEmpty() {
         return subjectMetas.isEmpty();
+    }
+
+    public void loadEntry(Entry<String, SubjectMeta> entry) {
+        subjectMetas.put(entry.getKey(), entry.getValue());
+    }
+
+    public void mergeSubjectMeta(String subjectName, SubjectMeta meta) {
+        SubjectMeta storedMeta = subjectMetas.get(subjectName);
+        if (storedMeta == null) {
+            subjectMetas.put(subjectName, meta);
+        } else {
+            storedMeta.merge(meta);
+        }
+    }
+
+    @Override
+    public Iterator<Entry<String, SubjectMeta>> iterator() {
+        return subjectMetas.entrySet().iterator();
     }
 
     @Override

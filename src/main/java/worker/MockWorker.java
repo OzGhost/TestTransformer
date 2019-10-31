@@ -22,35 +22,34 @@ public class MockWorker {
         return new MockWorker(mlw);
     }
 
-    public Statement transform(List<Craft> crafts, Set<String> pmv) {
+    public Statement transform(List<Craft> crafts) {
         NodeList<Statement> mockStms = new NodeList<>();
         for (Craft craft: crafts) {
-            Statement[] stms = processMockingCraft(craft, pmv);
-            if (stms == null) continue;
-            mockStms.add(stms[0]);
-            if (stms[1] != null) {
-                mockStms.add(stms[1]);
+            Statement[] stms = processMockingCraft(craft);
+            for (Statement stm: processMockingCraft(craft)) {
+                mockStms.add(stm);
             }
         }
-        return MockingMetaWrappingWorker.wrapMockingStatement(mockStms, "Expectations", pmv.toArray(new String[pmv.size()]));
+        return MockingMetaWrappingWorker.wrapMockingStatement(mockStms, "Expectations");
     }
 
-    private Statement[] processMockingCraft(Craft craft, Set<String> pmv) {
+    private Statement[] processMockingCraft(Craft craft) {
         CallMeta cm = craft.getCallMeta();
-        Statement[] output = new Statement[2];
-        //if (cm.isVoid()) return null;
-        MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(craft.getSubjectName()), craft.getMethodName());
+        String subjectName = craft.getSubjectName();
+        if (subjectName.contains(".") && subjectName.contains(")")) {
+            subjectName = "\"" + subjectName + "\"";
+        }
+        MethodCallExpr callExpr = new MethodCallExpr(new NameExpr(subjectName), craft.getMethodName());
         callExpr.setArguments( paramWorker.leach( craft ) );
-        output[0] = new ExpressionStmt(callExpr);
+        Statement actionReplay = new ExpressionStmt(callExpr);
         if (cm.isVoid()) {
-            if (pmv.contains(craft.getSubjectName())) {
-                // have no result phase
-            }
+            // have no result phase
+            return new Statement[]{actionReplay};
         } else {
             AssignExpr outExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-            output[1] = new ExpressionStmt(outExpr);
+            Statement outputRelay = new ExpressionStmt(outExpr);
+            return new Statement[]{actionReplay, outputRelay};
         }
-        return output;
     }
 }
 

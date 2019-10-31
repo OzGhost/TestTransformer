@@ -22,10 +22,14 @@ public class CompilationUnitWorker {
     public CompilationUnit transform(String filePath) throws Exception {
         cUnit = StaticJavaParser.parse(new File(filePath));
 
+        DumpWorker.setUpMock(cUnit);
+        if (true) return cUnit;
 
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
         mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.standard.core.mock.InvocationCounter") || mocked;
+        mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.guiframework.mock.MockUtil") || mocked;
+        mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.guiframework.mock.StaticCallVerifier") || mocked;
         for (String libImp: LibraryImplLoader.getLibImportations()) {
             mocked = removeImportStartsWith(cUnit, libImp) || mocked;
         }

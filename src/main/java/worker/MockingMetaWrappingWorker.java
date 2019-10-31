@@ -11,7 +11,7 @@ import com.github.javaparser.ast.body.*;
 
 public class MockingMetaWrappingWorker {
 
-    public static Statement wrapMockingStatement(NodeList<Statement> mockingStmts, String wrapperName, String... wrapperParams) {
+    public static Statement wrapMockingStatement(NodeList<Statement> mockingStmts, String wrapperName) {
         BlockStmt bodyBlock = new BlockStmt(mockingStmts);
         InitializerDeclaration initBlock = new InitializerDeclaration(false, bodyBlock);
         NodeList<BodyDeclaration<?>> initBlockAsList = new NodeList<>();
@@ -20,18 +20,10 @@ public class MockingMetaWrappingWorker {
                 null,
                 new ClassOrInterfaceType(null, wrapperName),
                 new NodeList<>(),
-                buildParams(wrapperParams),
+                new NodeList<>(),
                 initBlockAsList
         );
         return new ExpressionStmt(expectBlock);
-    }
-
-    private static NodeList<Expression> buildParams(String... wrapperParams) {
-        NodeList<Expression> params = new NodeList<>();
-        for (String p: wrapperParams) {
-            params.add(new NameExpr(p));
-        }
-        return params;
     }
 }
 

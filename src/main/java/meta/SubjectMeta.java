@@ -1,8 +1,9 @@
 package meta;
 
 import java.util.*;
+import java.util.Map.Entry;
 
-public class SubjectMeta {
+public class SubjectMeta implements Iterable<Entry<String, List<CallMeta>>> {
     private Map<String, List<CallMeta>> methodMetas = new HashMap<>();
 
     public Map<String, List<CallMeta>> getMethodMetas() {
@@ -16,6 +17,23 @@ public class SubjectMeta {
             methodMetas.put(methodName, out);
         }
         return out;
+    }
+
+    public void merge(SubjectMeta outmeta) {
+        for (Entry<String, List<CallMeta>> e: outmeta.getMethodMetas().entrySet()) {
+            String ek = e.getKey();
+            List<CallMeta> storedMetas = methodMetas.get(ek);
+            if (storedMetas == null) {
+                methodMetas.put(ek, e.getValue());
+            } else {
+                storedMetas.addAll(e.getValue());
+            }
+        }
+    }
+
+    @Override
+    public Iterator<Entry<String, List<CallMeta>>> iterator() {
+        return methodMetas.entrySet().iterator();
     }
 
     @Override

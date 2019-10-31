@@ -63,36 +63,16 @@ public class ClassWorker {
 
         eliminatePrepareBlock(methods);
         classUnit = new Normalizer().normalize(classUnit);
-        //CallGraph callGraph = ClassScanner.scanCallGraph(methods);
-
-        /*
-        List<VariableDeclarator> mockedFields = new ArrayList<>();
-        List<String> icNames = new ArrayList<>();
-        for (FieldDeclaration fieldUnit: fields) {
-            if ( isMockField(fieldUnit) ) {
-                mockedFields.addAll(fieldUnit.getVariables());
-                fieldUnit.remove();
-            } else if ( isIC(fieldUnit) ) {
-                for (VariableDeclarator v: fieldUnit.getVariables()) {
-                    icNames.add( v.getName().asString() );
-                }
-                fieldUnit.remove();
-            }
-        }
-        */
 
         for (MethodDeclaration methodUnit: classUnit.findAll(MethodDeclaration.class)) {
             //if (true)break;
             new MethodWorker(methodUnit)
                 .setClassWorker(this)
-                //.setRequiredFields(mockedFields)
                 .setTakenNames(takenNames)
                 .setICs(ics)
                 .transform();
         }
 
-        //reConnect(callGraph);
-        //cleanUp(methods);
         reHijack(classUnit);
         
         doAfterTransformReplacement(classUnit);
@@ -143,7 +123,6 @@ public class ClassWorker {
                     String name = vari.getName().asString();
                     String type = vari.getType().asString();
                     spiedVars.put(name, type);
-                    //System.out.println("Found: " + name + " : " + type);
                 }
             }
         }
@@ -302,20 +281,6 @@ public class ClassWorker {
         return cUnitWorker.findType(type);
     }
 
-    private void reConnect(CallGraph graph) {
-        Set<Integer> connected = new HashSet<>();
-        for (Deque<CallDash> callStack: toStacks(graph)) {
-            while(!callStack.isEmpty()) {
-                CallDash dash = callStack.pop();
-                Integer dashCode = System.identityHashCode(dash);
-                if ( ! connected.contains(dashCode)){
-                    reConnect(dash);
-                    connected.add(dashCode);
-                }
-            }
-        }
-    }
-
     private List<Deque<CallDash>> toStacks(CallGraph graph) {
         Set<String> stacked = new HashSet<>();
         List<Deque<CallDash>> stacks = new LinkedList<>();
@@ -339,61 +304,6 @@ public class ClassWorker {
             stacks.add( stackOfCurrentRoot );
         }
         return stacks;
-    }
-
-    private void reConnect(CallDash dash) {
-        if (dash.getCallees().length == 0) {
-            return;
-        }
-        MethodDeclaration caller = dash.getCaller();
-        Map<String, List<String>> typeLeadMap = getMockedTypeLeadMap(caller);
-        List<String[]> requested = new LinkedList<>();
-        Set<String> takenNames = null;
-        int len = dash.getCallees().length;
-        for (int i = 0; i < len; ++i) {
-            MethodDeclaration callee = dash.getCallees()[i];
-            List<Parameter> mParams = getMockedParameters(callee);
-            if (mParams.isEmpty()) {
-                continue;
-            }
-            Set<String> used = new HashSet<>();
-            String[] newArgs = new String[mParams.size()];
-            int j = 0;
-            for (Parameter p: mParams) {
-                String type = p.getType().asString();
-                List<String> namesUnderType = typeLeadMap.get(type);
-                if (namesUnderType == null) {
-                    if (takenNames == null) {
-                        takenNames = loadTakenName(caller);
-                    }
-                    String newName = NameUtil.createTypeBasedName(type, takenNames);
-                    takenNames.add(newName);
-                    newArgs[j] = newName;
-                    requested.add(new String[]{type, newName});
-                    typeLeadMap.put(type, asList(newName));
-                    used.add(type+":"+newName);
-                } else {
-                    String usableName = "";
-                    for (String nut: namesUnderType) {
-                        if (!used.contains(type+":"+nut)) {
-                            usableName = nut;
-                            break;
-                        }
-                    }
-                    if (usableName.isEmpty()) {
-                        usableName = NameUtil.createTypeBasedName(type, takenNames);
-                        takenNames.add(usableName);
-                        requested.add(new String[]{type, usableName});
-                        namesUnderType.add(usableName);
-                    }
-                    newArgs[j] = usableName;
-                    used.add(type+":"+usableName);
-                }
-                j++;
-            }
-            appendNewArgs(dash.getConnectors()[i], newArgs);
-        }
-        appendNewMocked(caller, requested);
     }
 
     private Map<String, List<String>> getMockedTypeLeadMap(MethodDeclaration call) {
@@ -547,16 +457,6 @@ public class ClassWorker {
             if ( ! scopeOp.isPresent()) continue;
             Expression scope = scopeOp.get();
             if (scope.toString().endsWith("Whitebox")) {
-                /*
-                Node parent = call.getParentNode().get();
-                if (parent instanceof VariableDeclarator) {
-                    VariableDeclarator vari = (VariableDeclarator) parent;
-                    String outputType = vari.getType().asString();
-                    repNames.add("(" + outputType + ")" + WHITEBOX_REP);
-                } else {
-                    repNames.add(WHITEBOX_REP);
-                }
-                */
                 repNames.add(WHITEBOX_REP);
                 whiteboxNodes.add(scope);
             }
@@ -569,7 +469,26 @@ public class ClassWorker {
     }
 
     public String findTypeWithoutPackage(String subject) {
-        return vars.get(subject);
+        String type = vars.get(subject);
+        if (type == null) {
+            type = findTypeInHijackedCollection(subject);
+        }
+        if (type == null) {
+            type = spiedVars.get(subject);
+        }
+        if (type == null) {
+            WoodLog.attach("Found no type of [" + subject + "] !");
+        }
+        return type;
+    }
+
+    private String findTypeInHijackedCollection(String subject) {
+        for (Entry<String, Set<String>> e: hijackedTypes.entrySet()) {
+            if (e.getValue().contains(subject)) {
+                return e.getKey();
+            }
+        }
+        return null;
     }
 }
 

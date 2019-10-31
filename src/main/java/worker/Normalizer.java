@@ -224,7 +224,7 @@ public class Normalizer {
         if (asString.contains("when(")) return false;
         if (asString.contains("whenNew(")) return false;
         if (asString.contains("mockStatic(")) return false;
-        if (ReaderUtil.haveAnnotation(method, "Test")) return false;
+        if (ReaderUtil.hasAnnotation(method, "Test")) return false;
         return true;
     }
 
