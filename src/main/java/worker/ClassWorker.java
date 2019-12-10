@@ -277,8 +277,24 @@ public class ClassWorker {
         cUnitWorker.addImportationIfAbsent(im);
     }
 
-    public String[] findType(String type) {
-        return cUnitWorker.findType(type);
+    public String[] findTypeByName(String type) {
+        return cUnitWorker.findTypeByName(type);
+    }
+
+    public String findTypeByOwner(String owner) {
+        for (Entry<String, Set<String> e: hijackedTypes.entrySet()) {
+            if (e.getValue().contains(owner)) {
+                return findTypeByName(e.getKey());
+            }
+        }
+        String typename = spiedVars.get(owner);
+        if (typename != null)
+            return findTypeByName(typename);
+        typename = vars.get(owner);
+        if (typename != null)
+            return findTypeByName(typename);
+        WoodLog.attach("Found no type for owner ["+owner+"]");
+        return null;
     }
 
     private List<Deque<CallDash>> toStacks(CallGraph graph) {

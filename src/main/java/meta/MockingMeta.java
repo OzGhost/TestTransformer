@@ -31,8 +31,9 @@ public class MockingMeta implements Iterable<Entry<String, SubjectMeta>> {
         subjectMetas.put(entry.getKey(), entry.getValue());
     }
 
-    public void mergeSubjectMeta(String subjectName, SubjectMeta meta) {
+    public void mergeSubjectMeta(String subjectName, String pkg, SubjectMeta meta) {
         SubjectMeta storedMeta = subjectMetas.get(subjectName);
+        meta.setPkg(pkg);
         if (storedMeta == null) {
             subjectMetas.put(subjectName, meta);
         } else {

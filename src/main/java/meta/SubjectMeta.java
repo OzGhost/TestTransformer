@@ -4,10 +4,20 @@ import java.util.*;
 import java.util.Map.Entry;
 
 public class SubjectMeta implements Iterable<Entry<String, List<CallMeta>>> {
+
     private Map<String, List<CallMeta>> methodMetas = new HashMap<>();
+    private String pkg = "";
 
     public Map<String, List<CallMeta>> getMethodMetas() {
         return methodMetas;
+    }
+
+    public String getPkg() {
+        return pkg;
+    }
+
+    public void setPkg(String p) {
+        pkg = p;
     }
 
     public List<CallMeta> getByMethodName(String methodName) {
@@ -28,6 +38,9 @@ public class SubjectMeta implements Iterable<Entry<String, List<CallMeta>>> {
             } else {
                 storedMetas.addAll(e.getValue());
             }
+        }
+        if (pkg != null && outmeta.pkg != null) {
+            pkg = outmeta.pkg;
         }
     }
 

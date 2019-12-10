@@ -340,25 +340,19 @@ public class MethodWorker {
         return cooked.typeInPool(type);
     }
 
+    /**
+     * Don't pass type with package in
+     */
     public String[] findType(String subject) {
-        VarPiece v = cooked.find(subject);
-        //if (v == null)
-            //v = declared.find(subject);
-        if (v == null) {
-            char fc = subject.charAt(0);
-            if ('A' <= fc && fc <= 'Z') {
-                return classWorker.findType(subject);
-            }
+        char fc = subject.charAt(0);
+        if ('A' <= fc && fc <= 'Z') {
+            return classWorker.findTypeByName(subject);
         } else {
-            return classWorker.findType(v.getType());
+            String[] type = null;
+            if (type == null)
+                type = classWorker.findTypeByOwner(subject);
+            return type;
         }
-        WoodLog.attach(ERROR, "Cannot find type with package of [" + subject + "] !");
-        try {
-            throw new Exception("no you");
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return new String[0];
     }
 
     public String findTypeWithoutPackage(String subject) {

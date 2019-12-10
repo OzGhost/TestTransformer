@@ -22,9 +22,6 @@ public class CompilationUnitWorker {
     public CompilationUnit transform(String filePath) throws Exception {
         cUnit = StaticJavaParser.parse(new File(filePath));
 
-        DumpWorker.setUpMock(cUnit);
-        if (true) return cUnit;
-
         boolean mocked = removeImportStartsWith(cUnit, "org.mockito");
         mocked = removeImportStartsWith(cUnit, "org.powermock") || mocked;
         mocked = removeImportStartsWith(cUnit, "ch.axonivy.fintech.standard.core.mock.InvocationCounter") || mocked;
@@ -94,13 +91,13 @@ public class CompilationUnitWorker {
         }
     }
 
-    public String[] findType(String type) {
+    public String[] findTypeByName(String type) {
         String packageOfType = findPackage(type);
         if (packageOfType == null) {
             // assume no import -> same package with running class
             Optional<PackageDeclaration> pkgDecl = cUnit.getPackageDeclaration();
             if ( ! pkgDecl.isPresent()) {
-                return new String[0]; // say no more
+                return null; // say no more
             }
             packageOfType = pkgDecl.get().getName().asString();
         }

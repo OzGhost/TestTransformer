@@ -5,7 +5,10 @@ import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.Map;
+import java.util.HashMap;
 
+import reader.ReaderUtil;
 import meta.Craft;
 import meta.MockingMeta;
 import meta.SubjectMeta;
@@ -25,44 +28,46 @@ public class Caster {
 
     public Statement[] replay(MockingMeta records) {
         Set<String> fakingSubjects = new HashSet<>();
-        for (Craft c: records.toCrafts()) {
+        List<Craft> crafts = records.toCrafts();
+        for (Craft c: crafts) {
             if (c.getCallMeta().isPrivate()) {
                 fakingSubjects.add(c.getSubjectName());
             }
         }
         if ( fakingSubjects.isEmpty() ) {
-            Statement mockingReplayed = MockWorker.forWorker(worker).transform(records.toCrafts());
+            Statement mockingReplayed = MockWorker.forWorker(worker).transform(crafts);
             return new Statement[]{mockingReplayed};
         }
 
-        Set<String> fakingTypes = new HashSet<>();
+        Map<String, String> fakingTypes = new HashMap<>();
         for (String subject: fakingSubjects) {
-            String type = null;
-            if ( ! isAType(subject)) {
-                type = worker.findTypeWithoutPackage(subject);
-            } else {
-                type = subject;
-            }
+            String[] type = ReaderUtil.depart(subject);
+            if (type == null)
+                type = worker.findType(subject);
             if (type == null) {
                 WoodLog.attach("Due to type not found -> Ignore subject [" +subject+ "] !");
                 continue;
             }
-            fakingTypes.add(type);
+            if (fakingTypes.put(type[0],type[1]) != null){
+                WoodLog.attach("Encounter same name type: " + type);
+            }
         }
         MockingMeta mockMetas = new MockingMeta();
         MockingMeta fakeMetas = new MockingMeta();
         for (Entry<String, SubjectMeta> subjectEntry: records.getSubjectMetas().entrySet()) {
             boolean isFakingSubject = false;
             String subjectName = subjectEntry.getKey();
-            if (fakingTypes.contains(subjectName)) {
+            String pkg = fakingTypes.get(subjectName);
+            if (pkg != null) {
                 isFakingSubject = true;
-                fakeMetas.mergeSubjectMeta(subjectName, subjectEntry.getValue());
+                fakeMetas.mergeSubjectMeta(subjectName, pkg, subjectEntry.getValue());
             } else {
-                if ( ! isAType(subjectName) && ! isChainedCallSubject(subjectName) ) {
+                if ( ! ReaderUtil.isAType(subjectName) && ! isChainedCallSubject(subjectName) ) {
                     String subjectType = worker.findTypeWithoutPackage(subjectName);
-                    if (fakingTypes.contains(subjectType)) {
+                    pkg = fakingTypes.get(subjectType);
+                    if (pkg != null) {
                         isFakingSubject = true;
-                        fakeMetas.mergeSubjectMeta(subjectType, subjectEntry.getValue());
+                        fakeMetas.mergeSubjectMeta(subjectType, pkg, subjectEntry.getValue());
                     }
                 }
             }
@@ -83,18 +88,6 @@ public class Caster {
         return expectations.toArray(new Statement[expectations.size()]);
     }
     
-    private boolean isAType(String type) {
-        char firstChar = type.charAt(0);
-        int lastDotIndex = type.lastIndexOf('.');
-        if (lastDotIndex > 0) {
-            firstChar = type.charAt(lastDotIndex+1);
-        }
-        if ('A' <= firstChar && firstChar <= 'Z') {
-            return true;
-        }
-        return false;
-    }
-
     private boolean isChainedCallSubject(String subject) {
         return subject.contains(".") && subject.contains(")");
     }

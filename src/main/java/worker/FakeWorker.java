@@ -25,7 +25,9 @@ public class FakeWorker {
     public static List<Statement> transform(MockingMeta records) {
         List<Statement> expectations = new LinkedList<>();
         for (Entry<String, SubjectMeta> subjectEntry: records) {
-            expectations.add( rewriteClass(subjectEntry.getKey(), subjectEntry.getValue()) );
+            SubjectMeta sm = subjectEntry.getValue();
+            //WoodLog.attach("Found: " + subjectEntry.getKey() + " -> " + sm.getPkg());
+            expectations.add( rewriteClass(subjectEntry.getKey(), sm) );
         }
         return expectations;
     }

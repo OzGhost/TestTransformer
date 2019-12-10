@@ -176,5 +176,27 @@ public class ReaderUtil {
         }
         return false;
     }
+
+    public static boolean isAType(String type) {
+        char firstChar = type.charAt(0);
+        int lastDotIndex = type.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            firstChar = type.charAt(lastDotIndex+1);
+        }
+        return 'A' <= firstChar && firstChar <= 'Z';
+    }
+
+    public static String[] depart(String type) {
+        int lastDotIndex = type.lastIndexOf('.');
+        if (lastDotIndex > 0) {
+            char firstChar = type.charAt(lastDotIndex+1);
+            if ('A' <= firstChar && firstChar <= 'Z'){
+                String typename = type.substring(lastDotIndex+1);
+                String pkg = type.substring(0, lastDotIndex);
+                return new String[]{ typename, pkg };
+            }
+        }
+        return null;
+    }
 }
 
