@@ -281,8 +281,8 @@ public class ClassWorker {
         return cUnitWorker.findTypeByName(type);
     }
 
-    public String findTypeByOwner(String owner) {
-        for (Entry<String, Set<String> e: hijackedTypes.entrySet()) {
+    public String[] findTypeByOwner(String owner) {
+        for (Entry<String, Set<String>> e: hijackedTypes.entrySet()) {
             if (e.getValue().contains(owner)) {
                 return findTypeByName(e.getKey());
             }
