@@ -6,3 +6,4 @@ build
 the_input_tests
 scan_out
 wood.log
+src/test/java/cases/*TestConverted.java
