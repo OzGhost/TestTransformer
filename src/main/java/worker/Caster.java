@@ -42,7 +42,7 @@ public class Caster {
         Map<String, String> fakingTypes = new HashMap<>();
         for (String subject: fakingSubjects) {
             String[] type = ReaderUtil.depart(subject);
-            if (type == null)
+            if (type[1] == null)
                 type = worker.findType(subject);
             if (type == null) {
                 WoodLog.attach("Due to type not found -> Ignore subject [" +subject+ "] !");
@@ -57,7 +57,7 @@ public class Caster {
         for (Entry<String, SubjectMeta> subjectEntry: records.getSubjectMetas().entrySet()) {
             boolean isFakingSubject = false;
             String subjectName = subjectEntry.getKey();
-            String pkg = fakingTypes.get(subjectName);
+            String pkg = fakingTypes.get( ReaderUtil.depart(subjectName)[0] );
             if (pkg != null) {
                 isFakingSubject = true;
                 fakeMetas.mergeSubjectMeta(subjectName, pkg, subjectEntry.getValue());
@@ -76,12 +76,6 @@ public class Caster {
             }
         }
         List<Statement> expectations = FakeWorker.transform(fakeMetas);
-        /*
-        System.out.println("Mock metas");
-        System.out.println(mockMetas);
-        System.out.println("Fake metas");
-        System.out.println(fakeMetas);
-        */
 
         Statement mockReplay = MockWorker.forWorker(worker).transform(mockMetas.toCrafts());
         expectations.add( mockReplay );

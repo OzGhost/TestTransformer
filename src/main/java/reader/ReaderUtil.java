@@ -188,7 +188,7 @@ public class ReaderUtil {
 
     public static String[] depart(String type) {
         int lastDotIndex = type.lastIndexOf('.');
-        if (lastDotIndex > 0) {
+        if (lastDotIndex >= 0) {
             char firstChar = type.charAt(lastDotIndex+1);
             if ('A' <= firstChar && firstChar <= 'Z'){
                 String typename = type.substring(lastDotIndex+1);
@@ -196,7 +196,7 @@ public class ReaderUtil {
                 return new String[]{ typename, pkg };
             }
         }
-        return null;
+        return new String[]{ type, null };
     }
 }
 

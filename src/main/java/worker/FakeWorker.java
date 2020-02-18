@@ -8,6 +8,8 @@ import meta.MockingMeta;
 import meta.SubjectMeta;
 import meta.CallMeta;
 
+import storage.CodeBaseStorage;
+
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
 import com.github.javaparser.ast.expr.MarkerAnnotationExpr;
@@ -26,7 +28,6 @@ public class FakeWorker {
         List<Statement> expectations = new LinkedList<>();
         for (Entry<String, SubjectMeta> subjectEntry: records) {
             SubjectMeta sm = subjectEntry.getValue();
-            //WoodLog.attach("Found: " + subjectEntry.getKey() + " -> " + sm.getPkg());
             expectations.add( rewriteClass(subjectEntry.getKey(), sm) );
         }
         return expectations;
@@ -37,7 +38,7 @@ public class FakeWorker {
         for (Entry<String, List<CallMeta>> methodEntry: meta) {
             body.add( rewriteMethod(methodEntry.getKey(), methodEntry.getValue()) );
         }
-
+        
         ObjectCreationExpr classMockUp = new ObjectCreationExpr();
         classMockUp.setType(new ClassOrInterfaceType(null, "MockUp<"+className+">"));
         classMockUp.setAnonymousClassBody(body);

@@ -22,7 +22,7 @@ public class CodeBaseStorage {
         loader = l;
     }
 
-    public static String[][] findType(String[] type, String method, int parameterCount) {
+    public static MethodDesc findType(String[] type, String method, int parameterCount) {
         MethodDAS methodDas = packageDas.findByPackage(type[1]).findByType(type[0]);
         if (methodDas.isEmpty()) {
             String rname = type[0] + ".java";
@@ -49,8 +49,7 @@ public class CodeBaseStorage {
                 }
             }
         }
-        ParameterPack paramPack = methodDas.findByMethod(method).findByParameterCount(parameterCount);
-        return paramPack.getPack();
+        return methodDas.findByMethod(method).findByParameterCount(parameterCount);
     }
 
     private static MethodDAS scan(CompilationUnit rtype, String type) {
@@ -66,39 +65,43 @@ public class CodeBaseStorage {
             String methodName = methodDecl.getName().asString();
             int parameterCount = methodDecl.getParameters().size();
 
-            methodPieces
+            MethodDes md = methodPieces
                 .findByMethod(methodName)
-                .findByParameterCount(parameterCount)
-                .setPack( loadPack(methodDecl.getParameters(), imMap) );
+                .findByParameterCount(parameterCount);
+
+            loadDes(md, methodDecl, imMap);
         }
         return methodPieces;
     }
 
-    private static String[][] loadPack(NodeList<Parameter> params, Map<String, String> imMap) {
+    private static void loadPack(MethodDes md, MethodDeclaration methodDecl, Map<String, String> imMap) {
         int len = params.size();
-        String[][] out = new String[len][2];
+        String[][] param = new String[len][2];
         for (int i = 0; i < len; ++i) {
             Parameter p = params.get(i);
             Type pt = p.getType();
-            String type = "";
-            String im = "";
-            if (pt instanceof PrimitiveType) {
-                type = ((PrimitiveType)pt).asString();
-            } else if (pt instanceof ClassOrInterfaceType) {
-                type = ((ClassOrInterfaceType)pt).getName().asString();
-                im = imMap.get(type);
-                if (im == null) {
-                    im = "";
-                } else {
-                    im += "." + type;
-                }
-            } else {
-                WoodLog.attach(ERROR, "Found type " + pt.getClass().getCanonicalName() + " that not support yet");
-                type = "String";
-            }
-            out[i] = new String[]{type, im};
+            param[i] = getType(pt);
         }
-        return out;
+        md.setParamTypes(param);
+        // TODO
+    }
+
+    private static String[] getType(Type pt, Map<String, String> imMap) {
+        String type = "";
+        String pkg = "";
+        if (pt instanceof PrimitiveType) {
+            type = ((PrimitiveType)pt).asString();
+        } else if (pt instanceof ClassOrInterfaceType) {
+            type = ((ClassOrInterfaceType)pt).getName().asString();
+            pkg = imMap.get(type);
+            if (pkg == null) {
+                pkg = "";
+            }
+        } else {
+            WoodLog.attach(ERROR, "Found type " + pt.getClass().getCanonicalName() + " that not support yet");
+            type = "String";
+        }
+        return new String[]{ type, pkg };
     }
 
     private static interface Loader {

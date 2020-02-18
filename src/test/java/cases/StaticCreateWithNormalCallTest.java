@@ -19,7 +19,6 @@ public class StaticCreateWithNormalCallTest {
 
     @Test
     public void test_static_creation_with_normal_call() {
-        System.out.println("base test running");
         mockStatic(SampleService.class);
         SampleService service = mock(SampleService.class);
         when(SampleService.createInstance()).thenReturn(service);

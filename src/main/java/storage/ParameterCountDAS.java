@@ -1,14 +1,14 @@
 package storage;
 
-public class ParameterCountDAS extends SimpleDAS<Integer, ParameterPack> {
+public class ParameterCountDAS extends SimpleDAS<Integer, MethodDesc> {
 
-    public ParameterPack findByParameterCount(int pCount) {
+    public MethodDesc findByParameterCount(int pCount) {
         return find(pCount);
     }
 
     @Override
-    protected ParameterPack createValue() {
-        return new ParameterPack();
+    protected MethodDesc createValue() {
+        return new MethodDesc();
     }
 }
 

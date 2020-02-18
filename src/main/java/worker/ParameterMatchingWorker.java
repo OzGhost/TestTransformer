@@ -61,7 +61,8 @@ public class ParameterMatchingWorker {
                 String[] subjectType = methodWorker.findType(subject);
                 String method = craft.getMethodName();
                 if (subjectType.length == 2) {
-                    paramTypes = CodeBaseStorage.findType(subjectType, method, len);
+                    //paramTypes = CodeBaseStorage.findType(subjectType, method, len);
+                    throw new RuntimeException("Under Construction");
                 }
                 if (paramTypes.length == 0 || paramTypes[i].length != 2) {
                     output.add(new NameExpr("null"));
