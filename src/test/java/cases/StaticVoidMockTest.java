@@ -1,7 +1,8 @@
 
 package cases;
 
-import sample.*;
+import sample.SampleService;
+import sample.SampleCaller;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.Assert;

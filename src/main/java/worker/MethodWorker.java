@@ -25,8 +25,8 @@ public class MethodWorker {
             new FunctionThrowMockReader(),
             new NewInstanceMockReader(),
 
-            new PrivateStaticVoidMockReader(),
-            new PrivateStaticReturnMockReader(),
+            new IndirectStaticVoidMockReader(),
+            new IndirectStaticReturnMockReader(),
             new PrivateReturnMockReader()
             );
     private static final ImmutableList<MockingReader> VERIFY_READER = ImmutableList.of(
@@ -346,6 +346,7 @@ public class MethodWorker {
     public String[] findType(String subject) {
         char fc = subject.charAt(0);
         if ('A' <= fc && fc <= 'Z') {
+            WoodLog.attach("findType delegate to classWorker");
             return classWorker.findTypeByName(subject);
         } else {
             String[] type = null;

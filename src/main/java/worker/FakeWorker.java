@@ -55,12 +55,13 @@ public class FakeWorker {
         MethodDesc desc = CodeBaseStorage.findMethodDesc(
                 new String[]{className, pkg},
                 methodName,
-                ParameterMatchingWorker.doLeach(metas.get(0).getInput(), className, methodName).size()
+                metas.get(0).getInput().split(",").length
         );
         
         MethodDeclaration method = new MethodDeclaration();
         method.setName(new SimpleName(methodName));
         method.setAnnotations(new NodeList<>( new MarkerAnnotationExpr("Mock") ));
+
         method.setType( desc.getReturnType() );
         method.setThrownExceptions( desc.getExceptions() );
         method.setParameters( desc.getArguments() );

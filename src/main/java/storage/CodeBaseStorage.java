@@ -23,7 +23,9 @@ public class CodeBaseStorage {
     }
 
     public static MethodDesc findMethodDesc(String[] type, String method, int parameterCount) {
+        WoodLog.attach("Find with: " + type[1] + "." + type[0] + "::" + method + parameterCount);
         MethodDAS methodDas = packageDas.findByPackage(type[1]).findByType(type[0]);
+        boolean found = false;
         if (methodDas.isEmpty()) {
             String rname = type[0] + ".java";
             for (String fileName: loader.load()) {
@@ -42,12 +44,18 @@ public class CodeBaseStorage {
                     }
                     String pkg = pkgDecl.get().getName().asString();
                     if (type[1].equals(pkg)) {
+                        found = true;
                         MethodDAS methodPieces = scan(rtype, type[0]);
                         methodDas.load(methodPieces);
                         break;
+                    } else {
+                        WoodLog.attach("Found a unmatched file "+fileName+". Expect: [" + type[1] + "] but was [" + pkg + "]");
                     }
                 }
             }
+        }
+        if ( ! found) {
+            WoodLog.attach("Found no code base file for type: " + type[1] + "." + type[0]);
         }
         return methodDas.findByMethod(method).findByParameterCount(parameterCount);
     }

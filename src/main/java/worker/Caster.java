@@ -42,6 +42,7 @@ public class Caster {
         Map<String, String> fakingTypes = new HashMap<>();
         for (String subject: fakingSubjects) {
             String[] type = ReaderUtil.depart(subject);
+            WoodLog.attach("after depart: " + type[0] + " , " + type[1]);
             if (type[1] == null)
                 type = worker.findType(subject);
             if (type == null) {
@@ -49,7 +50,7 @@ public class Caster {
                 continue;
             }
             if (fakingTypes.put(type[0],type[1]) != null){
-                WoodLog.attach("Encounter same name type: " + type);
+                WoodLog.attach("Encounter same name type: " + type[0]);
             }
         }
         MockingMeta mockMetas = new MockingMeta();
@@ -76,9 +77,11 @@ public class Caster {
             }
         }
         List<Statement> expectations = FakeWorker.transform(fakeMetas);
-
-        Statement mockReplay = MockWorker.forWorker(worker).transform(mockMetas.toCrafts());
-        expectations.add( mockReplay );
+        List<Craft> mockCrafts = mockMetas.toCrafts();
+        if ( ! mockCrafts.isEmpty()) {
+            Statement mockReplay = MockWorker.forWorker(worker).transform(mockCrafts);
+            expectations.add( mockReplay );
+        }
         return expectations.toArray(new Statement[expectations.size()]);
     }
     

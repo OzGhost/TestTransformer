@@ -93,13 +93,20 @@ public class CompilationUnitWorker {
 
     public String[] findTypeByName(String type) {
         String packageOfType = findPackage(type);
+        String msg = null;
         if (packageOfType == null) {
+            msg = "Found no importation for type: " + type;
             // assume no import -> same package with running class
             Optional<PackageDeclaration> pkgDecl = cUnit.getPackageDeclaration();
             if ( ! pkgDecl.isPresent()) {
+                WoodLog.attach(msg);
                 return null; // say no more
             }
             packageOfType = pkgDecl.get().getName().asString();
+            msg += " -> assume enclosed package: " + packageOfType;
+        }
+        if (msg != null) {
+            WoodLog.attach(msg);
         }
         return new String[]{type, packageOfType};
     }

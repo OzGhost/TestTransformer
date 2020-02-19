@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import com.github.javaparser.ast.Node;
 
-public class PrivateStaticVoidMockReader extends MockingReader {
+public class IndirectStaticVoidMockReader extends MockingReader {
 
     private static final Pattern MP = Pattern.compile("doNothing\\(\\)\\.when\\((.*?).class\\s*,\\s*\"([a-zA-Z0-9_$]+)\"\\s*,?\\s*(.*)\\)");
 
@@ -20,10 +20,6 @@ public class PrivateStaticVoidMockReader extends MockingReader {
         if ( ! m.find()) {
             return new StatementPiece(UNKNOW_STM);
         }
-        /*
-        WoodLog.attach(ERROR, "Found forbidden mocking: private static void mock");
-        return new StatementPiece(UNKNOW_STM);
-        */
         String subject = m.group(1);
         String methodName = m.group(2);
         String param = m.group(3);
@@ -33,8 +29,7 @@ public class PrivateStaticVoidMockReader extends MockingReader {
         craft.setMethodName(methodName);
         CallMeta meta = new CallMeta()
             .take(param)
-            .thenGiveNothing()
-            .asPrivateCall();
+            .thenGiveNothing();
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
     }

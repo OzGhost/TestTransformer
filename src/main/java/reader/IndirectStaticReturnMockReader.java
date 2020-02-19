@@ -9,7 +9,7 @@ import java.util.regex.*;
 import com.github.javaparser.ast.*;
 import com.github.javaparser.ast.expr.*;
 
-public class PrivateStaticReturnMockReader extends MockingReader {
+public class IndirectStaticReturnMockReader extends MockingReader {
 
     private static final Pattern P = Pattern.compile("when\\(([a-zA-Z0-9_$]+)\\.class,\\s*\"([a-zA-Z0-9_$]+)\"(?:\\s*,\\s*(.+))?\\)\\.thenReturn\\((.*)\\)");
 
