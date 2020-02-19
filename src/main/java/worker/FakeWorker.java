@@ -9,6 +9,7 @@ import meta.SubjectMeta;
 import meta.CallMeta;
 
 import storage.CodeBaseStorage;
+import storage.MethodDesc;
 
 import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.ObjectCreationExpr;
@@ -36,7 +37,7 @@ public class FakeWorker {
     private static Statement rewriteClass(String className, SubjectMeta meta) {
         NodeList<BodyDeclaration<?>> body = new NodeList<>();
         for (Entry<String, List<CallMeta>> methodEntry: meta) {
-            body.add( rewriteMethod(methodEntry.getKey(), methodEntry.getValue()) );
+            body.add( rewriteMethod(className, meta.getPkg(), methodEntry.getKey(), methodEntry.getValue()) );
         }
         
         ObjectCreationExpr classMockUp = new ObjectCreationExpr();
@@ -45,14 +46,24 @@ public class FakeWorker {
         return new ExpressionStmt(classMockUp);
     }
 
-    private static BodyDeclaration<?> rewriteMethod(String methodName, List<CallMeta> metas) {
+    private static BodyDeclaration<?> rewriteMethod(String className, String pkg, String methodName, List<CallMeta> metas) {
         if (metas.size() > 1) {
             WoodLog.attach("Multiple scenario detected @@");
         }
+
+
+        MethodDesc desc = CodeBaseStorage.findMethodDesc(
+                new String[]{className, pkg},
+                methodName,
+                ParameterMatchingWorker.doLeach(metas.get(0).getInput(), className, methodName).size()
+        );
+        
         MethodDeclaration method = new MethodDeclaration();
         method.setName(new SimpleName(methodName));
         method.setAnnotations(new NodeList<>( new MarkerAnnotationExpr("Mock") ));
-        method.setType( new VoidType() );
+        method.setType( desc.getReturnType() );
+        method.setThrownExceptions( desc.getExceptions() );
+        method.setParameters( desc.getArguments() );
         return method;
     }
 }

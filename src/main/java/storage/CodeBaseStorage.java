@@ -22,7 +22,7 @@ public class CodeBaseStorage {
         loader = l;
     }
 
-    public static MethodDesc findType(String[] type, String method, int parameterCount) {
+    public static MethodDesc findMethodDesc(String[] type, String method, int parameterCount) {
         MethodDAS methodDas = packageDas.findByPackage(type[1]).findByType(type[0]);
         if (methodDas.isEmpty()) {
             String rname = type[0] + ".java";
@@ -65,7 +65,7 @@ public class CodeBaseStorage {
             String methodName = methodDecl.getName().asString();
             int parameterCount = methodDecl.getParameters().size();
 
-            MethodDes md = methodPieces
+            MethodDesc md = methodPieces
                 .findByMethod(methodName)
                 .findByParameterCount(parameterCount);
 
@@ -74,16 +74,19 @@ public class CodeBaseStorage {
         return methodPieces;
     }
 
-    private static void loadPack(MethodDes md, MethodDeclaration methodDecl, Map<String, String> imMap) {
+    private static void loadDes(MethodDesc md, MethodDeclaration methodDecl, Map<String, String> imMap) {
+        NodeList<Parameter> params = methodDecl.getParameters();
         int len = params.size();
         String[][] param = new String[len][2];
         for (int i = 0; i < len; ++i) {
             Parameter p = params.get(i);
             Type pt = p.getType();
-            param[i] = getType(pt);
+            param[i] = getType(pt, imMap);
         }
         md.setParamTypes(param);
-        // TODO
+        md.setArguments(params);
+        md.setReturnType(methodDecl.getType());
+        md.setExceptions(methodDecl.getThrownExceptions());
     }
 
     private static String[] getType(Type pt, Map<String, String> imMap) {
