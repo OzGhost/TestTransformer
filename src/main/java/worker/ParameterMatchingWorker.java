@@ -22,7 +22,8 @@ public class ParameterMatchingWorker {
         "anyBoolean()",
         "any()",
         "anyMap()",
-        "anyIterable()"
+        "anyIterable()",
+        "isNull()"
     };
     private static final String[] JMOCKIT_SIMPLE_MATCHERS = new String[]{
         "anyInt",
@@ -32,7 +33,8 @@ public class ParameterMatchingWorker {
         "anyBoolean",
         "null",
         "(java.util.Map)any",
-        "(Iterable)any"
+        "(Iterable)any",
+        "null"
     };
 
     private MethodWorker methodWorker;
