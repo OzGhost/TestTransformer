@@ -12,13 +12,45 @@ public class WoodLog {
     private static ThreadLocal<Cut> cCut = new ThreadLocal<>();
     private static Queue<Cut> cuts = new ConcurrentLinkedQueue<>();
     private static FileWriter writer;
+    private static final boolean LOOP_YELL = false;
+    private static final Map<String, Integer> counter = new HashMap<>();
 
     static {
         try {
-            writer = new FileWriter("./wood.log");
+            writer = new FileWriter("/tmp/wood.log");
         } catch(Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static void loopLog(Object caller, int line) {
+        if ( ! LOOP_YELL) {
+            return;
+        }
+        String name = "";
+        if (caller instanceof Class) {
+            name = ((Class)caller).getSimpleName();
+        } else {
+            name = caller.getClass().getSimpleName();
+        }
+        name = name + ":" + line + ":LOOP";
+        if ( ! "Normalizer:134:LOOP".equals(name)) {
+            return;
+        }
+        Integer time = counter.get(name);
+        if (time == null) {
+            counter.put(name, 1000);
+        } else {
+            time--;
+            if (time < 0) {
+                String msg = "Exceed loop limit >> " + name;
+                System.out.println(msg);
+                throw new RuntimeException();
+            } else {
+                counter.put(name, time);
+            }
+        }
+        System.out.println(name);
     }
 
     public static void reachClass(String className) {
@@ -68,7 +100,7 @@ public class WoodLog {
         synchronized(WoodLog.class) {
             try {
                 //writer.write(cut.toString());
-                System.out.println(cut.toString());
+                //System.out.println(cut.toString());
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }

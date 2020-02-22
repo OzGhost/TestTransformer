@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -20,11 +21,21 @@ import org.powermock.api.mockito.PowerMockito;
 import org.primefaces.context.RequestContext;
 
 import ch.axonivy.fintech.crdhway.CrdhwayDossier;
-import ch.axonivy.fintech.crdhway.business.AlertCockpitCheckManualUpdater;
+import ch.axonivy.fintech.crdhway.Operation;
+import ch.axonivy.fintech.crdhway.business.service.ReplacementBusinessService;
+import ch.axonivy.fintech.crdhway.businesscase.helper.CrdhwayBusinessCaseCheckHelper;
+import ch.axonivy.fintech.crdhway.cob.financingtab.equitytab.service.DifferentCollateralEquityCalculateFactory;
 import ch.axonivy.fintech.crdhway.document.CrdhwayDocumentType;
 import ch.axonivy.fintech.crdhway.document.enums.CrdhwayDefaultDocumentType;
 import ch.axonivy.fintech.crdhway.dossier.process.CrdhwayConfiguration;
 import ch.axonivy.fintech.crdhway.dossier.process.DocumentConfiguration;
+import ch.axonivy.fintech.crdhway.property.service.PropertyValueService;
+import ch.axonivy.fintech.crdhway.rulebook.affordability.service.AffordabilityCalculationService;
+import ch.axonivy.fintech.crdhway.rulebook.affordability.service.CapitalRequirementCalculationService;
+import ch.axonivy.fintech.crdhway.rulebook.loantovalueratio.service.LoanToValueRatioCalculationService;
+import ch.axonivy.fintech.crdhway.rulebook.mortgage.service.DossierMortgageService;
+import ch.axonivy.fintech.crdhway.service.CrdhwayEquityManagementService;
+import ch.axonivy.fintech.crdhway.utils.CrdhwayUtils;
 import ch.axonivy.fintech.guiframework.bean.CommonDialogBean;
 import ch.axonivy.fintech.guiframework.bean.ComponentContext;
 import ch.axonivy.fintech.guiframework.bean.GlobalVariableContext;
@@ -38,6 +49,10 @@ import ch.axonivy.fintech.guiframework.util.GlobalVariable;
 import ch.axonivy.fintech.guiframework.util.GuiFrameworkUtil;
 import ch.axonivy.fintech.guiframework.util.ManagedBeanUtil;
 import ch.axonivy.fintech.guiframework.util.UIComponentUtil;
+import ch.axonivy.fintech.mortgage.datamodel.Equity;
+import ch.axonivy.fintech.mortgage.enums.BusinessCase;
+import ch.axonivy.fintech.mortgage.exception.MortgageBusinessException;
+import ch.axonivy.fintech.standard.constants.StandardGlobalVariable;
 import ch.axonivy.fintech.standard.core.bean.EmailServerConfig;
 import ch.axonivy.fintech.standard.core.util.IvyEngineUtil;
 import ch.axonivy.fintech.standard.core.util.UserUtil;
@@ -60,7 +75,7 @@ import ch.ivyteam.ivy.security.IUser;
 import ch.ivyteam.ivy.security.SecurityManagerFactory;
 import ch.ivyteam.ivy.workflow.IWorkflowContext;
 import ch.ivyteam.ivy.workflow.IWorkflowSession;
-//import ch.ivyteam.log.Logger;
+import ch.ivyteam.log.Logger;
 
 public class CrdhwayTestPrepareUtil {
 	public static final String SESSION_USER_NAME = "admin";
@@ -84,8 +99,8 @@ public class CrdhwayTestPrepareUtil {
 		return globalVariable;
 	}
 	
-	public static ch.ivyteam.log.Logger prepareMockIvyLog() {
-		ch.ivyteam.log.Logger logger = Mockito.mock(ch.ivyteam.log.Logger.class);
+	public static Logger prepareMockIvyLog() {
+		Logger logger = Mockito.mock(Logger.class);
 		PowerMockito.when(Ivy.log()).thenReturn(logger);
 		Mockito.doNothing().when(logger).debug(Mockito.anyString());
 		Mockito.doNothing().when(logger).info(Mockito.anyString());
@@ -115,7 +130,7 @@ public class CrdhwayTestPrepareUtil {
 	public static IWorkflowSession prepareMockIvySession() {
 		IWorkflowSession session = Mockito.mock(IWorkflowSession.class);
 		PowerMockito.when(Ivy.session()).thenReturn(session);
-		when(session.getSessionUserName()).thenReturn("admin");
+		when(session.getSessionUserName()).thenReturn(SESSION_USER_NAME);
 		
 		when(session.getContentLocale()).thenReturn(Locale.ENGLISH);
 		IWorkflowContext iWorkflowContext = Mockito.mock(IWorkflowContext.class);
@@ -126,7 +141,7 @@ public class CrdhwayTestPrepareUtil {
 		ArrayList<IUser> arrayList = new ArrayList<>();
 		IUser user = Mockito.mock(IUser.class);
 		when(session.getSessionUser()).thenReturn(user);
-		when(user.getName()).thenReturn("admin");
+		when(user.getName()).thenReturn(SESSION_USER_NAME);
 		arrayList.add(user);
 		when(iSecurityContext.getUsers()).thenReturn(arrayList);
 		return session;
@@ -197,7 +212,7 @@ public class CrdhwayTestPrepareUtil {
 		PowerMockito.mockStatic(IvyEngineUtil.class);
 		EmailServerConfig mockEmailServerConfig = Mockito.mock(EmailServerConfig.class);
 		when(IvyEngineUtil.getEmailServerConfig()).thenReturn(mockEmailServerConfig);
-		when(mockEmailServerConfig.getMailAddress()).thenReturn("Server Mail");
+		when(mockEmailServerConfig.getMailAddress()).thenReturn(SERVER_MAIL);
 		return mockEmailServerConfig;
 	}
 
@@ -291,14 +306,6 @@ public class CrdhwayTestPrepareUtil {
 		return ruleParamVO;
 	}
 	
-	public static AlertCockpitCheckManualUpdater prepareMockAlertCockpitCheckManualUpdater() {
-		AlertCockpitCheckManualUpdater alertUpdater = Mockito.mock(AlertCockpitCheckManualUpdater.class);
-		PowerMockito.mockStatic(AlertCockpitCheckManualUpdater.class);
-		Mockito.when(AlertCockpitCheckManualUpdater.createInstance(Mockito.anyBoolean())).thenReturn(alertUpdater);
-		Mockito.doNothing().when(alertUpdater).execute(Mockito.any(RuleParamVO.class));
-		return alertUpdater;
-	}
-	
 	private static Set<CrdhwayDocumentType> buildDocumentTypes() {
 		List<CrdhwayDefaultDocumentType> crdhwayDefaultDocumentTypes = CrdhwayDefaultDocumentType.DEFAULT_DOCUMENT_TYPE;
 		Set<CrdhwayDocumentType> documentTypes = new LinkedHashSet<>();
@@ -306,5 +313,79 @@ public class CrdhwayTestPrepareUtil {
 			documentTypes.add(documentType.getCrdhwayDocumentType());
 		}
 		return documentTypes;
+	}
+	
+	public static void prepareMockStaticManagedBeanUtil() {
+		PowerMockito.mockStatic(ManagedBeanUtil.class);
+	}
+	
+	public static <T> void prepareMockManagedBeanUtil(Class<T> klazz, T instance) {
+		prepareMockStaticManagedBeanUtil();
+		PowerMockito.when(ManagedBeanUtil.getServiceFromPool(klazz)).thenReturn(instance);
+	}
+	
+	public static void mockDevMode(CrdhwayDossier dossier, boolean value) {
+		CrdhwayTestPrepareUtil.prepareMockGuiFrameworkUtilGetRootDataModel(dossier);
+		Mockito.when(Ivy.var().get(StandardGlobalVariable.GLOBAL_VARIABLE_IN_DEVELOPMENT_MODE)).thenReturn(String.valueOf(value));
+	}
+	
+	public static void mockGetRulebookPropertyAcquiredValidYear(int maxYearNumber){
+		PowerMockito.mockStatic(PropertyValueService.class);
+		PropertyValueService service = Mockito.mock(PropertyValueService.class);
+		PowerMockito.when(PropertyValueService.getInstance()).thenReturn(service);
+		Mockito.when(service.getPropertyAcquiredValidYear()).thenReturn(maxYearNumber);
+	}
+	
+	public static void mockIsReplacementType(boolean value){
+		PowerMockito.mockStatic(ReplacementBusinessService.class);
+		PowerMockito.when(ReplacementBusinessService.isReplacementType(Mockito.any())).thenReturn(value);
+	}
+	
+	public static void mockServiceUpdateCreditLimitAndRelateValues() throws MortgageBusinessException{
+		CapitalRequirementCalculationService capitalRequirementCalculationService = Mockito.mock(CapitalRequirementCalculationService.class);
+		PowerMockito.mockStatic(CapitalRequirementCalculationService.class);
+		PowerMockito.when(CapitalRequirementCalculationService.getInstance()).thenReturn(capitalRequirementCalculationService);
+		Mockito.doNothing().when(capitalRequirementCalculationService).calculateCapitalRequirementAndUpdateRelatedComponents(Mockito.any());
+		
+		DossierMortgageService dossierMortgageService = Mockito.mock(DossierMortgageService.class);
+		PowerMockito.mockStatic(DossierMortgageService.class);
+		PowerMockito.when(DossierMortgageService.getInstance()).thenReturn(dossierMortgageService);
+		Mockito.doNothing().when(dossierMortgageService).calculateAllDossierMortgageValue(Mockito.any());
+		
+		LoanToValueRatioCalculationService loanToValueRatioCalculationService = Mockito.mock(LoanToValueRatioCalculationService.class);
+		PowerMockito.mockStatic(LoanToValueRatioCalculationService.class);
+		PowerMockito.when(LoanToValueRatioCalculationService.getInstance()).thenReturn(loanToValueRatioCalculationService);
+		Mockito.doNothing().when(loanToValueRatioCalculationService).calculateAndUpdateLoanToValueRatioOnCockpit(Mockito.any());
+		
+		AffordabilityCalculationService affordabilityCalculationService = Mockito.mock(AffordabilityCalculationService.class);
+		PowerMockito.mockStatic(AffordabilityCalculationService.class);
+		PowerMockito.when(AffordabilityCalculationService.getInstance()).thenReturn(affordabilityCalculationService);
+		Mockito.doNothing().when(affordabilityCalculationService).calculateAffordabilityAndUpdateCockpit(Mockito.any());
+		
+		CrdhwayEquityManagementService crdhwayEquityManagementService = Mockito.mock(CrdhwayEquityManagementService.class);
+		PowerMockito.mockStatic(CrdhwayEquityManagementService.class);
+		PowerMockito.when(CrdhwayEquityManagementService.getInstance()).thenReturn(crdhwayEquityManagementService);
+		Mockito.doNothing().when(crdhwayEquityManagementService).handleAlertForEquityAtReplacementType();
+	}
+	
+	public static void mockUpdateDefaultEquity(CrdhwayDossier dossier){
+		PowerMockito.mockStatic(DifferentCollateralEquityCalculateFactory.class);
+		PowerMockito.doNothing().when(DifferentCollateralEquityCalculateFactory.class);
+		DifferentCollateralEquityCalculateFactory.updateDefaultDifferentCollateralEquity(dossier);
+	}
+	
+	public static void mockGetDefaultEquity(List<Equity> equities, Equity defaultEquity){
+		PowerMockito.mockStatic(CrdhwayUtils.class);
+		PowerMockito.when(CrdhwayUtils.getDefaultDifferentCollateralEquity(equities)).thenReturn(defaultEquity);
+	}
+	
+	public static void setBusinessCase(Operation operation, BusinessCase businessCase){
+		operation.setBusinessCases(new HashSet<>());
+		operation.getBusinessCases().add(businessCase);
+	}
+	
+	public static void mockIsRiskIncreasingBusiness(boolean value){
+		PowerMockito.mockStatic(CrdhwayBusinessCaseCheckHelper.class);
+		PowerMockito.when(CrdhwayBusinessCaseCheckHelper.isRiskIncreasingBusiness()).thenReturn(value);
 	}
 }

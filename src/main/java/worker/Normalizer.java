@@ -50,8 +50,11 @@ public class Normalizer {
                     ExpressionStmt parent = ReaderUtil.findClosestParent(n, ExpressionStmt.class);
                     BlockStmt block = ReaderUtil.findClosestParent(parent, BlockStmt.class);
                     Iterator<Statement> blockIte = block.getStatements().iterator();
-                    while(blockIte.next() != parent) {}
+                    while(blockIte.next() != parent) {
+                        WoodLog.loopLog(this, 54);
+                    }
                     while (blockIte.hasNext()) {
+                        WoodLog.loopLog(this, 55);
                         for (SimpleName rp: blockIte.next().findAll(SimpleName.class)) {
                             if (rp.asString().equals("result"))
                                 rname.add(rp);
@@ -128,21 +131,30 @@ public class Normalizer {
 
         Queue<CallDash> dashQueue = new LinkedList<>();
         Deque<CallDash> callStack = new LinkedList<>();
+        Set<String> callerSigs = new HashSet<>();
         Set<String> shifted = new HashSet<>();
         for (CallDash dash: graph.values()) {
             dashQueue.offer(dash);
             while ( ! dashQueue.isEmpty()) {
+                WoodLog.loopLog(this, 134);
                 CallDash d = dashQueue.poll();
-                //System.out.println("in " + d.getCallerSignature() + " vs: " + rawClass.getName().asString());
-                if (d.isEndDash()) continue;
+                if (d.isEndDash()) {
+                    continue;
+                }
                 callStack.push(d);
+                callerSigs.add(d.getCallerSignature());
                 for (String sig: d.getCalleeSignatures()) {
-                    CallDash calleeDash = graph.get(sig);
-                    dashQueue.offer(calleeDash);
+                    if (callerSigs.contains(sig)) {
+                        WoodLog.attach("CIRCULAR: " + sig + " "  + rawClass.getName().toString());
+                    } else {
+                        CallDash calleeDash = graph.get(sig);
+                        dashQueue.offer(calleeDash);
+                    }
                 }
             }
             int i = callStack.size() + 1;
             while ( ! callStack.isEmpty()) {
+                WoodLog.loopLog(this, 146);
                 --i;
                 CallDash d = callStack.pop();
                 String dSig = d.getCallerSignature();

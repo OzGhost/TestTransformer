@@ -17,7 +17,7 @@ import ch.ivyteam.ivy.security.ISecurityManager;
 import ch.ivyteam.ivy.security.SecurityManagerFactory;
 import ch.ivyteam.ivy.workflow.IWorkflowContext;
 import ch.ivyteam.ivy.workflow.IWorkflowSession;
-//import ch.ivyteam.log.Logger;
+import ch.ivyteam.log.Logger;
 
 public final class StandardTestPrepareUtils {
 
@@ -32,9 +32,15 @@ public final class StandardTestPrepareUtils {
 		PowerMockito.when(Ivy.var()).thenReturn(globalVariableContext);
 	}
 	
-	public static void prepareIvyLogger(){
-		ch.ivyteam.log.Logger ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class);
+	public static Logger prepareIvyLogger() {
+		Logger ivyLogger = Mockito.mock(Logger.class);
 		PowerMockito.when(Ivy.log()).thenReturn(ivyLogger);
+		return ivyLogger;
+	}
+	
+	public static void prepareIvyLoggerForDebugEnabled() {
+		Logger ivyLogger = prepareIvyLogger();
+		PowerMockito.when(ivyLogger.isDebugEnabled()).thenReturn(Boolean.TRUE);
 	}
 	
 	public static ch.axonivy.fintech.standard.log.Logger prepareMockStandardLoggerFactory() {

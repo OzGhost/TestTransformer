@@ -1,5 +1,6 @@
 package meta;
 
+import worker.WoodLog;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -59,6 +60,7 @@ public class SubjectMeta implements Iterable<Entry<String, List<CallMeta>>> {
             concatenate(ite.next(), sb);
         }
         while (ite.hasNext()) {
+            WoodLog.loopLog(this, 62);
             sb.append(',');
             concatenate(ite.next(), sb);
         }
@@ -75,6 +77,7 @@ public class SubjectMeta implements Iterable<Entry<String, List<CallMeta>>> {
             sb.append('"').append(ite.next().toString()).append('"');
         }
         while (ite.hasNext()) {
+            WoodLog.loopLog(this, 79);
             sb.append(",\"").append(ite.next().toString()).append('"');
         }
         sb.append(']');

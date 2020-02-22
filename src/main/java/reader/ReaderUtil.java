@@ -75,6 +75,7 @@ public class ReaderUtil {
         Node target = null;
         Optional<Node> on = currentNode.getParentNode();
         while (on.isPresent()) {
+            WoodLog.loopLog(ReaderUtil.class, 78);
             target = on.get();
             //System.out.println(target.getClass());
             if (target.getClass() == parentType) break;

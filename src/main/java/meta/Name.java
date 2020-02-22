@@ -19,5 +19,5 @@ public class Name {
     public static final String STATIC_INVOCATION = "STATIC_M";
     public static final String NEW_OPERATION_INVOCATION = "NEW_M";
 
-    public static final String INTERRUPT_SIGNAL = "SIGKIL";
+    public static final String INTERRUPT_SIGNAL = "SIGKILL";
 }

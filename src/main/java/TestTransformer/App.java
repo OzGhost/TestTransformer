@@ -66,7 +66,7 @@ public class App {
         LibraryImplLoader.load();
         boolean real = true;
         if ( ! real) {
-            String targetFile = "";
+            String targetFile = "/zk/g/iw/crdhway/unittest/ch/axonivy/fintech/crdhway/cob/debtortab/solvency/validator/CrdhwaySolvencyManagementValidatorTest.java";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
             String of = targetFile.substring(0, targetFile.length() - 5) + "Sub.java";
             try (FileWriter fw = new FileWriter(new File(of))) {
@@ -81,13 +81,18 @@ public class App {
         //nProcessor = 1;
         CountDownLatch endPoint = new CountDownLatch(nProcessor);
         BlockingQueue<String> q = new LinkedBlockingQueue<>();
+        Thread[] deciples = new Thread[nProcessor];
         for (int i = 0; i < nProcessor; ++i) {
-            new Thread(new UnitWorker(q, endPoint)).start();
+            deciples[i] = new Thread(new UnitWorker(q, endPoint));
+            deciples[i].start();
         }
         LineLoader.loadFile("the_input_tests", line -> {
             try {
                 q.put(line);
             } catch(Exception e) {
+                for (Thread t: deciples) {
+                    t.interrupt();
+                }
                 throw new RuntimeException(e);
             }
         });

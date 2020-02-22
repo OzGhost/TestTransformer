@@ -108,8 +108,10 @@ public class MethodWorker {
         }
         if ( ! rechecks.isEmpty()) {
             int lastVerifyStm = baseStms.length - 1;
-            while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM)
+            while (lastVerifyStm >= 0 && stmTypes[lastVerifyStm] != VERIFY_STM) {
+                WoodLog.loopLog(this, 112);
                 lastVerifyStm--;
+            }
             if (lastVerifyStm >= 0) {
                 Statement verifications = VerifyWorker.forWorker(this).transform(rechecks);
                 baseStms[lastVerifyStm].replace(verifications);
@@ -118,8 +120,10 @@ public class MethodWorker {
 
         if ( ! records.isEmpty()) {
             int lastMockStm = baseStms.length - 1;
-            while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM)
+            while (lastMockStm >= 0 && stmTypes[lastMockStm] != MOCK_STM) {
+                WoodLog.loopLog(this, 122);
                 lastMockStm--;
+            }
             if (lastMockStm >= 0) {
                 Statement[] expectations = Caster.forWorker(this).replay(records);
                 Statement pointOfRep = baseStms[lastMockStm];
@@ -128,6 +132,7 @@ public class MethodWorker {
                 NodeList<Statement> newBlockStmts = new NodeList<>();
                 Statement line = null;
                 while(lineIte.hasNext()) {
+                    WoodLog.loopLog(this, 131);
                     line = lineIte.next();
                     if (line == pointOfRep) break;
                     newBlockStmts.add(line);
@@ -140,6 +145,7 @@ public class MethodWorker {
                     }
                 }
                 while(lineIte.hasNext()) {
+                    WoodLog.loopLog(this, 143);
                     newBlockStmts.add(lineIte.next());
                 }
                 block.setStatements(newBlockStmts);
@@ -167,10 +173,14 @@ public class MethodWorker {
                             Node blockNode = ReaderUtil.findClosestParent(stmNode, BlockStmt.class);
                             List<Node> sibs = blockNode.getChildNodes();
                             int i = sibs.size() - 1;
-                            while (i >= 0 && sibs.get(i) != stmNode) --i;
+                            while (i >= 0 && sibs.get(i) != stmNode) {
+                                WoodLog.loopLog(this, 171);
+                                --i;
+                            }
                             boolean match = false;
                             Node nameNode = null;
                             while ( i > 0 && ! match) {
+                                WoodLog.loopLog(this, 174);
                                 --i;
                                 for (NameExpr name: sibs.get(i).findAll(NameExpr.class)) {
                                     if (callee.toString().equals(name.getNameAsString())) {
@@ -219,8 +229,11 @@ public class MethodWorker {
                     Statement callStm = ReaderUtil.findClosestParent(parent, ExpressionStmt.class);
                     BlockStmt callBlock = ReaderUtil.findClosestParent(parent, BlockStmt.class);
                     Iterator<Statement> line = callBlock.getStatements().iterator();
-                    while (line.next() != callStm) {}
+                    while (line.next() != callStm) {
+                        WoodLog.loopLog(this, 222);
+                    }
                     while (line.hasNext()) {
+                        WoodLog.loopLog(this, 224);
                         Statement currentLine = line.next();
                         for (SimpleName fellowName: currentLine.findAll(SimpleName.class)) {
                             if ((fellowName.getParentNode().get() instanceof NameExpr) && fellowName.asString().equals( oriName )) {
@@ -273,6 +286,7 @@ public class MethodWorker {
             }
         }
         while ( ! useless.isEmpty()) {
+            WoodLog.loopLog(this, 276);
             methodBody.remove(useless.pop());
         }
         return staticMocked;

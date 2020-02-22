@@ -1,5 +1,6 @@
 package meta;
 
+import worker.WoodLog;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -56,6 +57,7 @@ public class MockingMeta implements Iterable<Entry<String, SubjectMeta>> {
             concatenate(ite.next(), sb);
         }
         while (ite.hasNext()) {
+            WoodLog.loopLog(this, 59);
             sb.append(',');
             concatenate(ite.next(), sb);
         }

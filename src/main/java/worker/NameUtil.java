@@ -24,6 +24,7 @@ public class NameUtil {
         String output = base;
         int version = 1;
         while (usedVarName.contains(output)) {
+            WoodLog.loopLog(NameUtil.class, 27);
             version++;
             output = base + "_v" + version;
         }
@@ -51,6 +52,7 @@ public class NameUtil {
         int k = 0;
         char[] type = new char[j];
         while (j > 0) {
+            WoodLog.loopLog(NameUtil.class, 55);
             type[k++] = typeStack[--j];
         }
         char[] pkg = new char[i];

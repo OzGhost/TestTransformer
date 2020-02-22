@@ -28,12 +28,12 @@ import ch.axonivy.fintech.standard.log.BaseLogOrigin;
 import ch.axonivy.fintech.standard.log.LogOrigin;
 import ch.axonivy.fintech.standard.log.LoggerFactory;
 import ch.ivyteam.ivy.environment.Ivy;
-//import ch.ivyteam.log.Logger;
+import ch.ivyteam.log.Logger;
 
 public final class DocumentSectionTestHelper {
 
 	private static ch.axonivy.fintech.standard.log.Logger stdLogger;
-	private static ch.ivyteam.log.Logger ivyLogger;
+	private static Logger ivyLogger;
 
 	private DocumentSectionTestHelper() {
 	}
@@ -126,7 +126,7 @@ public final class DocumentSectionTestHelper {
 	}
 
 	public static void mockIgnoreLogger() {
-		ivyLogger = Mockito.mock(ch.ivyteam.log.Logger.class, invocation -> null);
+		ivyLogger = Mockito.mock(Logger.class, invocation -> null);
 		PowerMockito.mockStatic(Ivy.class);
 		PowerMockito.when(Ivy.log()).thenReturn(ivyLogger);
 
@@ -150,10 +150,15 @@ public final class DocumentSectionTestHelper {
 		PowerMockito.when(LoggerFactory.getLoggerFor(Mockito.any(), Mockito.anyString())).thenReturn(stdLogger);
 	}
 
-	public static ch.ivyteam.log.Logger getMockIvyLogger() {
+	public static Logger getMockIvyLogger() {
 		if (Objects.isNull(ivyLogger)) {
 			mockIgnoreLogger();
 		}
+		return ivyLogger;
+	}
+	
+	public static Logger getIvyLoggerWithReMock() {
+		mockIgnoreLogger();
 		return ivyLogger;
 	}
 

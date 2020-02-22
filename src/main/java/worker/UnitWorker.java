@@ -3,6 +3,7 @@ package worker;
 import static meta.Name.INTERRUPT_SIGNAL;
 import java.io.*;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
 import com.github.javaparser.ast.CompilationUnit;
 
@@ -18,63 +19,48 @@ public class UnitWorker implements Runnable {
 
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         while ( ! Thread.currentThread().isInterrupted()) {
+            WoodLog.loopLog(this, 23);
             String line = null;
             try {
-                line = q.take();
-            } catch(Exception e) {
+                line = q.poll(10, TimeUnit.SECONDS);
+            } catch(InterruptedException e) {
+                System.out.println("Thread: " + Thread.currentThread().getId() + " was take down");
+                e.printStackTrace();
                 break;
             }
             if (INTERRUPT_SIGNAL.equals(line)) {
                 break;
             }
-            //System.out.println("["+Thread.currentThread().getId()+"] Processing: " + line);
-            long start = System.currentTimeMillis();
 
             String of = toOutputPath(line);
             if (of.isEmpty()) continue;
             CompilationUnit cUnit = null;
             try {
-                //System.out.println("In: " + Thread.currentThread().getId());
                 cUnit = new CompilationUnitWorker().transform(line); 
             } catch(Throwable e) {
-                System.out.println("At line: " + line);
+                System.out.println("Falied at line: " + line);
                 e.printStackTrace();
-                break;
+                continue;
             }
             if (cUnit == null) continue;
             try (FileWriter fw = new FileWriter(new File(of))) {
                 fw.write(cUnit.toString().toCharArray());
                 fw.flush();
             } catch(Exception e) {
+                System.out.println("Failed at line: " + line);
                 e.printStackTrace();
-                break;
+                continue;
             }
-            long end = System.currentTimeMillis();
-            //System.out.println("Thread: " + Thread.currentThread().getId() + " take: " + (end - start));
         }
-        System.out.println("Thread: " + Thread.currentThread().getId() + " go down!");
+        long end = System.currentTimeMillis();
+        System.out.println("Thread: " + Thread.currentThread().getId() + " go down after "+((end-start)/1000)+" second!");
         l.countDown();
     }
 
     private String toOutputPath(String inputPath) {
-        int ui = inputPath.indexOf("unittest");
-        if (ui < 0) return "";
-        char[] ci = inputPath.toCharArray();
-        char[] oi = new char[ci.length + 1];
-        int k = 0;
-        for (int i = 0; i < ui; ++i) {
-            oi[k++] = ci[i];
-        }
-        char[] ji = "jmocktest".toCharArray();
-        for (int i = 0; i < ji.length; ++i) {
-            oi[k++] = ji[i];
-        }
-        ui += 8;
-        while (ui < ci.length) {
-            oi[k++] = ci[ui++];
-        }
-        return new String(oi);
+        return inputPath.replace("/unittest/", "/jmocktest/");
     }
 }
 

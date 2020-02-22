@@ -22,6 +22,7 @@ public class LineLoader {
         try (BufferedReader reader = new BufferedReader(new FileReader(dFile))) {
             String line = reader.readLine();
             while (line != null) {
+                WoodLog.loopLog(LineLoader.class, 25);
                 lineFeed.accept(line);
                 lines.add(line);
                 line = reader.readLine();
@@ -39,6 +40,7 @@ public class LineLoader {
         int i = len;
         int counter = 0;
         while (i >= 0 && counter < 5) {
+            WoodLog.loopLog(LineLoader.class, 41);
             if (cs[--i] == '/') {
                 counter++;
             }
@@ -47,6 +49,7 @@ public class LineLoader {
         char[] o = new char[i+1+scn.length];
         int k = i + 1;
         while (i >= 0) {
+            WoodLog.loopLog(LineLoader.class, 49);
             o[i] = cs[i];
             i--;
         }

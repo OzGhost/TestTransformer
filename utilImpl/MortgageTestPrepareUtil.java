@@ -7,6 +7,7 @@ import static org.powermock.api.mockito.PowerMockito.mockStatic;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -38,6 +39,7 @@ import ch.axonivy.fintech.guiframework.context.RequestContextMock;
 import ch.axonivy.fintech.guiframework.core.GuiFrameworkControllerConfig;
 import ch.axonivy.fintech.guiframework.enums.GuiArgument;
 import ch.axonivy.fintech.guiframework.enums.GuiLevel;
+import ch.axonivy.fintech.guiframework.eventlistener.impl.MiddleLevelJsfEventListener;
 import ch.axonivy.fintech.guiframework.exception.GuiFrameworkException;
 import ch.axonivy.fintech.guiframework.mock.SecurityManagerMock;
 import ch.axonivy.fintech.guiframework.util.GuiFrameworkUtil;
@@ -48,6 +50,7 @@ import ch.axonivy.fintech.standard.core.exception.BusinessException;
 import ch.axonivy.fintech.standard.log.BaseLogOrigin;
 import ch.axonivy.fintech.standard.log.LogOrigin;
 import ch.axonivy.fintech.standard.log.LoggerFactory;
+import ch.axonivy.fintech.standard.util.DevelopmentModeUtils;
 import ch.ivyteam.ivy.bpm.error.BpmError;
 import ch.ivyteam.ivy.bpm.error.BpmPublicErrorBuilder;
 import ch.ivyteam.ivy.cm.IContentManagementSystem;
@@ -63,7 +66,7 @@ import ch.ivyteam.ivy.security.IUser;
 import ch.ivyteam.ivy.security.SecurityManagerFactory;
 import ch.ivyteam.ivy.workflow.IWorkflowContext;
 import ch.ivyteam.ivy.workflow.IWorkflowSession;
-//import ch.ivyteam.log.Logger;
+import ch.ivyteam.log.Logger;
 
 public final class MortgageTestPrepareUtil {
 
@@ -117,8 +120,8 @@ public final class MortgageTestPrepareUtil {
 		return session;
 	}
 	
-	public static ch.ivyteam.log.Logger prepareMockIvyLog() {
-		ch.ivyteam.log.Logger logger = Mockito.mock(ch.ivyteam.log.Logger.class);
+	public static Logger prepareMockIvyLog() {
+		Logger logger = Mockito.mock(Logger.class);
 		PowerMockito.when(Ivy.log()).thenReturn(logger);
 		Mockito.doNothing().when(logger).debug(Mockito.anyString());
 		Mockito.doNothing().when(logger).info(Mockito.anyString());
@@ -176,6 +179,11 @@ public final class MortgageTestPrepareUtil {
 		return globalVariable;
 	}
 
+	public static void mockSpecificGlobalVar(String varName, String value) {
+		IGlobalVariableContext context = prepareMockIvyGlobalVariable();
+		Mockito.when(context.get(varName)).thenReturn(value);
+	}
+	
 	public static IDataCache prepareIvyDataCache() {
 		IDataCacheContext dataCacheContext = Mockito.mock(IDataCacheContext.class);
 		Mockito.when(Ivy.datacache()).thenReturn(dataCacheContext);
@@ -297,14 +305,14 @@ public final class MortgageTestPrepareUtil {
 	}
 	
 	private static Map<GuiArgument, Supplier<Object>> createMockedArgumentGetters() {
-		Map<GuiArgument, Supplier<Object>> argumentGetters = new HashMap<>();
+		EnumMap<GuiArgument, Supplier<Object>> argumentGetters = new EnumMap<>(GuiArgument.class);
 		argumentGetters.put(GuiArgument.COMPONENT_CONTEXT, ComponentContext::new);
 		return argumentGetters;
 	}
 	
 	private static Map<GuiArgument, Consumer<Object>> createMockedArgumentSetters() {
-		Map<GuiArgument, Consumer<Object>> argumentSetters = new HashMap<>();
-		argumentSetters.put(GuiArgument.DATAMODEL, dataModel -> dataModel.toString());
+		EnumMap<GuiArgument, Consumer<Object>> argumentSetters = new EnumMap<>(GuiArgument.class);
+		argumentSetters.put(GuiArgument.DATAMODEL, Object::toString);
 		return argumentSetters;
 	}
 	
@@ -348,4 +356,16 @@ public final class MortgageTestPrepareUtil {
         Mockito.when(file.getJavaFile()).thenReturn(outputFile);
         return file;
 	}
+	
+	public static void mockMiddleLevelJsfEventListener() {
+		MiddleLevelJsfEventListener eventListener = Mockito.mock(MiddleLevelJsfEventListener.class);
+		PowerMockito.mockStatic(MiddleLevelJsfEventListener.class);
+		PowerMockito.when(MiddleLevelJsfEventListener.getInstance()).thenReturn(eventListener);
+	}
+	
+	public static void mockDevelopmentMode(boolean isDevMode) {
+		PowerMockito.mockStatic(DevelopmentModeUtils.class);
+		PowerMockito.when(DevelopmentModeUtils.isInDevelopmentMode()).thenReturn(isDevMode);
+	}
+	
 }

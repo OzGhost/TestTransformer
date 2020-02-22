@@ -307,6 +307,7 @@ public class ClassWorker {
             Queue<String> tails = new LinkedList<>();
             tails.offer(rCode);
             while (!tails.isEmpty()) {
+                WoodLog.loopLog(this, 310);
                 String sig = tails.poll();
                 if (stacked.contains(sig)) {
                     continue;
