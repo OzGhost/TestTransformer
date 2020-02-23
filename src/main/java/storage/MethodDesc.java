@@ -12,6 +12,10 @@ public class MethodDesc {
     private NodeList<Parameter> arguments;
     private NodeList<ReferenceType> exceptions;
 
+    public boolean isEmpty() {
+        return returnType == null || arguments == null || exceptions == null;
+    }
+
     public Type getReturnType() {
         return returnType;
     }
@@ -42,6 +46,18 @@ public class MethodDesc {
 
     public void setExceptions(NodeList<ReferenceType> exs) {
         exceptions = exs;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.valueOf(returnType));
+        sb.append("(");
+        for (String[] p: paramTypes) {
+            sb.append(p[1]).append(' ').append(p[0]);
+        }
+        sb.append(")");
+        return sb.toString();
     }
 }
 

@@ -278,7 +278,6 @@ public class ClassWorker {
     }
 
     public String[] findTypeByName(String type) {
-        WoodLog.attach("find: delegate up to cUnit");
         return cUnitWorker.findTypeByName(type);
     }
 

@@ -50,10 +50,10 @@ public class FakeWorker {
         if (metas.size() > 1) {
             WoodLog.attach("Multiple scenario detected @@");
         }
+        String cl = NameUtil.exGenericType( className );
 
-
-        MethodDesc desc = CodeBaseStorage.findMethodDesc(
-                new String[]{className, pkg},
+        MethodDesc desc = CodeBaseStorage.i().findMethodDesc(
+                new String[]{cl, pkg},
                 methodName,
                 metas.get(0).getInput().split(",").length
         );
@@ -62,9 +62,13 @@ public class FakeWorker {
         method.setName(new SimpleName(methodName));
         method.setAnnotations(new NodeList<>( new MarkerAnnotationExpr("Mock") ));
 
-        method.setType( desc.getReturnType() );
-        method.setThrownExceptions( desc.getExceptions() );
-        method.setParameters( desc.getArguments() );
+        //System.out.println("className: " + cl + ":" + methodName);
+
+        if ( ! desc.isEmpty()) {
+            method.setType( desc.getReturnType() );
+            method.setThrownExceptions( desc.getExceptions() );
+            method.setParameters( desc.getArguments() );
+        }
         return method;
     }
 }

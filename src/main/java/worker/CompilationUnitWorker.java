@@ -92,10 +92,11 @@ public class CompilationUnitWorker {
     }
 
     public String[] findTypeByName(String type) {
-        String packageOfType = findPackage(type);
+        String rType = NameUtil.exGenericType(type);
+        String packageOfType = findPackage(rType);
         String msg = null;
         if (packageOfType == null) {
-            msg = "Found no importation for type: " + type;
+            msg = "Found no importation for type: " + rType;
             // assume no import -> same package with running class
             Optional<PackageDeclaration> pkgDecl = cUnit.getPackageDeclaration();
             if ( ! pkgDecl.isPresent()) {
@@ -108,7 +109,7 @@ public class CompilationUnitWorker {
         if (msg != null) {
             WoodLog.attach(msg);
         }
-        return new String[]{type, packageOfType};
+        return new String[]{rType, packageOfType};
     }
 
     private String findPackage(String type) {

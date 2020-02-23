@@ -62,4 +62,8 @@ public class NameUtil {
         }
         return new String[]{new String(type), new String(pkg)};
     }
+
+    public static String exGenericType(String i) {
+        return i.replaceAll("<[a-zA-Z0-9_$,\\s]*>", "");
+    }
 }

@@ -14,6 +14,7 @@ public class WoodLog {
     private static FileWriter writer;
     private static final boolean LOOP_YELL = false;
     private static final Map<String, Integer> counter = new HashMap<>();
+    private static final OutputDirection OD = OutputDirection.SILENT;
 
     static {
         try {
@@ -99,8 +100,13 @@ public class WoodLog {
         cut.message = message;
         synchronized(WoodLog.class) {
             try {
-                //writer.write(cut.toString());
-                //System.out.println(cut.toString());
+                if (OD == OutputDirection.CONSOLE) {
+                    System.out.println(cut.toString());
+                } else if (OD == OutputDirection.FILE) {
+                    writer.write(cut.toString());
+                } else if (OD ==OutputDirection.SILENT) {
+                    // keep silent please
+                }
             } catch(Exception e) {
                 throw new RuntimeException(e);
             }
@@ -179,5 +185,11 @@ public class WoodLog {
                 .append(callMeta.toString())
                 .toString();
         }
+    }
+
+    private static enum OutputDirection {
+        FILE,
+        CONSOLE,
+        SILENT;
     }
 }

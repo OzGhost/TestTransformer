@@ -362,7 +362,6 @@ public class MethodWorker {
     public String[] findType(String subject) {
         char fc = subject.charAt(0);
         if ('A' <= fc && fc <= 'Z') {
-            WoodLog.attach("findType delegate to classWorker");
             return classWorker.findTypeByName(subject);
         } else {
             String[] type = null;

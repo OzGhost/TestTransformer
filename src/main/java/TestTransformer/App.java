@@ -22,8 +22,8 @@ import worker.CompilationUnitWorker;
 public class App {
 
     public static void main(String[] args) throws Exception {
-        //workLoad();
-        testLoad();
+        workLoad();
+        //testLoad();
     }
 
     private static void testLoad() throws Exception {
@@ -66,7 +66,7 @@ public class App {
         LibraryImplLoader.load();
         boolean real = true;
         if ( ! real) {
-            String targetFile = "/zk/g/iw/crdhway/unittest/ch/axonivy/fintech/crdhway/cob/debtortab/solvency/validator/CrdhwaySolvencyManagementValidatorTest.java";
+            String targetFile = "";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
             String of = targetFile.substring(0, targetFile.length() - 5) + "Sub.java";
             try (FileWriter fw = new FileWriter(new File(of))) {

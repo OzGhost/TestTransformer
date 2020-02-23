@@ -29,5 +29,13 @@ public abstract class SimpleDAS<U, T> {
         }
     }
 
+    public void merge(SimpleDAS<U, T> i) {
+        if (i == null) {
+            return;
+        }
+        for (Map.Entry<U, T> e: i.das.entrySet()) {
+            das.put(e.getKey(), e.getValue());
+        }
+    }
 }
 

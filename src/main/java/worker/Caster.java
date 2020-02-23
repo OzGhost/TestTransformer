@@ -42,7 +42,6 @@ public class Caster {
         Map<String, String> fakingTypes = new HashMap<>();
         for (String subject: fakingSubjects) {
             String[] type = ReaderUtil.depart(subject);
-            WoodLog.attach("after depart: " + type[0] + " , " + type[1]);
             if (type[1] == null)
                 type = worker.findType(subject);
             if (type == null) {
