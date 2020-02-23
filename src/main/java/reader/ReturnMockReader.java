@@ -21,12 +21,12 @@ public class ReturnMockReader extends MockingReader {
         String param = returnMp.group(3);
         String out = returnMp.group(4);
 
-        Expression outExpr = ReaderUtil.getThenReturnExpr(node);
+        NodeList<Expression> outExprs = ReaderUtil.getThenReturnExpr(node);
 
         Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(call);
-        CallMeta meta = new CallMeta(param, out, outExpr, false, false);
+        CallMeta meta = new CallMeta(param, out, outExprs, false, false);
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
     }

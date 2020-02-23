@@ -174,15 +174,10 @@ public class MethodWorker {
                         } else {
                             Node blockNode = ReaderUtil.findClosestParent(stmNode, BlockStmt.class);
                             List<Node> sibs = blockNode.getChildNodes();
-                            int i = sibs.size() - 1;
-                            while (i >= 0 && sibs.get(i) != stmNode) {
-                                WoodLog.loopLog(this, 171);
-                                --i;
-                            }
+                            int i = sibs.lastIndexOf(stmNode);
                             boolean match = false;
                             Node nameNode = null;
                             while ( i > 0 && ! match) {
-                                WoodLog.loopLog(this, 174);
                                 --i;
                                 for (NameExpr name: sibs.get(i).findAll(NameExpr.class)) {
                                     if (callee.toString().equals(name.getNameAsString())) {
@@ -191,12 +186,13 @@ public class MethodWorker {
                                         break;
                                     }
                                 }
+                                if (match) break;
                             }
-                            if ( i < 0) {
-                                WoodLog.attach(WARNING, "Found no ic instance setup for: " + assertStm);
-                            } else {
+                            if (match) {
                                 nameNode.replace(new NameExpr("times("+time+")"));
                                 stmNode.remove();
+                            } else {
+                                WoodLog.attach(WARNING, "Found no ic instance setup for: " + assertStm);
                             }
                         }
                     }

@@ -25,12 +25,12 @@ public class IndirectStaticReturnMockReader extends MockingReader {
         param = param == null ? "" : param;
         String out = mp.group(4);
 
-        Expression outExpr = ReaderUtil.getThenReturnExpr(node);
+        NodeList<Expression> outExprs = ReaderUtil.getThenReturnExpr(node);
 
         Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(methodName);
-        CallMeta meta = new CallMeta(param, out, outExpr, false, false).asPrivateCall();
+        CallMeta meta = new CallMeta(param, out, outExprs, false, false);
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
     }

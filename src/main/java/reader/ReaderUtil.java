@@ -34,29 +34,26 @@ public class ReaderUtil {
         throw new UnsupportedOperationException();
     }
 
-    public static Expression getThenReturnExpr(Node inputNode) {
-        return getFirstArgumentExpr(inputNode, "thenReturn");
+    public static NodeList<Expression> getThenReturnExpr(Node inputNode) {
+        return getArgsOf(inputNode, "thenReturn");
     }
 
-    public static Expression getDoReturnExpr(Node inputNode) {
-        return getFirstArgumentExpr(inputNode, "doReturn");
+    public static NodeList<Expression> getDoReturnExpr(Node inputNode) {
+        return getArgsOf(inputNode, "doReturn");
     }
 
-    private static Expression getFirstArgumentExpr(Node inputNode, String methodName) {
+    private static NodeList<Expression> getArgsOf(Node inputNode, String methodName) {
         for (MethodCallExpr m: inputNode.findAll(MethodCallExpr.class)) {
             if (methodName.equals(m.getName().asString())) {
-                NodeList<Expression> args = m.getArguments();
-                if (args.size() == 1) {
-                    return args.get(0);
-                }
+                return m.getArguments();
             }
         }
         WoodLog.attach(WARNING, "Found no '"+methodName+"' phase in: "+inputNode.toString());
         return null;
     }
 
-    public static Expression getThenThrowExpr(Node inputNode) {
-        return getFirstArgumentExpr(inputNode, "thenThrow");
+    public static NodeList<Expression> getThenThrowExpr(Node inputNode) {
+        return getArgsOf(inputNode, "thenThrow");
     }
 
     public static int getICExpectedTimes(String stm) {

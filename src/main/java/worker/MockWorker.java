@@ -46,10 +46,20 @@ public class MockWorker {
             // have no result phase
             return new Statement[]{actionReplay};
         } else {
-            AssignExpr outExpr = new AssignExpr(new NameExpr("result"), cm.getOutputExpression(), AssignExpr.Operator.ASSIGN);
-            Statement outputRelay = new ExpressionStmt(outExpr);
-            return new Statement[]{actionReplay, outputRelay};
+            Statement[] o = relayOutputs(cm.getOutputExprs());
+            o[0] = actionReplay;
+            return o;
         }
+    }
+
+    private Statement[] relayOutputs(NodeList<Expression> exprs) {
+        Statement[] outputs = new Statement[exprs.size() + 1];
+        int index = 1;
+        for (Expression expr: exprs) {
+            AssignExpr outExpr = new AssignExpr(new NameExpr("result"), expr, AssignExpr.Operator.ASSIGN);
+            outputs[index++] = new ExpressionStmt(outExpr);
+        }
+        return outputs;
     }
 }
 

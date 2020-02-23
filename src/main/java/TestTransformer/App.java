@@ -78,7 +78,7 @@ public class App {
             return;
         }
         int nProcessor = Runtime.getRuntime().availableProcessors();
-        //nProcessor = 1;
+        nProcessor = 1;
         CountDownLatch endPoint = new CountDownLatch(nProcessor);
         BlockingQueue<String> q = new LinkedBlockingQueue<>();
         Thread[] deciples = new Thread[nProcessor];

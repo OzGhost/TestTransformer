@@ -6,6 +6,8 @@ import meta.CallMeta;
 import meta.Craft;
 import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.expr.*;
 
@@ -24,12 +26,12 @@ public class FunctionThrowMockReader extends MockingReader {
         String param = m.group(3);
         String out = m.group(4);
 
-        Expression throwExp = ReaderUtil.getThenThrowExpr(node);
+        NodeList<Expression> throwExps = ReaderUtil.getThenThrowExpr(node);
 
         Craft craft = new Craft();
         craft.setSubjectName(subject);
         craft.setMethodName(call);
-        CallMeta meta = new CallMeta().take(param).thenGive(out).asAThrow(throwExp);
+        CallMeta meta = new CallMeta().take(param).thenGive(out).asAThrow(throwExps);
         craft.setCallMeta(meta);
         return new StatementPiece(MOCK_STM).beWith(craft);
     }

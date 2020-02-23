@@ -1,6 +1,7 @@
 package meta;
 
 import worker.WoodLog;
+import com.github.javaparser.ast.NodeList;
 import com.github.javaparser.ast.expr.Expression;
 
 public class CallMeta {
@@ -17,7 +18,7 @@ public class CallMeta {
     private boolean _private;
     private String input;
     private String output;
-    private Expression outputExpr;
+    private NodeList<Expression> outputExprs;
     private String fact;
 
     public CallMeta() {
@@ -32,9 +33,9 @@ public class CallMeta {
         output = out;
     }
 
-    public CallMeta(String param, String out, Expression outExpr, boolean isRaise, boolean isVoid) {
+    public CallMeta(String param, String out, NodeList<Expression> outExprs, boolean isRaise, boolean isVoid) {
         this(param, out, isRaise, isVoid);
-        outputExpr = outExpr;
+        outputExprs = outExprs;
     }
 
     public CallMeta take(String param) {
@@ -53,15 +54,15 @@ public class CallMeta {
         return this;
     }
 
-    public CallMeta asAReturn(Expression outExp) {
+    public CallMeta asAReturn(NodeList<Expression> outExps) {
         _raise = false;
-        outputExpr = outExp;
+        outputExprs = outExps;
         return this;
     }
 
-    public CallMeta asAThrow(Expression throwExp) {
+    public CallMeta asAThrow(NodeList<Expression> throwExps) {
         _raise = true;
-        outputExpr = throwExp;
+        outputExprs = throwExps;
         return this;
     }
 
@@ -70,8 +71,8 @@ public class CallMeta {
         fact = truely;
     }
 
-    public Expression getOutputExpression() {
-        return outputExpr;
+    public NodeList<Expression> getOutputExprs() {
+        return outputExprs;
     }
 
     public boolean isVoid() {
