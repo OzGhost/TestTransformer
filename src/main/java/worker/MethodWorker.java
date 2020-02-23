@@ -1,5 +1,7 @@
 package worker;
 
+import mw.ConstantMiddleware;
+
 import static meta.Name.*;
 import meta.*;
 import reader.*;
@@ -315,7 +317,7 @@ public class MethodWorker {
     }
 
     private int checkType(Node node, Node belowNode) {
-        String nodeAsString = node.toString();
+        String nodeAsString = ConstantMiddleware.i().hijack( node.toString() );
         for (MockingReader reader: MOCK_READER) {
             StatementPiece stmp = reader.read(nodeAsString, node, belowNode);
             int stmType = stmp.getType();
