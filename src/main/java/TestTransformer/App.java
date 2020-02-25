@@ -68,6 +68,7 @@ public class App {
         if ( ! real) {
             String targetFile = "";
             CompilationUnit cUnit = new CompilationUnitWorker().transform(targetFile);
+            /*
             String of = targetFile.substring(0, targetFile.length() - 5) + "Sub.java";
             try (FileWriter fw = new FileWriter(new File(of))) {
                 fw.write(cUnit.toString().toCharArray());
@@ -75,10 +76,11 @@ public class App {
             } catch(Exception e) {
                 e.printStackTrace();
             }
+            */
             return;
         }
         int nProcessor = Runtime.getRuntime().availableProcessors();
-        nProcessor = 1;
+        //nProcessor = 1;
         CountDownLatch endPoint = new CountDownLatch(nProcessor);
         BlockingQueue<String> q = new LinkedBlockingQueue<>();
         Thread[] deciples = new Thread[nProcessor];

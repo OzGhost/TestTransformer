@@ -1,0 +1,11 @@
+spy -> 257
+doThrow(.*\?\.when([_$a-Z]\+) -> 61
+initMocks -> 51
+doNothing()\.when([_$a-Z]\+\s*, -> 50
+suppress -> 43
+when([_$a-Z]\+\..*\?thenCallRealMethod( -> 30
+doReturn(.*\?)\.when([_$a-Z]\+) -> 21
+verifyStaticCall -> 15
+verifyZeroInteractions -> 12
+doReturn(.*\?)\.when([_$a-Z]\+\.class -> 12
+doReturn(.*\?).when([_$a-Z]\+\s*,\s*\"[_$a-Z]\+\" -> 10
